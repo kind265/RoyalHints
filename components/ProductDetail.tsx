@@ -17,7 +17,6 @@ import {
   Sparkles
 } from 'lucide-react';
 import { Product, ProductVariant } from '../types';
-import { PRODUCTS } from '../constants';
 
 interface ProductDetailProps {
   product: Product;
@@ -27,6 +26,7 @@ interface ProductDetailProps {
   onToggleWishlist: (product: Product) => void;
   isWishlisted: boolean;
   onDirectCheckout: (product: Product, quantity?: number, selectedVariant?: ProductVariant) => void;
+  allProducts?: Product[];
 }
 
 const ProductDetail: React.FC<ProductDetailProps> = ({
@@ -36,7 +36,8 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
   onAddToCart,
   onToggleWishlist,
   isWishlisted,
-  onDirectCheckout
+  onDirectCheckout,
+  allProducts = []
 }) => {
   const [selectedVariant, setSelectedVariant] = useState<ProductVariant>(
     product.variants?.[0] || {
@@ -72,7 +73,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
   };
 
   // Related products in the same category
-  const relatedInStock = PRODUCTS.filter(
+  const relatedInStock = allProducts.filter(
     (p) => p.category === product.category && p.id !== product.id
   );
 
@@ -80,12 +81,12 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
     <div className="min-h-screen bg-white pt-28 pb-32">
       {/* Toast Notification */}
       {addedToast && (
-        <div className="fixed top-24 right-6 z-50 bg-[#1A1A1A] text-white px-6 py-4 rounded-[12px] shadow-2xl border border-gray-500/40 flex items-center gap-3 animate-in slide-in-from-top-4 duration-300">
-          <div className="h-8 w-8 rounded-full bg-[#FF6600] flex items-center justify-center text-white">
+        <div className="fixed top-24 right-6 z-50 bg-[#1A1A1A] text-white px-6 py-4 rounded-[12px] shadow-2xl border border-blue-500/40 flex items-center gap-3 animate-in slide-in-from-top-4 duration-300">
+          <div className="h-8 w-8 rounded-full bg-[#2563EB] flex items-center justify-center text-white">
             <Check className="h-4 w-4" />
           </div>
           <div>
-            <p className="text-xs font-black uppercase tracking-widest text-[#FF6600]">Added to Shopping Bag</p>
+            <p className="text-xs font-black uppercase tracking-widest text-[#2563EB]">Added to Shopping Bag</p>
             <p className="text-[11px] text-gray-300 font-medium">{quantity}x {product.name} ({selectedVariant.name})</p>
           </div>
         </div>
@@ -96,7 +97,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
         <div className="flex flex-wrap items-center justify-between gap-4 py-4 border-b border-gray-100">
           <button
             onClick={onBack}
-            className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-gray-500 hover:text-[#FF6600] transition-colors group"
+            className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-gray-500 hover:text-[#2563EB] transition-colors group"
           >
             <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
             Back to Catalog
@@ -105,14 +106,14 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
           <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-gray-400">
             <span>Royal Hints</span>
             <ChevronRight className="h-3 w-3" />
-            <span className="text-[#FF6600]">{product.category}</span>
+            <span className="text-[#2563EB]">{product.category}</span>
             <ChevronRight className="h-3 w-3" />
-            <span className="text-[#FF6600] truncate max-w-[200px] sm:max-w-none">{product.name}</span>
+            <span className="text-[#1A1A1A] truncate max-w-[200px] sm:max-w-none">{product.name}</span>
           </div>
 
           <div className="flex items-center gap-2">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-gray-50 text-[#FF6600] border border-gray-200">
-              <span className="h-2 w-2 rounded-full bg-gray-500 animate-pulse"></span>
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-blue-50 text-[#2563EB] border border-blue-200">
+              <span className="h-2 w-2 rounded-full bg-[#2563EB] animate-pulse"></span>
               Live Stock Verified
             </span>
           </div>
@@ -134,11 +135,11 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
               
               {/* Category & New Badge */}
               <div className="absolute top-4 left-4 flex flex-col gap-2">
-                <span className="bg-[#FF6600] text-white text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-md shadow-md">
+                <span className="bg-[#1A1A1A] text-white text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-md shadow-md">
                   {product.category}
                 </span>
                 {product.isNew && (
-                  <span className="bg-[#FF6600] text-white text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-md shadow-md">
+                  <span className="bg-[#2563EB] text-white text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-md shadow-md">
                     New Arrival
                   </span>
                 )}
@@ -148,26 +149,26 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
               <button
                 onClick={() => onToggleWishlist(product)}
                 className={`absolute top-4 right-4 p-3 rounded-full bg-white/90 backdrop-blur-md shadow-lg transition-transform hover:scale-110 active:scale-95 ${
-                  isWishlisted ? 'text-gray-500' : 'text-gray-400 hover:text-gray-500'
+                  isWishlisted ? 'text-red-500' : 'text-gray-400 hover:text-red-500'
                 }`}
               >
                 <Heart className={`h-5 w-5 ${isWishlisted ? 'fill-current' : ''}`} />
               </button>
 
               {/* Live Warehouse Badge */}
-              <div className="absolute bottom-4 left-4 right-4 bg-white/95 backdrop-blur-md p-3.5 rounded-[10px] border border-gray-100/80 shadow-md flex items-center justify-between">
+              <div className="absolute bottom-4 left-4 right-4 bg-white/95 backdrop-blur-md p-3.5 rounded-[10px] border border-blue-100/80 shadow-md flex items-center justify-between">
                 <div className="flex items-center gap-2.5">
-                  <div className="h-8 w-8 rounded-lg bg-gray-50 text-[#FF6600] flex items-center justify-center">
+                  <div className="h-8 w-8 rounded-lg bg-blue-50 text-[#2563EB] flex items-center justify-center">
                     <Box className="h-4 w-4" />
                   </div>
                   <div>
-                    <p className="text-[10px] font-black uppercase tracking-widest text-[#FF6600]">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-[#1A1A1A]">
                       {product.warehouseLocation}
                     </p>
                     <p className="text-[10px] text-gray-500 font-medium">SKU: {selectedVariant.sku}</p>
                   </div>
                 </div>
-                <span className="text-[10px] font-black uppercase tracking-widest text-[#FF6600] bg-gray-50 px-2.5 py-1 rounded">
+                <span className="text-[10px] font-black uppercase tracking-widest text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded">
                   {availableStock} Available
                 </span>
               </div>
@@ -181,7 +182,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
                     key={idx}
                     onClick={() => setActiveImage(img)}
                     className={`relative w-20 h-20 rounded-[10px] overflow-hidden border-2 transition-all shrink-0 ${
-                      activeImage === img ? 'border-[#FF6600] ring-2 ring-orange-500/20' : 'border-gray-200 opacity-70 hover:opacity-100'
+                      activeImage === img ? 'border-[#2563EB] ring-2 ring-blue-500/20' : 'border-gray-200 opacity-70 hover:opacity-100'
                     }`}
                   >
                     <img src={img} alt="Thumbnail" className="w-full h-full object-cover" />
@@ -193,18 +194,18 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
             {/* Trust Badges */}
             <div className="grid grid-cols-3 gap-4 pt-4 border-t border-gray-100">
               <div className="p-4 rounded-[12px] bg-[#F8F9FA] text-center space-y-1 border border-gray-100">
-                <Truck className="h-5 w-5 text-[#FF6600] mx-auto" />
-                <p className="text-[10px] font-black uppercase tracking-widest text-[#FF6600]">Fast Dispatch</p>
+                <Truck className="h-5 w-5 text-[#2563EB] mx-auto" />
+                <p className="text-[10px] font-black uppercase tracking-widest text-[#1A1A1A]">Fast Dispatch</p>
                 <p className="text-[9px] text-gray-500">{product.dispatchTime}</p>
               </div>
               <div className="p-4 rounded-[12px] bg-[#F8F9FA] text-center space-y-1 border border-gray-100">
-                <ShieldCheck className="h-5 w-5 text-[#FF6600] mx-auto" />
-                <p className="text-[10px] font-black uppercase tracking-widest text-[#FF6600]">Authentic Guarantee</p>
+                <ShieldCheck className="h-5 w-5 text-[#2563EB] mx-auto" />
+                <p className="text-[10px] font-black uppercase tracking-widest text-[#1A1A1A]">Authentic Guarantee</p>
                 <p className="text-[9px] text-gray-500">100% Certified Spec</p>
               </div>
               <div className="p-4 rounded-[12px] bg-[#F8F9FA] text-center space-y-1 border border-gray-100">
-                <RotateCcw className="h-5 w-5 text-[#FF6600] mx-auto" />
-                <p className="text-[10px] font-black uppercase tracking-widest text-[#FF6600]">Easy Returns</p>
+                <RotateCcw className="h-5 w-5 text-[#2563EB] mx-auto" />
+                <p className="text-[10px] font-black uppercase tracking-widest text-[#1A1A1A]">Easy Returns</p>
                 <p className="text-[9px] text-gray-500">30-Day Royal Guarantee</p>
               </div>
             </div>
@@ -216,7 +217,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
               
               {/* Category & Stock Alert */}
               <div className="flex items-center justify-between">
-                <span className="text-[11px] font-black uppercase tracking-[0.3em] text-[#FF6600]">
+                <span className="text-[11px] font-black uppercase tracking-[0.3em] text-[#2563EB]">
                   Royal Hints {product.category} Inventory
                 </span>
                 <span className="text-xs font-mono text-gray-400">
@@ -237,19 +238,19 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
                       key={i}
                       className={`h-4 w-4 ${
                         i < Math.floor(product.rating)
-                          ? 'text-[#FF6600] fill-[#FF6600]'
+                          ? 'text-[#2563EB] fill-[#2563EB]'
                           : 'text-gray-200'
                       }`}
                     />
                   ))}
                 </div>
-                <span className="text-sm font-bold text-[#FF6600]">{product.rating.toFixed(1)}</span>
+                <span className="text-sm font-bold text-[#1A1A1A]">{product.rating.toFixed(1)}</span>
                 <span className="text-xs text-gray-400 font-medium">(Verified Client Endorsements)</span>
               </div>
 
               {/* Price & Stock Overview Card */}
               <div className="bg-[#1A1A1A] text-white p-6 sm:p-8 rounded-[16px] relative overflow-hidden shadow-xl border border-white/5">
-                <div className="absolute top-0 right-0 w-48 h-48 bg-[#FF6600] opacity-15 blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
+                <div className="absolute top-0 right-0 w-48 h-48 bg-[#2563EB] opacity-15 blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
                 
                 <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 relative z-10">
                   <div>
@@ -258,18 +259,18 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
                     </span>
                     <div className="flex items-baseline gap-3">
                       <span className="text-4xl sm:text-5xl font-black tracking-tighter text-white">
-                        {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'MWK', maximumFractionDigits: 0 }).format(currentPrice)}
+                        ${currentPrice.toFixed(2)}
                       </span>
                       {selectedVariant.priceModifier ? (
-                        <span className="text-xs font-bold text-[#FF6600] uppercase tracking-widest">
-                          (Includes Variant Spec +{new Intl.NumberFormat('en-US', { style: 'currency', currency: 'MWK', maximumFractionDigits: 0 }).format(selectedVariant.priceModifier)})
+                        <span className="text-xs font-bold text-[#2563EB] uppercase tracking-widest">
+                          (Includes Variant Spec +${selectedVariant.priceModifier.toFixed(2)})
                         </span>
                       ) : null}
                     </div>
                   </div>
 
                   <div className="text-left sm:text-right">
-                    <span className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-black uppercase tracking-widest bg-gray-500/20 text-gray-200 border border-gray-500/30">
+                    <span className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-black uppercase tracking-widest bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
                       <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse"></span>
                       {availableStock > 5 ? 'In Stock & Ready' : `Only ${availableStock} Left In Stock`}
                     </span>
@@ -281,11 +282,11 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
                 <div className="mt-6 pt-6 border-t border-white/10 relative z-10">
                   <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">
                     <span>Warehouse Inventory Level</span>
-                    <span className="text-[#FF6600]">{availableStock} Available Units</span>
+                    <span className="text-[#2563EB] font-bold">{availableStock} Available Units</span>
                   </div>
                   <div className="w-full h-2 bg-white/10 rounded-full overflow-hidden">
                     <div
-                      className="h-full bg-gradient-to-r from-orange-500 to-amber-400 rounded-full transition-all duration-500"
+                      className="h-full bg-gradient-to-r from-blue-600 to-blue-400 rounded-full transition-all duration-500"
                       style={{ width: `${Math.min(100, (availableStock / 30) * 100)}%` }}
                     ></div>
                   </div>
@@ -303,7 +304,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
                 <ul className="space-y-2">
                   {product.highlights.map((h, i) => (
                     <li key={i} className="flex items-start gap-2.5 text-xs text-gray-600">
-                      <div className="h-4 w-4 rounded-full bg-gray-100 text-[#FF6600] flex items-center justify-center shrink-0 mt-0.5">
+                      <div className="h-4 w-4 rounded-full bg-blue-100 text-[#2563EB] flex items-center justify-center shrink-0 mt-0.5">
                         <Check className="h-2.5 w-2.5" />
                       </div>
                       <span>{h}</span>
@@ -315,8 +316,8 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
               {/* WHAT IS IN STOCK: Variant / Specification Selector */}
               <div className="space-y-4 pt-4 border-t border-gray-100">
                 <div className="flex justify-between items-center">
-                  <label className="text-xs font-black uppercase tracking-[0.2em] text-[#FF6600] flex items-center gap-2">
-                    <Layers className="h-4 w-4 text-[#FF6600]" />
+                  <label className="text-xs font-black uppercase tracking-[0.2em] text-[#1A1A1A] flex items-center gap-2">
+                    <Layers className="h-4 w-4 text-[#2563EB]" />
                     Select In-Stock Spec / Variant:
                   </label>
                   <span className="text-[11px] text-gray-400 font-bold">
@@ -333,25 +334,25 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
                         onClick={() => handleVariantChange(variant)}
                         className={`p-4 rounded-[12px] border text-left transition-all relative ${
                           isSelected
-                            ? 'border-[#FF6600] bg-gray-50/40 shadow-sm ring-1 ring-[#FF6600]'
+                            ? 'border-[#2563EB] bg-blue-50/40 shadow-sm ring-1 ring-[#2563EB]'
                             : 'border-gray-200 bg-gray-50/50 hover:bg-gray-100/50'
                         }`}
                       >
                         <div className="flex justify-between items-start mb-1">
-                          <span className={`text-xs font-black uppercase tracking-wide ${isSelected ? 'text-[#FF6600]' : 'text-[#FF6600]'}`}>
+                          <span className={`text-xs font-black uppercase tracking-wide ${isSelected ? 'text-[#2563EB]' : 'text-[#1A1A1A]'}`}>
                             {variant.name}
                           </span>
-                          {isSelected && <Check className="h-4 w-4 text-[#FF6600]" />}
+                          {isSelected && <Check className="h-4 w-4 text-[#2563EB]" />}
                         </div>
                         <div className="flex justify-between items-center mt-2 text-[10px]">
                           <span className="text-gray-500 font-mono">{variant.sku}</span>
-                          <span className="font-black text-[#FF6600] bg-gray-50 px-2 py-0.5 rounded">
+                          <span className="font-black text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded">
                             {variant.stock} in stock
                           </span>
                         </div>
                         {variant.priceModifier ? (
-                          <div className="text-[10px] font-bold text-[#FF6600] mt-1">
-                            +{new Intl.NumberFormat('en-US', { style: 'currency', currency: 'MWK', maximumFractionDigits: 0 }).format(variant.priceModifier)}
+                          <div className="text-[10px] font-bold text-[#2563EB] mt-1">
+                            +${variant.priceModifier.toFixed(2)}
                           </div>
                         ) : null}
                       </button>
@@ -369,17 +370,17 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
                     <button
                       onClick={() => setQuantity(Math.max(1, quantity - 1))}
                       disabled={quantity <= 1}
-                      className="h-10 w-10 flex items-center justify-center text-lg font-bold text-gray-600 hover:text-[#FF6600] disabled:opacity-30 disabled:hover:text-gray-600 transition-colors"
+                      className="h-10 w-10 flex items-center justify-center text-lg font-bold text-gray-600 hover:text-[#2563EB] disabled:opacity-30 disabled:hover:text-gray-600 transition-colors"
                     >
                       -
                     </button>
-                    <span className="w-12 text-center font-black text-sm text-[#FF6600]">
+                    <span className="w-12 text-center font-black text-sm text-[#1A1A1A]">
                       {quantity}
                     </span>
                     <button
                       onClick={() => setQuantity(Math.min(availableStock, quantity + 1))}
                       disabled={quantity >= availableStock}
-                      className="h-10 w-10 flex items-center justify-center text-lg font-bold text-gray-600 hover:text-[#FF6600] disabled:opacity-30 disabled:hover:text-gray-600 transition-colors"
+                      className="h-10 w-10 flex items-center justify-center text-lg font-bold text-gray-600 hover:text-[#2563EB] disabled:opacity-30 disabled:hover:text-gray-600 transition-colors"
                     >
                       +
                     </button>
@@ -389,19 +390,19 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
                   <button
                     onClick={handleAdd}
                     disabled={availableStock === 0}
-                    className="flex-1 bg-[#FF6600] text-white py-4 px-8 rounded-[12px] font-black text-xs uppercase tracking-[0.25em] hover:bg-[#FF6600] transition-all transform hover:-translate-y-0.5 shadow-xl shadow-orange-500/25 flex items-center justify-center gap-3 disabled:opacity-50"
+                    className="flex-1 bg-[#2563EB] text-white py-4 px-8 rounded-[12px] font-black text-xs uppercase tracking-[0.25em] hover:bg-[#1D4ED8] transition-all transform hover:-translate-y-0.5 shadow-xl shadow-blue-500/25 flex items-center justify-center gap-3 disabled:opacity-50"
                   >
                     <ShoppingBag className="h-4 w-4" />
-                    Add {quantity} to Bag • {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'MWK', maximumFractionDigits: 0 }).format(currentPrice * quantity)}
+                    Add {quantity} to Bag • ${(currentPrice * quantity).toFixed(2)}
                   </button>
 
                   {/* Buy Now / Direct Checkout */}
                   <button
                     onClick={handleBuyNow}
                     disabled={availableStock === 0}
-                    className="bg-[#FF6600] text-white py-4 px-8 rounded-[12px] font-black text-xs uppercase tracking-[0.25em] hover:bg-[#FF6600] transition-all flex items-center justify-center gap-2 shadow-lg disabled:opacity-50"
+                    className="bg-[#1A1A1A] text-white py-4 px-8 rounded-[12px] font-black text-xs uppercase tracking-[0.25em] hover:bg-black transition-all flex items-center justify-center gap-2 shadow-lg disabled:opacity-50"
                   >
-                    <Zap className="h-4 w-4 text-[#FF6600]" />
+                    <Zap className="h-4 w-4 text-[#2563EB]" />
                     Instant Checkout
                   </button>
                 </div>
@@ -410,7 +411,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
               {/* Technical Specifications Table */}
               <div className="pt-6 border-t border-gray-100 space-y-4">
                 <h4 className="text-xs font-black uppercase tracking-[0.2em] text-[#1A1A1A] flex items-center gap-2">
-                  <Sparkles className="h-4 w-4 text-[#FF6600]" />
+                  <Sparkles className="h-4 w-4 text-[#2563EB]" />
                   Detailed Product & Stock Specifications
                 </h4>
 
@@ -418,12 +419,12 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
                   {Object.entries(product.specifications).map(([key, val], idx) => (
                     <div key={idx} className="flex justify-between px-5 py-3 text-xs">
                       <span className="font-bold text-gray-500 uppercase tracking-wider">{key}</span>
-                      <span className="font-semibold text-[#FF6600] text-right max-w-[60%]">{val}</span>
+                      <span className="font-semibold text-[#1A1A1A] text-right max-w-[60%]">{val}</span>
                     </div>
                   ))}
-                  <div className="flex justify-between px-5 py-3 text-xs bg-gray-50/50">
-                    <span className="font-bold text-[#FF6600] uppercase tracking-wider">Inventory Status</span>
-                    <span className="font-black text-[#FF6600]">{availableStock} Units In-Stock & Dispatch-Ready</span>
+                  <div className="flex justify-between px-5 py-3 text-xs bg-blue-50/50">
+                    <span className="font-bold text-[#2563EB] uppercase tracking-wider">Inventory Status</span>
+                    <span className="font-black text-emerald-700">{availableStock} Units In-Stock & Dispatch-Ready</span>
                   </div>
                 </div>
               </div>
@@ -438,7 +439,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
           <div className="mt-28 pt-16 border-t border-gray-200">
             <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-12 gap-4">
               <div>
-                <span className="text-[#FF6600] font-black text-xs uppercase tracking-widest block mb-2">
+                <span className="text-[#2563EB] font-black text-xs uppercase tracking-widest block mb-2">
                   More in {product.category}
                 </span>
                 <h3 className="text-3xl font-bold text-[#1A1A1A] tracking-tight">
@@ -453,7 +454,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
                 <div
                   key={rel.id}
                   onClick={() => onSelectProduct(rel)}
-                  className="group bg-white rounded-[12px] overflow-hidden border border-gray-100 hover:border-orange-300 shadow-sm hover:shadow-xl transition-all duration-300 cursor-pointer flex flex-col"
+                  className="group bg-white rounded-[12px] overflow-hidden border border-gray-100 hover:border-blue-300 shadow-sm hover:shadow-xl transition-all duration-300 cursor-pointer flex flex-col"
                 >
                   <div className="relative aspect-[4/3] overflow-hidden bg-gray-100">
                     <img
@@ -461,10 +462,10 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
                       alt={rel.name}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     />
-                    <div className="absolute top-3 left-3 bg-[#FF6600] text-white text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded">
+                    <div className="absolute top-3 left-3 bg-[#1A1A1A] text-white text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded">
                       {rel.category}
                     </div>
-                    <div className="absolute top-3 right-3 bg-gray-50 text-[#FF6600] border border-gray-200 text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded shadow-sm">
+                    <div className="absolute top-3 right-3 bg-emerald-50 text-emerald-700 border border-emerald-200 text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded shadow-sm">
                       {rel.stockQuantity} in stock
                     </div>
                   </div>
@@ -477,22 +478,22 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
                             key={i}
                             className={`h-3 w-3 ${
                               i < Math.floor(rel.rating)
-                                ? 'text-[#FF6600] fill-[#FF6600]'
+                                ? 'text-[#2563EB] fill-[#2563EB]'
                                 : 'text-gray-200'
                             }`}
                           />
                         ))}
                         <span className="text-xs text-gray-400 ml-1">{rel.rating}</span>
                       </div>
-                      <h4 className="text-[#1A1A1A] font-bold text-base group-hover:text-[#1A1A1A] transition-colors line-clamp-2">
+                      <h4 className="text-[#1A1A1A] font-bold text-base group-hover:text-[#2563EB] transition-colors line-clamp-2">
                         {rel.name}
                       </h4>
                     </div>
 
                     <div className="pt-3 border-t border-gray-50 flex items-center justify-between">
-                      <span className="text-[#FF6600] font-black text-xl">{new Intl.NumberFormat('en-US', { style: 'currency', currency: 'MWK', maximumFractionDigits: 0 }).format(rel.price)}</span>
-                      <span className="text-[10px] font-black uppercase tracking-widest text-gray-400 group-hover:text-[#FF6600] flex items-center gap-1 transition-colors">
-                        View Stock <ChevronRight className="h-3 w-3 text-[#FF6600]" />
+                      <span className="text-[#2563EB] font-black text-xl">${(rel.price ?? 150).toFixed(2)}</span>
+                      <span className="text-[10px] font-black uppercase tracking-widest text-gray-400 group-hover:text-[#1A1A1A] flex items-center gap-1 transition-colors">
+                        View Stock <ChevronRight className="h-3 w-3 text-[#2563EB]" />
                       </span>
                     </div>
                   </div>

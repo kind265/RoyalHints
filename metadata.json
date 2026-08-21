@@ -1,6 +1,6 @@
 {
   "name": "Royal Hints",
-  "description": "An exclusive orange & white e-commerce catalog for Royal Hints focused solely on Books, Spare Parts, Fabric, and Fashion with live in-stock inventory verification.",
+  "description": "An exclusive Royal Blue & White boutique and ecosystem for Royal Hints focused on Books, Spare Parts, Fabric, and Fashion with real-time Order Tracking, Shop by Quotation, and Bespoke Sourcing concierge directly to admin.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

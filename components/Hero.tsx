@@ -1,7 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
-import { ArrowRight, Box, Sparkles } from 'lucide-react';
-import { ASSET_IMAGES } from '../constants';
+import { ArrowRight, ShoppingBag, Sparkles } from 'lucide-react';
 
 interface HeroProps {
   onNavigate: (page: any) => void;
@@ -17,78 +16,67 @@ const Hero: React.FC<HeroProps> = ({ onNavigate }) => {
   }, []);
 
   return (
-    <section className="relative h-screen min-h-[700px] flex flex-col lg:flex-row bg-[#1A1A1A] overflow-hidden">
-      {/* Ambient Orange Glow */}
-      <div className="absolute top-1/4 left-0 w-96 h-96 bg-[#FF6600]/20 rounded-full blur-[140px] pointer-events-none"></div>
+    <section className="relative min-h-[90vh] sm:min-h-screen flex items-center bg-[#1A1A1A] overflow-hidden">
+      {/* Full-bleed Background Image with Parallax */}
+      <div 
+        className="absolute inset-0 transition-transform duration-300 ease-out pointer-events-none"
+        style={{ transform: `scale(${1 + offsetY * 0.0004}) translateY(${offsetY * 0.05}px)` }}
+      >
+        <img 
+          src="https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&q=80&w=2000" 
+          alt="Royal Hints Curation" 
+          className="w-full h-full object-cover object-center brightness-[0.7] contrast-110"
+        />
+      </div>
 
-      {/* Left Column: Bold Typography */}
-      <div className="flex-1 flex flex-col justify-center px-6 md:px-12 lg:px-24 z-10 py-24">
-        <div 
-          className="transition-transform duration-100 ease-out"
-          style={{ transform: `translateY(${offsetY * 0.1}px)` }}
-        >
-          <div className="flex items-center gap-2 mb-4">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-[0.25em] bg-[#FF6600]/20 text-[#FF6600] border border-[#FF6600]/30">
-              <Sparkles className="h-3 w-3" />
-              Verified In-Stock Registry
-            </span>
-          </div>
+      {/* Multi-layered Dark Vignette and Gradient Overlay for Legibility */}
+      <div className="absolute inset-0 bg-gradient-to-r from-[#111827]/95 via-[#111827]/80 to-[#111827]/60"></div>
+      <div className="absolute inset-0 bg-gradient-to-t from-[#1A1A1A] via-transparent to-[#1A1A1A]/70"></div>
 
-          <h1 className="text-white text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-black leading-[0.92] tracking-tighter mb-8">
-            Fabric. <br />
-            <span className="text-transparent border-white" style={{ WebkitTextStroke: '1px white' }}>Books &</span> <br />
-            <span className="text-[#FF6600]">Spare Parts.</span>
+      {/* Ambient Royal Blue Glow */}
+      <div className="absolute top-1/3 left-10 w-80 sm:w-[500px] h-80 sm:h-[500px] bg-[#2563EB]/25 rounded-full blur-[140px] pointer-events-none"></div>
+
+      {/* Hero Content Container */}
+      <div className="relative z-10 w-full max-w-screen-2xl mx-auto px-6 sm:px-12 md:px-16 lg:px-24 py-28 sm:py-36">
+        <div className="max-w-3xl">
+
+          <h1 className="text-white text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-black leading-[0.95] sm:leading-[0.92] tracking-tighter mb-6 sm:mb-8 drop-shadow-lg">
+            Books. Parts. <br />
+            <span className="text-transparent" style={{ WebkitTextStroke: '1.5px rgba(255,255,255,0.9)' }}>Fabric &</span> <br />
+            <span className="text-[#3B82F6]">Fashion.</span>
           </h1>
 
-          <p className="text-gray-300 text-base md:text-lg max-w-lg mb-10 font-light leading-relaxed">
-            The exclusive royal destination for collectors, fabricators, designers, and connoisseurs. Every single item is cataloged in physical inventory, certified, and ready for swift dispatch.
+          <p className="text-gray-200 text-sm sm:text-base md:text-lg max-w-xl mb-8 sm:mb-10 font-light leading-relaxed drop-shadow-md">
+            The exclusive royal destination for collectors, fabricators, and designers. Every single item is cataloged in physical inventory, certified, and ready for swift dispatch.
           </p>
 
-          <div className="flex flex-col sm:flex-row gap-4">
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 max-w-md sm:max-w-none">
             <button 
               onClick={() => {
                 const el = document.getElementById('catalog');
                 if (el) el.scrollIntoView({ behavior: 'smooth' });
               }}
-              className="bg-[#FF6600] text-white px-10 py-5 rounded-[10px] font-black text-xs uppercase tracking-[0.25em] hover:bg-[#FF6600] transition-all transform hover:-translate-y-1 shadow-xl shadow-orange-500/25 flex items-center justify-center gap-2"
+              className="bg-[#2563EB] text-white px-8 sm:px-10 py-4 sm:py-5 rounded-[10px] font-black text-xs uppercase tracking-[0.25em] hover:bg-[#1D4ED8] transition-all transform hover:-translate-y-1 shadow-xl shadow-blue-500/30 flex items-center justify-center gap-2 active:scale-98"
             >
-              <Box className="h-4 w-4" /> View In-Stock Catalog
+              <ShoppingBag className="h-4 w-4" /> View In-Stock Catalog
             </button>
             <button 
-              onClick={() => {
-                const el = document.getElementById('collections');
-                if (el) el.scrollIntoView({ behavior: 'smooth' });
-              }}
-              className="border border-white/25 text-white px-10 py-5 rounded-[10px] font-black text-xs uppercase tracking-[0.25em] hover:bg-white/10 hover:border-white transition-all flex items-center justify-center gap-2"
+              onClick={() => onNavigate('Marketplace')}
+              className="border border-white/30 bg-white/5 backdrop-blur-md text-white px-8 sm:px-10 py-4 sm:py-5 rounded-[10px] font-black text-xs uppercase tracking-[0.25em] hover:bg-white/15 hover:border-white transition-all flex items-center justify-center gap-2 active:scale-98"
             >
-              The 4 Pillars <ArrowRight className="h-4 w-4 text-[#FF6600]" />
+              The Marketplace <ArrowRight className="h-4 w-4 text-[#60A5FA]" />
             </button>
           </div>
         </div>
       </div>
 
-      {/* Right Column: High-Res Visual Showcase */}
-      <div className="relative flex-1 h-[50vh] lg:h-full overflow-hidden">
-        <div 
-          className="absolute inset-0 transition-transform duration-300 ease-out"
-          style={{ transform: `scale(${1 + offsetY * 0.0005})` }}
-        >
-          <img 
-            src={ASSET_IMAGES.logo} 
-            alt="Royal Hints Curation" 
-            className="w-full h-full object-cover contrast-110"
-          />
-          <div className="absolute inset-0 bg-gradient-to-l from-transparent via-[#1A1A1A]/40 to-[#1A1A1A] lg:block hidden"></div>
-          <div className="absolute inset-0 bg-gradient-to-t from-[#1A1A1A] via-transparent to-transparent lg:hidden block"></div>
-        </div>
-        
-        {/* Decorative Badge */}
-        <div className="absolute bottom-12 right-12 text-white/60 text-xs tracking-[0.25em] hidden md:block font-black">
-          ROYAL HINTS • BOOKS • PARTS • FABRIC • FASHION
-        </div>
+      {/* Decorative Bottom Right Badge on Desktop */}
+      <div className="absolute bottom-8 right-8 lg:bottom-12 lg:right-12 text-white/50 text-[10px] sm:text-xs tracking-[0.3em] hidden md:block font-black backdrop-blur-sm px-4 py-2 rounded-full border border-white/10">
+        BOOKS • SPARE PARTS • FABRIC • FASHION
       </div>
     </section>
   );
 };
 
 export default Hero;
+

@@ -33,22 +33,19 @@ const Footer: React.FC = () => {
           {/* Brand Col */}
           <div className="space-y-8">
             <div className="flex items-center gap-3">
-              <div className="h-10 w-10 bg-[#FF6600] rounded-lg flex items-center justify-center shadow-lg shadow-orange-500/30">
-                <span className="text-white font-black text-lg">RH</span>
-              </div>
               <span className="text-2xl font-bold tracking-tighter text-white">Royal Hints</span>
             </div>
             <p className="text-gray-400 text-sm leading-relaxed max-w-xs">
-              Defining modern luxury and refined living through fashion, fabric, and books.
+              Curated luxury and industrial excellence across Books, Spare Parts, Fabric, and Sartorial Fashion.
             </p>
             <div className="flex gap-4">
-              <button className="h-10 w-10 rounded-full border border-white/10 flex items-center justify-center hover:bg-[#FF6600] hover:border-[#FF6600] hover:text-white transition-all shadow-sm">
+              <button className="h-10 w-10 rounded-full border border-white/10 flex items-center justify-center hover:bg-[#2563EB] hover:border-[#2563EB] hover:text-white transition-all shadow-sm">
                 <Twitter className="h-4 w-4" />
               </button>
-              <button className="h-10 w-10 rounded-full border border-white/10 flex items-center justify-center hover:bg-[#FF6600] hover:border-[#FF6600] hover:text-white transition-all shadow-sm">
+              <button className="h-10 w-10 rounded-full border border-white/10 flex items-center justify-center hover:bg-[#2563EB] hover:border-[#2563EB] hover:text-white transition-all shadow-sm">
                 <Instagram className="h-4 w-4" />
               </button>
-              <button className="h-10 w-10 rounded-full border border-white/10 flex items-center justify-center hover:bg-[#FF6600] hover:border-[#FF6600] hover:text-white transition-all shadow-sm">
+              <button className="h-10 w-10 rounded-full border border-white/10 flex items-center justify-center hover:bg-[#2563EB] hover:border-[#2563EB] hover:text-white transition-all shadow-sm">
                 <Facebook className="h-4 w-4" />
               </button>
             </div>
@@ -56,32 +53,30 @@ const Footer: React.FC = () => {
 
           {/* Links Col 1 */}
           <div>
-            <h4 className="font-bold text-sm uppercase tracking-widest mb-8 text-[#1A1A1A]">Shop</h4>
+            <h4 className="font-bold text-sm uppercase tracking-widest mb-8 text-[#2563EB]">The 4 Pillars</h4>
             <ul className="space-y-4 text-sm text-gray-400">
-              <li><a href="#" className="hover:text-white transition-colors">Fabrics</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Fashion</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Books</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Spare Parts</a></li>
-              
+              <li><a href="#catalog" className="hover:text-white transition-colors">Books</a></li>
+              <li><a href="#catalog" className="hover:text-white transition-colors">Spare Parts</a></li>
+              <li><a href="#catalog" className="hover:text-white transition-colors">Fabric</a></li>
+              <li><a href="#catalog" className="hover:text-white transition-colors">Fashion</a></li>
             </ul>
           </div>
 
           {/* Links Col 2 */}
           <div>
-            <h4 className="font-bold text-sm uppercase tracking-widest mb-8 text-[#1A1A1A]">Help</h4>
+            <h4 className="font-bold text-sm uppercase tracking-widest mb-8 text-[#2563EB]">Client Concierge</h4>
             <ul className="space-y-4 text-sm text-gray-400">
-              <li><a href="#" className="hover:text-white transition-colors">Shipping Info</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Returns & Exchanges</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Contact Support</a></li>
+              <li><a href="#" className="hover:text-white transition-colors">Stock Registry Verification</a></li>
+              <li><a href="#" className="hover:text-white transition-colors">Returns & Authenticity</a></li>
               <li><a href="#" className="hover:text-white transition-colors">Order Tracking</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">FAQs</a></li>
+              <li><a href="#" className="hover:text-white transition-colors">Support</a></li>
             </ul>
           </div>
 
           {/* Newsletter Col */}
           <div>
-            <h4 className="font-bold text-sm uppercase tracking-widest mb-8 text-[#1A1A1A]">Newsletter</h4>
-            <p className="text-gray-400 text-sm mb-6">Join the royal list for exclusive drops and private previews.</p>
+            <h4 className="font-bold text-sm uppercase tracking-widest mb-8 text-[#2563EB]">Royal Gazette</h4>
+            <p className="text-gray-400 text-sm mb-6">Join the royal registry for verified arrivals and collector bulletins.</p>
             <form className="relative" onSubmit={handleSubmit} noValidate>
               <div className="relative">
                 <input 
@@ -93,23 +88,23 @@ const Footer: React.FC = () => {
                   }}
                   placeholder="Enter email" 
                   className={`w-full bg-white/5 border rounded-[8px] px-4 py-4 text-sm focus:outline-none transition-colors ${
-                    error ? 'border-gray-500' : 'border-white/10 focus:border-[#FF6600]'
+                    error ? 'border-red-500' : 'border-white/10 focus:border-[#2563EB]'
                   }`}
                 />
                 <button 
                   type="submit" 
-                  className="absolute right-2 top-2 h-10 w-10 bg-[#FF6600] rounded-[8px] flex items-center justify-center hover:bg-[#FF6600] transition-colors shadow-md"
+                  className="absolute right-2 top-2 h-10 w-10 bg-[#2563EB] rounded-[8px] flex items-center justify-center hover:bg-[#1D4ED8] transition-colors shadow-md"
                 >
                   <Send className="h-4 w-4" />
                 </button>
               </div>
               {error && (
-                <p className="text-gray-500 text-[10px] mt-2 font-bold uppercase tracking-wider animate-in fade-in slide-in-from-top-1">
+                <p className="text-red-500 text-[10px] mt-2 font-bold uppercase tracking-wider animate-in fade-in slide-in-from-top-1">
                   {error}
                 </p>
               )}
               {success && (
-                <p className="text-[#FF6600] text-[10px] mt-2 font-bold uppercase tracking-wider animate-in fade-in slide-in-from-top-1">
+                <p className="text-[#2563EB] text-[10px] mt-2 font-bold uppercase tracking-wider animate-in fade-in slide-in-from-top-1">
                   Welcome to Royal Hints!
                 </p>
               )}
@@ -118,11 +113,10 @@ const Footer: React.FC = () => {
         </div>
 
         <div className="pt-12 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-6 text-[10px] uppercase tracking-widest text-gray-500 font-bold">
-          <p>© 2024 ROYAL HINTS INC. ALL RIGHTS RESERVED.</p>
-          <div className="flex gap-8">
+          <p>© 2026 ROYAL HINTS INC. ALL RIGHTS RESERVED.</p>
+          <div className="flex items-center gap-6 sm:gap-8">
             <a href="#" className="hover:text-white transition-colors">Privacy Policy</a>
             <a href="#" className="hover:text-white transition-colors">Terms of Service</a>
-            <a href="#" className="hover:text-white transition-colors">Accessibility</a>
           </div>
         </div>
       </div>

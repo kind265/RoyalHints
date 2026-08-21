@@ -1,222 +1,220 @@
-
 import React, { useState, useEffect } from 'react';
 import Header from './components/Header';
 import Hero from './components/Hero';
-import Collections from './components/Collections';
 import TrendingGrid from './components/TrendingGrid';
 import TheEdit from './components/TheEdit';
 import SocialProof from './components/SocialProof';
 import Footer from './components/Footer';
+import Auth from './components/Auth';
+import Dashboard from './components/Dashboard';
 import Marketplace from './components/Marketplace';
 import Checkout from './components/Checkout';
-import AdminDashboard from './components/AdminDashboard';
-import { User, BusinessPost, Review, Product } from './types';
-import { ASSET_IMAGES, TRENDING_PRODUCTS } from './constants';
+import ProductDetail from './components/ProductDetail';
+import { 
+  User, 
+  BusinessPost, 
+  Review, 
+  Product, 
+  ProductCategory, 
+  ProductVariant,
+  ShipmentTracking,
+  QuotationRequest,
+  BespokeSourcingRequest
+} from './types';
+import { 
+  INITIAL_MARKETPLACE_POSTS, 
+  TRENDING_PRODUCTS,
+  INITIAL_SHIPMENTS,
+  INITIAL_QUOTATIONS,
+  INITIAL_BESPOKE_REQUESTS
+} from './constants';
+import { apiClient } from './backend/api-client';
 
-type Page = 'Home' | 'Marketplace' | 'Checkout' | 'Admin';
+type Page = 'Home' | 'Auth' | 'Admin' | 'Dashboard' | 'Marketplace' | 'Checkout';
 
 const App: React.FC = () => {
   const [isScrolled, setIsScrolled] = useState(false);
-  const [currentPage, setCurrentPage] = useState<Page>('Home');
-  const [guestId, setGuestId] = useState<string | null>(() => localStorage.getItem('royalhints_guest_id'));
-  const [adminToken, setAdminToken] = useState<string | null>(() => localStorage.getItem('royalhints_admin_token'));
-  const [adminLoginView, setAdminLoginView] = useState(false);
-  const [marketplaceRefreshTick, setMarketplaceRefreshTick] = useState(0);
+  const [currentPage, setCurrentPage] = useState<Page>(() => {
+    if (typeof window !== 'undefined') {
+      const path = window.location.pathname.toLowerCase();
+      const search = window.location.search.toLowerCase();
+      const hash = window.location.hash.toLowerCase();
+      if (path.startsWith('/admin') || search.includes('admin') || hash.includes('admin')) {
+        return 'Admin';
+      }
+      if (path.startsWith('/marketplace') || hash.includes('marketplace')) {
+        return 'Marketplace';
+      }
+      if (path.startsWith('/dashboard') || hash.includes('dashboard')) {
+        return 'Dashboard';
+      }
+      if (path.startsWith('/checkout') || hash.includes('checkout')) {
+        return 'Checkout';
+      }
+    }
+    return 'Home';
+  });
+  const [dashboardTab, setDashboardTab] = useState<string>('account');
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<ProductCategory | 'All'>('All');
+  const [user, setUser] = useState<User | null>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('royalhints_user') || localStorage.getItem('primepulse_user');
+      return saved ? JSON.parse(saved) : null;
+    }
+    return null;
+  });
+  const [cartItems, setCartItems] = useState<Product[]>(() => {
+    const saved = localStorage.getItem('royalhints_cart');
+    return saved ? JSON.parse(saved) : [];
+  });
+  const [wishlistItems, setWishlistItems] = useState<Product[]>(() => {
+    const saved = localStorage.getItem('royalhints_wishlist');
+    return saved ? JSON.parse(saved) : [];
+  });
+  
+  const [posts, setPosts] = useState<BusinessPost[]>(() => {
+    const savedPosts = localStorage.getItem('royalhints_posts');
+    return savedPosts ? JSON.parse(savedPosts) : [];
+  });
+
   const [products, setProducts] = useState<Product[]>(() => {
     const savedProducts = localStorage.getItem('royalhints_products');
-    return savedProducts ? JSON.parse(savedProducts) : TRENDING_PRODUCTS;
+    return savedProducts ? JSON.parse(savedProducts) : [];
   });
-  const [cartItems, setCartItems] = useState<Product[]>([]);
-  const [wishlistItems, setWishlistItems] = useState<Product[]>([]);
-  const [posts, setPosts] = useState<BusinessPost[]>([]);
 
-  // Handle URL-based routing
+  // Tracking, Quotations, and Bespoke Requests State
+  const [shipments, setShipments] = useState<ShipmentTracking[]>(() => {
+    const saved = localStorage.getItem('royalhints_shipments');
+    return saved ? JSON.parse(saved) : INITIAL_SHIPMENTS;
+  });
+
+  const [quotations, setQuotations] = useState<QuotationRequest[]>(() => {
+    const saved = localStorage.getItem('royalhints_quotations');
+    return saved ? JSON.parse(saved) : INITIAL_QUOTATIONS;
+  });
+
+  const [bespokeRequests, setBespokeRequests] = useState<BespokeSourcingRequest[]>(() => {
+    const saved = localStorage.getItem('royalhints_bespoke_requests');
+    return saved ? JSON.parse(saved) : INITIAL_BESPOKE_REQUESTS;
+  });
+
+  // Load from PostgreSQL Backend API on mount
   useEffect(() => {
-    const handleRouteChange = () => {
-      const path = window.location.pathname;
-      
-      if (path === '/admin' || path.startsWith('/admin')) {
-        setCurrentPage('Admin');
-        if (!adminToken) {
-          setAdminLoginView(true);
-        }
-      } else if (path === '/marketplace' || path.startsWith('/marketplace')) {
-        setCurrentPage('Marketplace');
-      } else if (path === '/checkout' || path.startsWith('/checkout')) {
-        setCurrentPage('Checkout');
-      } else {
-        setCurrentPage('Home');
-        setAdminLoginView(false);
+    const syncWithBackend = async () => {
+      try {
+        const [fetchedPosts, fetchedProducts, fetchedShipments, fetchedQuotations, fetchedBespoke] = await Promise.all([
+          apiClient.getPosts(),
+          apiClient.getProducts(),
+          apiClient.getShipments(),
+          apiClient.getQuotations(),
+          apiClient.getBespokeRequests()
+        ]);
+
+        if (Array.isArray(fetchedPosts)) setPosts(fetchedPosts);
+        if (Array.isArray(fetchedProducts)) setProducts(fetchedProducts);
+        if (fetchedShipments && fetchedShipments.length > 0) setShipments(fetchedShipments);
+        if (fetchedQuotations && fetchedQuotations.length > 0) setQuotations(fetchedQuotations);
+        if (fetchedBespoke && fetchedBespoke.length > 0) setBespokeRequests(fetchedBespoke);
+      } catch (err) {
+        console.warn('Backend sync warning (using cached state):', err);
       }
     };
 
-    handleRouteChange();
-    window.addEventListener('popstate', handleRouteChange);
-    return () => window.removeEventListener('popstate', handleRouteChange);
-  }, [adminToken]);
-
-  const loadMarketplacePosts = async () => {
-    try {
-      const response = await fetch('http://localhost:5000/api/posts');
-      if (!response.ok) return;
-
-      const data = await response.json();
-      if (!Array.isArray(data.posts)) return;
-
-      const mappedPosts: BusinessPost[] = data.posts.map((post: any) => ({
-        id: post.id,
-        userId: 'admin-royalhints',
-        userName: 'Royal Hints Admin',
-        title: post.title,
-        description: post.description,
-        image: post.image || ASSET_IMAGES.logo,
-        category: post.category,
-        timestamp: post.created_at ? new Date(post.created_at).getTime() : Date.now(),
-        reviews: [],
-      }));
-
-      setPosts(mappedPosts);
-    } catch (error) {
-      console.warn('Unable to load marketplace posts from backend:', error);
-      setPosts([]);
-    }
-  };
-
-  useEffect(() => {
-    loadMarketplacePosts();
-
-    const timer = window.setInterval(() => {
-      loadMarketplacePosts();
-    }, 15000);
-
-    return () => window.clearInterval(timer);
-  }, [marketplaceRefreshTick]);
+    syncWithBackend();
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 50);
     };
     window.addEventListener('scroll', handleScroll);
-
-    setCartItems([products[0], products[1]].filter(Boolean));
-    setWishlistItems([products[2], products[3]].filter(Boolean));
+    
+    const savedUser = localStorage.getItem('royalhints_user') || localStorage.getItem('primepulse_user');
+    if (savedUser) setUser(JSON.parse(savedUser));
 
     return () => window.removeEventListener('scroll', handleScroll);
-  }, [products]);
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem('royalhints_cart', JSON.stringify(cartItems));
+  }, [cartItems]);
+
+  useEffect(() => {
+    localStorage.setItem('royalhints_wishlist', JSON.stringify(wishlistItems));
+  }, [wishlistItems]);
+
+  useEffect(() => {
+    localStorage.setItem('royalhints_posts', JSON.stringify(posts));
+  }, [posts]);
 
   useEffect(() => {
     localStorage.setItem('royalhints_products', JSON.stringify(products));
   }, [products]);
 
   useEffect(() => {
-    if (adminToken) {
-      localStorage.setItem('royalhints_admin_token', adminToken);
-    } else {
-      localStorage.removeItem('royalhints_admin_token');
+    localStorage.setItem('royalhints_shipments', JSON.stringify(shipments));
+  }, [shipments]);
+
+  useEffect(() => {
+    localStorage.setItem('royalhints_quotations', JSON.stringify(quotations));
+  }, [quotations]);
+
+  useEffect(() => {
+    localStorage.setItem('royalhints_bespoke_requests', JSON.stringify(bespokeRequests));
+  }, [bespokeRequests]);
+
+  const handleLogin = async (u: User) => {
+    setUser(u);
+    localStorage.setItem('royalhints_user', JSON.stringify(u));
+    // Also notify PostgreSQL backend session
+    await apiClient.login(u.email);
+    setCurrentPage('Dashboard');
+    window.scrollTo(0, 0);
+  };
+
+  const handleLogout = () => {
+    setUser(null);
+    localStorage.removeItem('royalhints_user');
+    localStorage.removeItem('primepulse_user');
+    setCurrentPage('Home');
+    window.scrollTo(0, 0);
+  };
+
+  const deletePost = async (postId: string) => {
+    setPosts(prev => prev.filter(p => p.id !== postId));
+    try {
+      await apiClient.deletePost(postId);
+    } catch (e) {
+      console.error('Delete post error:', e);
     }
-  }, [adminToken]);
+  };
 
-  const loginAdmin = async (email: string, password: string) => {
-    const response = await fetch('http://localhost:5000/api/admin/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
-    });
-
-    const rawText = await response.text();
-    let data: any = {};
-
-    if (rawText) {
-      try {
-        data = JSON.parse(rawText);
-      } catch (error) {
-        throw new Error('The admin backend is not responding with valid JSON. Check that the backend is running and not blocked by a port conflict.');
-      }
+  const updatePost = async (updatedPost: BusinessPost) => {
+    setPosts(prev => prev.map(p => p.id === updatedPost.id ? updatedPost : p));
+    try {
+      await apiClient.updatePost(updatedPost.id, updatedPost);
+    } catch (e) {
+      console.error('Update post error:', e);
     }
-
-    if (!response.ok) {
-      throw new Error(data.message || 'Unable to login as admin');
-    }
-
-    setAdminToken(data.token);
-    setAdminLoginView(false);
-    return data;
   };
 
-  const ensureGuestId = () => {
-    if (guestId) return guestId;
-
-    const createdGuestId = crypto.randomUUID();
-    setGuestId(createdGuestId);
-    localStorage.setItem('royalhints_guest_id', createdGuestId);
-    return createdGuestId;
-  };
-
-  const guestUser: User = {
-    id: guestId || 'guest-customer',
-    name: 'Guest Customer',
-    email: 'guest@royalhints.com',
-    role: 'guest',
-  };
-
-  const catalogProducts: Product[] = posts.length > 0
-    ? posts.map((post) => {
-        const category = (['Books', 'Spare Parts', 'Fabric', 'Fashion'].includes(post.category) ? post.category : 'Books') as Product['category'];
-        const stockCount = Math.max(0, post.stockCount ?? 1);
-
-        return {
-          id: post.id,
-          name: post.title,
-          price: 0,
-          rating: 5,
-          category,
-          image: post.image || ASSET_IMAGES.logo,
-          isNew: true,
-          sku: `POST-${post.id}`,
-          inStock: stockCount > 0,
-          stockQuantity: stockCount,
-          stockStatus: stockCount > 0 ? 'In Stock' : 'Limited Stock',
-          warehouseLocation: 'Royal Hints Admin Stockroom',
-          dispatchTime: 'Dispatches in 24 hours',
-          description: post.description,
-          highlights: ['Live backend listing', 'Verified by Royal Hints admin', 'Ready for dispatch'],
-          specifications: {
-            Source: 'Backend Catalog',
-            Category: category,
-            Status: stockCount > 0 ? 'In Stock' : 'Limited Stock',
-          },
-          variants: [
-            {
-              id: `variant-${post.id}`,
-              name: 'Standard Stock Unit',
-              stock: stockCount,
-              sku: `POST-${post.id}`,
-            },
-          ],
-          galleryImages: [post.image || ASSET_IMAGES.logo],
-        };
-      })
-    : products;
-
-  const adminUser: User = {
-    id: 'admin-royalhints',
-    name: 'Royal Hints Admin',
-    email: 'admin@royalhints.com',
-    role: 'admin',
-  };
-
-  const addPost = (newPost: Omit<BusinessPost, 'id' | 'timestamp' | 'userId' | 'userName'>) => {
-    if (guestUser.role !== 'admin') return;
-
+  const addPost = async (newPost: Omit<BusinessPost, 'id' | 'timestamp' | 'userId' | 'userName'>) => {
+    if (!user) return;
     const post: BusinessPost = {
       ...newPost,
       id: `mp-${Date.now()}`,
-      userId: adminUser.id,
-      userName: adminUser.name,
+      userId: user.id,
+      userName: user.name,
       timestamp: Date.now(),
       reviews: [],
     };
     setPosts(prev => [post, ...prev]);
+    try {
+      await apiClient.createPost(post);
+    } catch (e) {
+      console.error('Create post error:', e);
+    }
   };
 
   const addReviewToPost = (postId: string, review: Omit<Review, 'id'>) => {
@@ -235,10 +233,20 @@ const App: React.FC = () => {
     }));
   };
 
-  const addToCart = (product: Product) => {
-    if (!cartItems.find(item => item.id === product.id)) {
-      setCartItems(prev => [...prev, product]);
-    }
+  const addToCart = (product: Product, quantity: number = 1, variant?: ProductVariant) => {
+    setCartItems(prev => {
+      const itemWithVariant = variant ? {
+        ...product,
+        price: product.price + (variant.priceModifier || 0),
+        name: `${product.name} (${variant.name})`,
+        sku: variant.sku
+      } : product;
+
+      if (!prev.find(item => item.id === itemWithVariant.id && item.sku === itemWithVariant.sku)) {
+        return [...prev, itemWithVariant];
+      }
+      return prev;
+    });
   };
 
   const removeFromCart = (id: string) => {
@@ -263,118 +271,385 @@ const App: React.FC = () => {
     setCartItems([]);
   };
 
-  const addProduct = (newProduct: Omit<Product, 'id'>) => {
-    const product: Product = {
-      ...newProduct,
-      id: `admin-${Date.now()}`,
+  // Quotation handlers
+  const handleAddQuotation = async (newQuote: Omit<QuotationRequest, 'id' | 'quoteNumber' | 'submittedAt' | 'status'>) => {
+    const num = Math.floor(100 + Math.random() * 900);
+    const quote: QuotationRequest = {
+      ...newQuote,
+      id: `quo-${Date.now()}`,
+      quoteNumber: `RH-QUO-2026-${num}`,
+      submittedAt: Date.now(),
+      status: 'Quote Ready',
+      adminQuote: {
+        unitPrice: 85.00,
+        totalAmount: (newQuote.estimatedQuantity || 1) * 85.00,
+        validityDate: 'Valid for 14 Days',
+        leadTimeDays: 5,
+        officialNotes: 'Official Royal Hints wholesale valuation confirmed. Tamper-proof packaging and expedited freight included.',
+        includesTaxShipping: true
+      }
     };
-    setProducts(prev => [product, ...prev]);
+    setQuotations([quote, ...quotations]);
+    await apiClient.submitQuotation(quote);
   };
 
-  const updateProduct = (id: string, updates: Partial<Product>) => {
-    setProducts(prev => prev.map(product => product.id === id ? { ...product, ...updates } : product));
-    setCartItems(prev => prev.map(product => product.id === id ? { ...product, ...updates } : product));
-    setWishlistItems(prev => prev.map(product => product.id === id ? { ...product, ...updates } : product));
+  const handleAcceptQuoteToCart = (quote: QuotationRequest) => {
+    const quoteProduct: Product = {
+      id: `prod-${quote.id}`,
+      name: `Quotation Order: ${quote.title}`,
+      description: `Official Quotation #${quote.quoteNumber} (${quote.estimatedQuantity} units). ${quote.specifications}`,
+      price: quote.adminQuote ? quote.adminQuote.totalAmount : 500,
+      category: (quote.category === 'Industrial & Bespoke' ? 'Spare Parts' : quote.category) as ProductCategory,
+      image: 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&q=80&w=800',
+      rating: 5.0,
+      sku: quote.quoteNumber,
+      inStock: true,
+      stockQuantity: quote.estimatedQuantity,
+      stockStatus: 'Ready to Ship',
+      warehouseLocation: 'Main Vault',
+      dispatchTime: 'Dispatches in 24 hours',
+      highlights: ['Custom manufactured', 'Full warranty coverage'],
+      specifications: {},
+      variants: []
+    };
+    addToCart(quoteProduct);
+    setQuotations(prev => prev.map(q => q.id === quote.id ? { ...q, status: 'Approved & Locked' } : q));
   };
 
-  const deleteProduct = (id: string) => {
-    setProducts(prev => prev.filter(product => product.id !== id));
-    setCartItems(prev => prev.filter(product => product.id !== id));
-    setWishlistItems(prev => prev.filter(product => product.id !== id));
+  // Bespoke Sourcing Handlers
+  const handleAddBespokeRequest = async (newReq: Omit<BespokeSourcingRequest, 'id' | 'referenceNumber' | 'submittedAt' | 'status' | 'adminRecipient'>) => {
+    const ref = Math.floor(1000 + Math.random() * 9000);
+    const req: BespokeSourcingRequest = {
+      ...newReq,
+      id: `bespoke-${Date.now()}`,
+      referenceNumber: `RH-REQ-${ref}`,
+      submittedAt: Date.now(),
+      status: 'Received by Admin',
+      adminRecipient: 'admin@royalhints.com',
+      adminResponse: {
+        assignedSpecialist: 'Elena Rostova (Lead Curator)',
+        responseDate: 'Just now',
+        adminMessage: 'Your bespoke sourcing dossier has been received at the central desk. We have initiated a scan across our Geneva, Milan, and London vault partners.',
+        directOfferPrice: 3400,
+        networkLocationFound: 'Geneva Central Vault #4'
+      }
+    };
+    setBespokeRequests([req, ...bespokeRequests]);
+    await apiClient.submitBespokeRequest(req);
   };
 
-  const navigateTo = (page: Page) => {
+  const handleAcceptBespokeOfferToCart = (req: BespokeSourcingRequest) => {
+    const bespokeProduct: Product = {
+      id: `prod-${req.id}`,
+      name: `Bespoke Sourced: ${req.itemName}`,
+      description: `Bespoke Concierge item (${req.category}) sourced directly via Admin Desk #${req.referenceNumber}. Condition: ${req.conditionPreference}.`,
+      price: req.adminResponse?.directOfferPrice || 3400,
+      category: (req.category === 'Industrial & Bespoke' || req.category === 'Rare Collectible' ? 'Spare Parts' : req.category) as ProductCategory,
+      image: req.referenceLinkOrImageUrl || 'https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&q=80&w=800',
+      rating: 5.0,
+      sku: req.referenceNumber,
+      inStock: true,
+      stockQuantity: 1,
+      stockStatus: 'In Stock',
+      warehouseLocation: 'Geneva Central Vault #4',
+      dispatchTime: 'Hand-inspected before dispatch',
+      highlights: ['Authenticity guaranteed', 'Vault archived'],
+      specifications: {},
+      variants: []
+    };
+    addToCart(bespokeProduct);
+  };
+
+  // Listen for browser popstate and URL changes
+  useEffect(() => {
+    const handleLocationChange = () => {
+      const path = window.location.pathname.toLowerCase();
+      const search = window.location.search.toLowerCase();
+      const hash = window.location.hash.toLowerCase();
+      if (path.startsWith('/admin') || search.includes('admin') || hash.includes('admin')) {
+        setCurrentPage('Admin');
+      } else if (path.startsWith('/marketplace') || hash.includes('marketplace')) {
+        setCurrentPage('Marketplace');
+      } else if (path.startsWith('/dashboard') || hash.includes('dashboard')) {
+        setCurrentPage('Dashboard');
+      } else if (path.startsWith('/checkout') || hash.includes('checkout')) {
+        setCurrentPage('Checkout');
+      } else {
+        setCurrentPage('Home');
+      }
+    };
+
+    window.addEventListener('popstate', handleLocationChange);
+    return () => window.removeEventListener('popstate', handleLocationChange);
+  }, []);
+
+  // Order Placement & Automated Shipment Creation in PostgreSQL + Buyer Auto-Activation
+  const handleOrderPlaced = async (orderData: { 
+    orderId: string; 
+    trackingNumber: string; 
+    items: Product[]; 
+    shippingAddress: string;
+    buyerUser?: User;
+  }) => {
+    // 1. Auto-activate buyer user session with unique ID as username
+    if (orderData.buyerUser) {
+      setUser(orderData.buyerUser);
+      localStorage.setItem('royalhints_user', JSON.stringify(orderData.buyerUser));
+      apiClient.login(orderData.buyerUser.email).catch(() => {});
+    }
+
+    const formattedDate = new Date().toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+    const newShipment: ShipmentTracking = {
+      id: `ship-${Date.now()}`,
+      trackingNumber: orderData.trackingNumber,
+      orderId: orderData.orderId,
+      status: 'In Transit',
+      carrier: 'Royal Hints Express Logistics',
+      serviceType: 'Armored Diplomatic Transit',
+      origin: 'London Central Vault (UK)',
+      destination: orderData.shippingAddress,
+      dispatchedDate: formattedDate,
+      orderDate: formattedDate,
+      estimatedDelivery: 'Tomorrow, 14:00 CAT',
+      paymentMethod: 'Verified Card / Wire Escrow',
+      deliveryConfirmedByCustomer: false,
+      items: orderData.items.map((it) => ({
+        name: it.name,
+        category: it.category,
+        quantity: 1,
+        image: it.image,
+        price: it.price
+      })),
+      checkpoints: [
+        {
+          id: `cp-1`,
+          title: 'Order Placed & Escrow Funded',
+          location: orderData.shippingAddress,
+          timestamp: `${formattedDate} • Confirmed`,
+          completed: true,
+          isCurrent: true
+        }
+      ]
+    };
+    setShipments([newShipment, ...shipments]);
+    await apiClient.createShipment(newShipment);
+  };
+
+  // Delivery confirmation handler when customer presses "Confirm Product Received"
+  const handleConfirmDelivery = async (trackingNumber: string) => {
+    const formattedDate = new Date().toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+    setShipments(prev => prev.map(s => {
+      if (s.trackingNumber === trackingNumber) {
+        return {
+          ...s,
+          status: 'Delivered',
+          deliveryConfirmedByCustomer: true,
+          deliveryConfirmedAt: formattedDate,
+          estimatedDelivery: `Delivered & Confirmed on ${formattedDate}`
+        };
+      }
+      return s;
+    }));
+    await apiClient.confirmDelivery(trackingNumber);
+  };
+
+  const navigateTo = (page: Page, tab?: string) => {
+    setSelectedProduct(null);
     setCurrentPage(page);
-    
-    // Update URL based on page
-    const pathMap: Record<Page, string> = {
-      'Home': '/',
-      'Marketplace': '/marketplace',
-      'Checkout': '/checkout',
-      'Admin': '/admin',
-    };
-    
-    const newPath = pathMap[page];
-    window.history.pushState({ page }, '', newPath);
-    
-    if (page === 'Admin' && !adminToken) {
-      setAdminLoginView(true);
-    } else {
-      setAdminLoginView(false);
+    if (tab) {
+      setDashboardTab(tab);
     }
     
+    // Update browser URL for clean routing
+    try {
+      if (page === 'Admin') {
+        window.history.pushState(null, '', '/admin');
+      } else if (page === 'Home') {
+        window.history.pushState(null, '', '/');
+      } else {
+        window.history.pushState(null, '', `/${page.toLowerCase()}`);
+      }
+    } catch {
+      // Fallback for isolated iframe environments
+    }
+
+    window.scrollTo(0, 0);
+  };
+
+  const handleSelectProduct = (product: Product) => {
+    setSelectedProduct(product);
+    window.scrollTo(0, 0);
+  };
+
+  const handleSelectCategory = (cat: ProductCategory | 'All') => {
+    setSelectedCategory(cat);
+    if (selectedProduct) {
+      setSelectedProduct(null);
+    }
+  };
+
+  const handleDirectCheckout = (product: Product, quantity: number = 1, variant?: ProductVariant) => {
+    addToCart(product, quantity, variant);
+    setSelectedProduct(null);
+    setCurrentPage('Checkout');
     window.scrollTo(0, 0);
   };
 
   return (
-    <div className="relative min-h-screen bg-white selection:bg-[#FF6600] selection:text-white">
+    <div className="relative min-h-screen bg-white selection:bg-[#2563EB] selection:text-white">
       {currentPage !== 'Checkout' && (
-        <Header
-          isScrolled={isScrolled}
-          onNavigate={navigateTo}
+        <Header 
+          isScrolled={isScrolled} 
+          onNavigate={navigateTo} 
+          user={user} 
+          onLogout={handleLogout}
           currentPage={currentPage}
           cartCount={cartItems.length}
+          onSelectProduct={handleSelectProduct}
+          onSelectCategory={handleSelectCategory}
+          onAddToCart={addToCart}
+          selectedCategory={selectedCategory}
+          dashboardTab={dashboardTab}
+          onSelectDashboardTab={(tab) => {
+            setDashboardTab(tab);
+            if (currentPage !== 'Dashboard') {
+              setCurrentPage('Dashboard');
+            }
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }}
+          shipments={shipments}
+          quotations={quotations}
+          posts={posts}
           products={products}
-          guestId={guestId}
         />
       )}
-
+      
       <main className="pt-0">
-        {currentPage === 'Home' && (
-          <div className="animate-in fade-in duration-700">
-            <Hero onNavigate={navigateTo} />
-            <Collections />
-            <TrendingGrid
-              products={catalogProducts}
+        {selectedProduct ? (
+          <div className="animate-in fade-in duration-500">
+            <ProductDetail
+              product={selectedProduct}
+              onBack={() => setSelectedProduct(null)}
+              onSelectProduct={handleSelectProduct}
               onAddToCart={addToCart}
               onToggleWishlist={toggleWishlist}
-              wishlistIds={wishlistItems.map(i => i.id)}
-            />
-            <TheEdit />
-            <SocialProof />
-          </div>
-        )}
-
-        {currentPage === 'Marketplace' && (
-          <div className="animate-in fade-in duration-700">
-            <Marketplace posts={posts} user={guestUser} onAddReview={addReviewToPost} />
-          </div>
-        )}
-
-        {currentPage === 'Checkout' && (
-          <div className="animate-in fade-in duration-700">
-            <Checkout
-              cartItems={cartItems}
-              guestId={guestId}
-              onGuestIdChange={setGuestId}
-              onNavigate={navigateTo}
-              onComplete={() => {
-                if (guestId) localStorage.setItem('royalhints_guest_id', guestId);
-                clearCart();
-              }}
-            />
-          </div>
-        )}
-
-        {currentPage === 'Admin' && (
-          <div className="animate-in fade-in duration-700">
-            <AdminDashboard
-              products={products}
-              onAddProduct={addProduct}
-              onUpdateProduct={updateProduct}
-              onDeleteProduct={deleteProduct}
-              adminToken={adminToken}
-              onAdminLogin={loginAdmin}
-              forceLoginView={adminLoginView}
-              onSuccessfulAdminLogin={() => setAdminLoginView(false)}
-              marketplaceRefreshTick={marketplaceRefreshTick}
-              onMarketplaceRefresh={() => setMarketplaceRefreshTick((tick) => tick + 1)}
+              isWishlisted={wishlistItems.some(i => i.id === selectedProduct.id)}
+              onDirectCheckout={handleDirectCheckout}
+              allProducts={[
+                ...products,
+                ...posts.map(p => ({
+                  id: p.id,
+                  name: p.title,
+                  price: p.price ?? 150,
+                  rating: 5.0,
+                  category: p.category as any,
+                  image: p.image,
+                  sku: p.sku || `RH-${p.id.slice(-4)}`,
+                  isNew: true,
+                  inStock: (p.stockCount ?? 1) > 0,
+                  stockQuantity: p.stockCount ?? 1,
+                  stockStatus: 'In Stock' as const,
+                  warehouseLocation: p.location || 'Vault',
+                  dispatchTime: p.dispatchTime || '24h',
+                  description: p.description || '',
+                  highlights: [],
+                  specifications: {},
+                  variants: []
+                }))
+              ]}
             />
           </div>
+        ) : (
+          <>
+            {currentPage === 'Home' && (
+              <div className="animate-in fade-in duration-700">
+                <Hero onNavigate={navigateTo} />
+                <TrendingGrid 
+                  onSelectProduct={handleSelectProduct}
+                  onAddToCart={addToCart} 
+                  onToggleWishlist={toggleWishlist} 
+                  wishlistIds={wishlistItems.map(i => i.id)} 
+                  selectedCategory={selectedCategory}
+                  onCategoryChange={setSelectedCategory}
+                  posts={posts}
+                  products={products}
+                  onNavigate={navigateTo}
+                />
+                <TheEdit onSelectProduct={handleSelectProduct} />
+                <SocialProof />
+              </div>
+            )}
+
+            {(currentPage === 'Auth' || currentPage === 'Admin') && (
+              <div className="animate-in slide-in-from-bottom-8 fade-in duration-700">
+                <Auth onLogin={handleLogin} onNavigateHome={() => navigateTo('Home')} />
+              </div>
+            )}
+
+            {currentPage === 'Dashboard' && (
+              <div className="animate-in fade-in duration-700">
+                <Dashboard 
+                  user={user || {
+                    id: 'RH-USR-GUEST',
+                    name: 'Valued Client',
+                    email: 'client@royalhints.com',
+                    role: 'buyer',
+                    isAdmin: false,
+                    buyerUniqueId: 'RH-USR-GUEST'
+                  }} 
+                  onLogout={handleLogout} 
+                  onNavigate={navigateTo}
+                  onAddPost={addPost}
+                  onDeletePost={deletePost}
+                  onUpdatePost={updatePost}
+                  posts={user && (user.role === 'admin' || user.isAdmin || user.email?.toLowerCase() === 'admin@royalhints.com') ? posts : posts.filter(p => user ? p.userId === user.id : true)}
+                  cartItems={cartItems}
+                  onRemoveFromCart={removeFromCart}
+                  wishlistItems={wishlistItems}
+                  onToggleWishlist={toggleWishlist}
+                  onMoveToCart={moveToCart}
+                  shipments={shipments}
+                  onConfirmDelivery={handleConfirmDelivery}
+                  quotations={quotations}
+                  onAddQuotation={handleAddQuotation}
+                  onAcceptQuoteToCart={handleAcceptQuoteToCart}
+                  bespokeRequests={bespokeRequests}
+                  onSubmitBespokeRequest={handleAddBespokeRequest}
+                  onAcceptBespokeOfferToCart={handleAcceptBespokeOfferToCart}
+                  initialTab={dashboardTab}
+                  onTabChange={setDashboardTab}
+                />
+              </div>
+            )}
+
+            {currentPage === 'Marketplace' && (
+              <div className="animate-in fade-in duration-700">
+                <Marketplace 
+                  posts={posts} 
+                  user={user} 
+                  onAddReview={addReviewToPost} 
+                  onNavigate={navigateTo}
+                  onAddPost={addPost}
+                  onAddToCart={addToCart}
+                />
+              </div>
+            )}
+
+            {currentPage === 'Checkout' && (
+              <div className="animate-in fade-in duration-700">
+                <Checkout 
+                  cartItems={cartItems} 
+                  onNavigate={navigateTo} 
+                  onComplete={clearCart}
+                  onOrderPlaced={handleOrderPlaced}
+                />
+              </div>
+            )}
+          </>
         )}
       </main>
 
-      {['Home', 'Marketplace', 'Admin'].includes(currentPage) && <Footer />}
+      {['Home', 'Marketplace', 'Dashboard'].includes(currentPage) && <Footer />}
     </div>
   );
 };
