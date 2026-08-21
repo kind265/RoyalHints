@@ -35,8 +35,7 @@ const QUOTATION_CATEGORIES: (ProductCategory | 'Industrial & Bespoke')[] = [
   'Books',
   'Spare Parts',
   'Fabric',
-  'Fashion',
-  'Industrial & Bespoke'
+  'Fashion'
 ];
 
 export const ShopByQuotation: React.FC<ShopByQuotationProps> = ({
@@ -143,7 +142,6 @@ export const ShopByQuotation: React.FC<ShopByQuotationProps> = ({
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 sm:gap-6 pb-6 border-b border-gray-100">
         <div>
           <div className="flex items-center gap-2 mb-1.5 sm:mb-2">
-            <Zap className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-[#2563EB]" />
             <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-[0.25em] text-[#2563EB]">
               Institutional & Bulk Procurement
             </span>
@@ -225,7 +223,6 @@ export const ShopByQuotation: React.FC<ShopByQuotationProps> = ({
                   </label>
                   <input
                     required
-                    placeholder="e.g., Bulk Order of 22-Momme Mulberry Silk Bolts or Batch of 50 CNC Titanium Spindles"
                     value={formData.title}
                     onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                     className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 sm:px-6 py-3.5 sm:py-4 font-bold text-sm sm:text-base focus:outline-none focus:border-[#2563EB] focus:bg-white transition-all shadow-sm"
@@ -269,7 +266,6 @@ export const ShopByQuotation: React.FC<ShopByQuotationProps> = ({
                     Target Budget Allocation
                   </label>
                   <input
-                    placeholder="e.g., $5,000 - $10,000"
                     value={formData.targetBudget}
                     onChange={(e) => setFormData({ ...formData, targetBudget: e.target.value })}
                     className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 sm:px-6 py-3.5 sm:py-4 font-bold text-xs sm:text-sm focus:outline-none focus:border-[#2563EB] focus:bg-white transition-all"
@@ -300,7 +296,7 @@ export const ShopByQuotation: React.FC<ShopByQuotationProps> = ({
                   <textarea
                     required
                     rows={4}
-                    placeholder="Specify dimensions, yarn count, alloy grades, binding materials, tolerances, certifications (e.g. Ti-6Al-4V, Grade 6A Mulberry Silk, FSC Leather)..."
+                    placeholder="Specify dimensions, quality grade, binding materials, tolerances, certifications (e.g. Ti-6Al-4V, Grade 6A Mulberry Silk, FSC Leather)..."
                     value={formData.specifications}
                     onChange={(e) => setFormData({ ...formData, specifications: e.target.value })}
                     className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 sm:px-6 py-3.5 sm:py-4 font-medium text-xs sm:text-sm focus:outline-none focus:border-[#2563EB] focus:bg-white transition-all resize-none leading-relaxed"
@@ -310,9 +306,11 @@ export const ShopByQuotation: React.FC<ShopByQuotationProps> = ({
                 {/* Delivery Location */}
                 <div className="space-y-2">
                   <label className="text-[10px] uppercase tracking-[0.25em] font-black text-gray-400 ml-1">
-                    Delivery Location / Freight Hub
+                    Delivery Location
                   </label>
                   <input
+                    required
+                    placeholder="Lilongwe, Likuni NRC Campus"
                     value={formData.deliveryLocation}
                     onChange={(e) => setFormData({ ...formData, deliveryLocation: e.target.value })}
                     className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 sm:px-6 py-3.5 sm:py-4 font-bold text-xs sm:text-sm focus:outline-none focus:border-[#2563EB] focus:bg-white transition-all"
@@ -325,6 +323,8 @@ export const ShopByQuotation: React.FC<ShopByQuotationProps> = ({
                     Direct Contact Telephone
                   </label>
                   <input
+                    required
+                    placeholder="+265 991 234 567"
                     value={formData.contactNumber}
                     onChange={(e) => setFormData({ ...formData, contactNumber: e.target.value })}
                     className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 sm:px-6 py-3.5 sm:py-4 font-bold text-xs sm:text-sm focus:outline-none focus:border-[#2563EB] focus:bg-white transition-all"
@@ -337,7 +337,7 @@ export const ShopByQuotation: React.FC<ShopByQuotationProps> = ({
                 type="submit"
                 className="w-full bg-[#2563EB] text-white py-4 sm:py-5 rounded-xl font-black text-xs sm:text-sm uppercase tracking-[0.25em] sm:tracking-[0.3em] hover:bg-[#1D4ED8] transition-all shadow-xl shadow-blue-500/25 flex items-center justify-center gap-2.5"
               >
-                <Send className="h-4 w-4" /> Transmit Quotation Request to Royal Desk
+                <Send className="h-4 w-4" /> Quotation Request
               </button>
             </form>
           )}

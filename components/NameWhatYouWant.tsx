@@ -40,8 +40,7 @@ const SOURCING_CATEGORIES = [
   'Spare Parts',
   'Fabric',
   'Fashion',
-  'Rare Collectible',
-  'Industrial & Bespoke'
+  'Other Collection'
 ];
 
 export const NameWhatYouWant: React.FC<NameWhatYouWantProps> = ({
@@ -62,7 +61,7 @@ export const NameWhatYouWant: React.FC<NameWhatYouWantProps> = ({
     category: SOURCING_CATEGORIES[0] as any,
     makerOrBrand: '',
     conditionPreference: 'Brand New (Mint)' as BespokeSourcingRequest['conditionPreference'],
-    budgetEstimate: '$3,000 - $5,000',
+    budgetEstimate: 'MWK3,000,000 - MWK5,000,000',
     urgency: 'Within 7 Days' as BespokeSourcingRequest['urgency'],
     referenceLinkOrImageUrl: '',
     detailedRequirements: ''
@@ -91,7 +90,7 @@ export const NameWhatYouWant: React.FC<NameWhatYouWantProps> = ({
       category: SOURCING_CATEGORIES[0] as any,
       makerOrBrand: '',
       conditionPreference: 'Brand New (Mint)',
-      budgetEstimate: '$3,000 - $5,000',
+      budgetEstimate: 'MWK3,000,000 - MWK5,000,000',
       urgency: 'Within 7 Days',
       referenceLinkOrImageUrl: '',
       detailedRequirements: ''
@@ -106,11 +105,11 @@ export const NameWhatYouWant: React.FC<NameWhatYouWantProps> = ({
 
   const getStatusBadge = (status: BespokeSourcingRequest['status']) => {
     switch (status) {
-      case 'Located in Vault Network':
+      case 'AT OUR SHOP IN LILONGWE':
         return (
           <span className="px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-purple-50 text-purple-700 border border-purple-200 flex items-center gap-1.5">
             <MapPin className="h-3 w-3" />
-            Located in Vault
+            AT OUR SHOP
           </span>
         );
       case 'Quoted & Ready':
@@ -144,7 +143,7 @@ export const NameWhatYouWant: React.FC<NameWhatYouWantProps> = ({
         <div>
           <div className="flex items-center gap-2 mb-1.5 sm:mb-2 flex-wrap">
             <span className="px-2.5 py-0.5 rounded-full bg-blue-100 text-[#2563EB] text-[9px] font-black uppercase tracking-widest flex items-center gap-1">
-              <Mail className="h-2.5 w-2.5" /> Direct Admin Routing
+              <Mail className="h-2.5 w-2.5" /> Direct Admin Contact
             </span>
             <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">
               admin@royalhints.com
@@ -152,7 +151,7 @@ export const NameWhatYouWant: React.FC<NameWhatYouWantProps> = ({
           </div>
           <h2 className="text-2xl sm:text-4xl font-black tracking-tight text-[#1A1A1A]">Name What You Want</h2>
           <p className="text-gray-400 font-light text-xs sm:text-base mt-1">
-            Bespoke Sourcing Concierge. Tell our Administration Desk exactly what rare item, custom part, or fabric you desire.
+            Tell our Marketing Desk exactly what item, custom part, or fabric you desire.
           </p>
         </div>
 
@@ -183,15 +182,6 @@ export const NameWhatYouWant: React.FC<NameWhatYouWantProps> = ({
               </span>
             </button>
           </div>
-
-          <button
-            type="button"
-            onClick={() => setShowAdminDeskModal(true)}
-            className="flex items-center justify-center gap-1.5 px-3.5 py-2 sm:py-2.5 bg-gray-50 border border-gray-200 hover:border-[#2563EB] text-gray-700 hover:text-[#2563EB] rounded-xl text-xs font-bold transition-all shadow-sm"
-            title="Preview Admin Account perspective"
-          >
-            <Eye className="h-3.5 w-3.5" /> Admin Desk View
-          </button>
         </div>
       </div>
 
@@ -203,27 +193,21 @@ export const NameWhatYouWant: React.FC<NameWhatYouWantProps> = ({
             <div className="absolute top-0 right-0 w-64 h-64 bg-[#2563EB] opacity-20 blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
             <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 sm:gap-6">
               <div className="space-y-1.5 sm:space-y-2 max-w-2xl">
-                <div className="flex items-center gap-2">
-                  <Sparkles className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-[#2563EB]" />
-                  <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-[0.25em] text-[#2563EB]">
-                    Private Concierge Protocol
-                  </span>
-                </div>
                 <h3 className="text-lg sm:text-2xl font-black tracking-tight text-white">
-                  Have an out-of-catalog request? We will source it.
+                  Have an out of catalog request? We will source it.
                 </h3>
                 <p className="text-xs sm:text-sm text-gray-400 font-light leading-relaxed">
-                  Whether an out-of-print 1920s architecture monograph, bespoke titanium motorsport hub, discontinued Loro Piana bolt, or couture eveningwear — submit your specification directly to the Royal Administration Desk.
+                  Whether an item that does not belong to our bussiness listing just name it and submit your specification directly to the Royal Marketing Desk.
                 </p>
               </div>
 
               <div className="bg-white/10 backdrop-blur-md p-3.5 sm:px-5 sm:py-4 rounded-xl border border-white/10 shrink-0 text-left space-y-1 w-full md:w-auto">
-                <p className="text-[8px] sm:text-[9px] uppercase tracking-widest font-black text-gray-400">Direct Ingestion Desk</p>
+                <p className="text-[8px] sm:text-[9px] uppercase tracking-widest font-black text-gray-400">Direct Marketing Desk</p>
                 <p className="text-xs font-mono font-bold text-white flex items-center gap-2">
                   <Mail className="h-3.5 w-3.5 text-[#2563EB]" /> admin@royalhints.com
                 </p>
                 <p className="text-[10px] text-emerald-400 font-semibold flex items-center gap-1 mt-0.5">
-                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse"></span> Desk Active (24/7)
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse"></span> Active (24/7)
                 </p>
               </div>
             </div>
@@ -239,10 +223,10 @@ export const NameWhatYouWant: React.FC<NameWhatYouWantProps> = ({
                   Ticket Reference: {dispatchedRef}
                 </span>
                 <h3 className="text-xl sm:text-3xl font-black text-[#1A1A1A] uppercase tracking-tight">
-                  Directly Routed to Admin Desk
+                  Directly Messaged Our Marketing Desk
                 </h3>
                 <p className="text-gray-600 max-w-lg mx-auto text-xs sm:text-sm leading-relaxed">
-                  Your bespoke item request has been transmitted directly to <strong className="text-[#1A1A1A]">admin@royalhints.com</strong>. A Senior Sourcing Specialist has been assigned to search our global network.
+                  Your request have been directly sent to<strong className="text-[#1A1A1A]">admin@royalhints.com</strong>. And Our Sourcing Specialist has been assigned to search our global network.
                 </p>
               </div>
             </div>
@@ -256,7 +240,7 @@ export const NameWhatYouWant: React.FC<NameWhatYouWantProps> = ({
                   </label>
                   <input
                     required
-                    placeholder="e.g., 1954 First Edition 'Le Modulor' Monograph, Bespoke Hand-Spun Vicuña Wool Blanket, CNC Ti Wheel Hub"
+                    placeholder="e.g., The Greatest Battle Ever Fought(Book)"
                     value={formData.itemName}
                     onChange={(e) => setFormData({ ...formData, itemName: e.target.value })}
                     className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 sm:px-6 py-3.5 sm:py-4 font-bold text-sm sm:text-base focus:outline-none focus:border-[#2563EB] focus:bg-white transition-all shadow-sm"
@@ -266,7 +250,7 @@ export const NameWhatYouWant: React.FC<NameWhatYouWantProps> = ({
                 {/* Category */}
                 <div className="space-y-2">
                   <label className="text-[10px] uppercase tracking-[0.25em] font-black text-gray-400 ml-1">
-                    Sector / Category *
+                    Category *
                   </label>
                   <select
                     value={formData.category}
@@ -282,10 +266,10 @@ export const NameWhatYouWant: React.FC<NameWhatYouWantProps> = ({
                 {/* Brand / Maker */}
                 <div className="space-y-2">
                   <label className="text-[10px] uppercase tracking-[0.25em] font-black text-gray-400 ml-1">
-                    Preferred Brand, Guild, Author, or Workshop
+                    Preferred Brand, Author, or Originality
                   </label>
                   <input
-                    placeholder="e.g., Savile Row Guild, Klausen Motorsport, Editions Crès, Como Silk Mill"
+                    placeholder="William Marrion Branham(Author)"
                     value={formData.makerOrBrand}
                     onChange={(e) => setFormData({ ...formData, makerOrBrand: e.target.value })}
                     className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 sm:px-6 py-3.5 sm:py-4 font-bold text-xs sm:text-sm focus:outline-none focus:border-[#2563EB] focus:bg-white transition-all"
@@ -304,7 +288,7 @@ export const NameWhatYouWant: React.FC<NameWhatYouWantProps> = ({
                   >
                     <option>Brand New (Mint)</option>
                     <option>Archival / Vintage Verified</option>
-                    <option>OEM Precision Machined</option>
+                    <option>Precision Machined</option>
                     <option>Custom Hand-Crafted</option>
                   </select>
                 </div>
@@ -312,7 +296,7 @@ export const NameWhatYouWant: React.FC<NameWhatYouWantProps> = ({
                 {/* Target Budget */}
                 <div className="space-y-2">
                   <label className="text-[10px] uppercase tracking-[0.25em] font-black text-gray-400 ml-1">
-                    Target Budget Allocation ($USD) *
+                    Target Budget Allocation (MWK) *
                   </label>
                   <input
                     required
@@ -326,7 +310,7 @@ export const NameWhatYouWant: React.FC<NameWhatYouWantProps> = ({
                 {/* Urgency */}
                 <div className="space-y-2">
                   <label className="text-[10px] uppercase tracking-[0.25em] font-black text-gray-400 ml-1">
-                    Sourcing Timeline / Urgency
+                    Sourcing Timeline
                   </label>
                   <select
                     value={formData.urgency}
@@ -355,12 +339,12 @@ export const NameWhatYouWant: React.FC<NameWhatYouWantProps> = ({
                 {/* Detailed Requirements */}
                 <div className="space-y-2 md:col-span-2">
                   <label className="text-[10px] uppercase tracking-[0.25em] font-black text-gray-400 ml-1">
-                    Specific Requirements, Dimensions, or Provenance Notes *
+                    Specific Requirements, Dimensions, or Provide Some Notes *
                   </label>
                   <textarea
                     required
                     rows={4}
-                    placeholder="Provide any exact serial numbers, binding wishes, fiber specifications, colorway hex codes, or historic edition requirements..."
+                    placeholder="Please provide specific requirements, dimensions, or any additional notes..."
                     value={formData.detailedRequirements}
                     onChange={(e) => setFormData({ ...formData, detailedRequirements: e.target.value })}
                     className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 sm:px-6 py-3.5 sm:py-4 font-medium text-xs sm:text-sm focus:outline-none focus:border-[#2563EB] focus:bg-white transition-all resize-none leading-relaxed"
@@ -373,7 +357,7 @@ export const NameWhatYouWant: React.FC<NameWhatYouWantProps> = ({
                 type="submit"
                 className="w-full bg-[#1A1A1A] hover:bg-[#2563EB] text-white py-4 sm:py-5 rounded-xl font-black text-xs sm:text-sm uppercase tracking-[0.25em] sm:tracking-[0.35em] transition-all shadow-xl shadow-black/10 flex items-center justify-center gap-2.5"
               >
-                <Send className="h-4 w-4" /> Dispatch Request Directly to Admin Account
+                <Send className="h-4 w-4" /> Send Request
               </button>
             </form>
           )}

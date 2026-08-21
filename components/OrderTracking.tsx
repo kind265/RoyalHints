@@ -85,7 +85,7 @@ export const OrderTracking: React.FC<OrderTrackingProps> = ({
           </div>
           <h2 className="text-2xl sm:text-4xl font-black tracking-tight text-[#1A1A1A]">Order Tracking</h2>
           <p className="text-gray-500 font-normal text-xs sm:text-base mt-1">
-            Simple 3-step tracking: Order Placed → Payment Verified → Confirm Delivery Received.
+            3 step tracking: Order Placed → Payment Verified → Confirm Delivery Received.
           </p>
         </div>
 
@@ -218,7 +218,7 @@ export const OrderTracking: React.FC<OrderTrackingProps> = ({
             <div className="space-y-4 relative z-10">
               <div className="flex items-center justify-between">
                 <h4 className="text-xs sm:text-sm font-black uppercase tracking-[0.2em] text-gray-500 flex items-center gap-2">
-                  <Sparkles className="h-4 w-4 text-[#2563EB]" /> 3-Step Verification Pipeline
+                  3 Step Verification Pipeline
                 </h4>
                 <span className="text-[10px] sm:text-xs font-bold text-gray-400">
                   {activeIsDelivered ? '3 of 3 Completed' : '2 of 3 Completed'}
