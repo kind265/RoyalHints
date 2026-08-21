@@ -398,7 +398,7 @@ export const NameWhatYouWant: React.FC<NameWhatYouWantProps> = ({
                   {/* Criteria Grid */}
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-4 bg-gray-50/70 p-3 sm:p-4 rounded-xl border border-gray-100 text-xs">
                     <div>
-                      <p className="text-[8px] sm:text-[9px] uppercase tracking-wider font-black text-gray-400">Maker / Guild</p>
+                      <p className="text-[8px] sm:text-[9px] uppercase tracking-wider font-black text-gray-400">Maker</p>
                       <p className="font-bold text-[#1A1A1A] mt-0.5 truncate text-xs sm:text-sm">{req.makerOrBrand || 'Open Sourcing'}</p>
                     </div>
                     <div>
@@ -410,7 +410,7 @@ export const NameWhatYouWant: React.FC<NameWhatYouWantProps> = ({
                       <p className="font-bold text-[#1A1A1A] mt-0.5 text-xs sm:text-sm">{req.urgency}</p>
                     </div>
                     <div>
-                      <p className="text-[8px] sm:text-[9px] uppercase tracking-wider font-black text-gray-400">Routed To</p>
+                      <p className="text-[8px] sm:text-[9px] uppercase tracking-wider font-black text-gray-400">Messaged To</p>
                       <p className="font-bold text-[#2563EB] mt-0.5 truncate font-mono text-xs sm:text-sm">{req.adminRecipient}</p>
                     </div>
                   </div>
@@ -433,7 +433,7 @@ export const NameWhatYouWant: React.FC<NameWhatYouWantProps> = ({
                               {req.adminResponse.assignedSpecialist}
                             </p>
                             <p className="text-[10px] text-gray-500">
-                              Royal Vault Curator Response • {req.adminResponse.responseDate}
+                              Royal Hints Marketer Response • {req.adminResponse.responseDate}
                             </p>
                           </div>
                         </div>
@@ -442,10 +442,10 @@ export const NameWhatYouWant: React.FC<NameWhatYouWantProps> = ({
                           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 w-full sm:w-auto justify-between">
                             <div className="text-left sm:text-right">
                               <span className="text-[9px] font-black uppercase tracking-widest text-[#2563EB]">
-                                Vault Direct Price
+                                Direct Price
                               </span>
                               <p className="text-xl sm:text-2xl font-black text-[#1A1A1A] font-mono">
-                                ${req.adminResponse.directOfferPrice.toLocaleString()}
+                                MWK{req.adminResponse.directOfferPrice.toLocaleString()}
                               </p>
                             </div>
                             <button
@@ -482,7 +482,7 @@ export const NameWhatYouWant: React.FC<NameWhatYouWantProps> = ({
                     <div className="p-3 sm:p-4 bg-gray-50 rounded-xl border border-gray-200/60 flex items-center justify-between text-xs text-gray-600 font-medium">
                       <div className="flex items-center gap-2">
                         <Clock className="h-4 w-4 text-gray-400 shrink-0" />
-                        <span>Transmitted to Admin Desk. Our curators are actively hunting private inventories.</span>
+                        <span>Transmitted to Marketing Desk. Our team is actively searching other market.</span>
                       </div>
                     </div>
                   )}
@@ -492,9 +492,9 @@ export const NameWhatYouWant: React.FC<NameWhatYouWantProps> = ({
           ) : (
             <div className="py-16 sm:py-24 text-center bg-gray-50 rounded-2xl border border-dashed border-gray-200 space-y-4">
               <Sparkles className="h-10 w-10 sm:h-12 sm:w-12 text-gray-300 mx-auto" />
-              <h4 className="text-base sm:text-lg font-black text-[#1A1A1A]">No Bespoke Requests Active</h4>
+              <h4 className="text-base sm:text-lg font-black text-[#1A1A1A]">No Requests Active</h4>
               <p className="text-xs sm:text-sm text-gray-400 max-w-sm mx-auto">
-                Need an elusive book, machined titanium component, or custom textile? Name what you want and our admin team will locate it.
+                Need anything absent from our marketplace? Name what you want and our team will locate it.
               </p>
               <button
                 onClick={() => setSubTab('submit')}
@@ -506,69 +506,7 @@ export const NameWhatYouWant: React.FC<NameWhatYouWantProps> = ({
           )}
         </div>
       )}
-
-      {/* Admin Desk Modal (Interactive simulation showing Admin Inbox receiving the request) */}
-      {showAdminDeskModal && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4">
-          <div className="bg-[#1A1A1A] text-white rounded-2xl max-w-2xl w-full p-5 sm:p-8 shadow-2xl space-y-4 sm:space-y-6 border border-white/10 animate-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-center pb-3 sm:pb-4 border-b border-white/10">
-              <div className="flex items-center gap-2 sm:gap-3">
-                <div className="h-8 w-8 sm:h-9 sm:w-9 bg-[#2563EB] text-white rounded-lg flex items-center justify-center font-black text-xs">
-                  ADM
-                </div>
-                <div>
-                  <h3 className="font-black text-sm sm:text-base text-white uppercase tracking-wider">
-                    Admin Concierge Desk
-                  </h3>
-                  <p className="text-[10px] font-mono text-gray-400">
-                    Routing Inbox: admin@royalhints.com
-                  </p>
-                </div>
-              </div>
-              <button 
-                onClick={() => setShowAdminDeskModal(false)}
-                className="text-gray-400 hover:text-white text-lg font-bold p-1"
-              >
-                ✕
-              </button>
-            </div>
-
-            <div className="space-y-3 sm:space-y-4 text-xs">
-              <p className="text-gray-300">
-                This console demonstrates how incoming <strong className="text-white">"Name What You Want"</strong> bespoke sourcing requests are received directly by the Royal Hints administration team at <strong className="text-[#2563EB]">admin@royalhints.com</strong>:
-              </p>
-
-              <div className="space-y-3 max-h-64 overflow-y-auto pr-2 divide-y divide-white/5">
-                {requests.map((r) => (
-                  <div key={r.id} className="pt-3 first:pt-0 space-y-1.5">
-                    <div className="flex justify-between items-center gap-2 flex-wrap">
-                      <span className="font-mono text-[10px] text-[#2563EB] font-bold">
-                        #{r.referenceNumber} • {r.category}
-                      </span>
-                      <span className="text-[9px] bg-white/10 px-2 py-0.5 rounded text-gray-300 font-mono truncate max-w-full">
-                        From: {r.userName} ({r.userEmail})
-                      </span>
-                    </div>
-                    <p className="font-bold text-white text-sm">{r.itemName}</p>
-                    <p className="text-gray-400 text-xs line-clamp-1">{r.detailedRequirements}</p>
-                    <div className="flex justify-between items-center text-[10px] text-gray-400 pt-1 font-mono">
-                      <span>Target: {r.budgetEstimate}</span>
-                      <span className="text-emerald-400">Status: {r.status}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <button 
-              onClick={() => setShowAdminDeskModal(false)}
-              className="w-full bg-[#2563EB] text-white py-3.5 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-[#1D4ED8] transition-colors"
-            >
-              Return to Member Portal
-            </button>
-          </div>
-        </div>
-      )}
+      
     </div>
   );
 };
