@@ -37,13 +37,13 @@ const TrendingGrid: React.FC<TrendingGridProps> = ({
       ? Number((post.reviews.reduce((acc, r) => acc + r.rating, 0) / post.reviews.length).toFixed(1)) 
       : 5.0,
     category: (post.category as ProductCategory) || 'Books',
-    image: post.image || 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&q=80&w=800',
+    image: post.image || 'assets/Frontpage.jpg',
     sku: post.sku || `RH-${post.id.slice(-4).toUpperCase()}`,
     isNew: true,
     inStock: (post.stockCount ?? 1) > 0,
     stockQuantity: post.stockCount ?? 1,
     stockStatus: (post.stockCount ?? 1) > 5 ? 'In Stock' : (post.stockCount ?? 1) > 0 ? 'Low Stock' : 'Out of Stock',
-    warehouseLocation: post.location || 'Verified Vault Registry',
+    warehouseLocation: post.location || 'Verified Shop Registry',
     dispatchTime: post.dispatchTime || 'Dispatches in 24 hours',
     description: post.description || 'Verified authentic offering from Royal Hints Marketplace Registry.',
     highlights: [

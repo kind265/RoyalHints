@@ -48,7 +48,7 @@ export const shipments = pgTable('shipments', {
   carrier: text('carrier').default('Royal Hints Express Courier'),
   serviceType: text('service_type').default('Armored Diplomatic Transit'),
   status: text('status').default('Order Placed').notNull(),
-  origin: text('origin').default('London Central Vault (UK)'),
+  origin: text('origin').default('Royal Hints Dispatch'),
   destination: text('destination').notNull(),
   estimatedDelivery: text('estimated_delivery'),
   dispatchedDate: text('dispatched_date'),

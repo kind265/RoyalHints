@@ -1,6 +1,7 @@
-import { db } from '../../src/db';
+import { db, pool } from '../../src/db';
 import { products, businessPosts, shipments, quotations, bespokeRequests, users } from '../../src/db/schema';
 import { eq, desc } from 'drizzle-orm';
+import { randomUUID } from 'crypto';
 import { 
   Product, 
   BusinessPost, 
@@ -10,126 +11,12 @@ import {
   User 
 } from '../types';
 
-// Fallback initial seeds if DB empty
 const INITIAL_PRODUCTS: Product[] = [];
-
 const INITIAL_POSTS: BusinessPost[] = [];
-
-const INITIAL_SHIPMENTS: ShipmentTracking[] = [
-  {
-    id: 'ship-101',
-    trackingNumber: 'RH-EXP-88921-GB',
-    orderId: 'ORD-99042',
-    carrier: 'Royal Hints Express Courier',
-    serviceType: 'Armored Diplomatic Transit',
-    status: 'In Transit',
-    origin: 'London Central Vault (UK)',
-    destination: 'Chikuse Residence, Lilongwe, Malawi',
-    estimatedDelivery: 'Tomorrow, 14:00 CAT',
-    dispatchedDate: 'August 19, 2026',
-    orderDate: 'August 18, 2026',
-    paymentMethod: 'Verified Bank Wire / Royal Escrow',
-    deliveryConfirmedByCustomer: false,
-    items: [
-      {
-        name: 'The Royal Architecture Compendium (Collector Edition)',
-        category: 'Books',
-        quantity: 1,
-        image: 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&q=80&w=400',
-        sku: 'RH-BK-1092',
-        price: 145.00
-      },
-      {
-        name: 'Titanium Monoblock Caliper 6-Piston Assembly',
-        category: 'Spare Parts',
-        quantity: 2,
-        image: 'https://images.unsplash.com/photo-1486006920555-c77dce18193b?auto=format&fit=crop&q=80&w=400',
-        sku: 'RH-SP-9011',
-        price: 1280.00
-      }
-    ],
-    checkpoints: [
-      { id: 'cp-1', title: 'Order Placed & Escrow Funded', location: 'Lilongwe Client Portal', timestamp: 'Aug 18, 2026 • 09:30 CAT', completed: true },
-      { id: 'cp-2', title: 'Vault Inspection & Monogram Packaging', location: 'London Vault Facility', timestamp: 'Aug 18, 2026 • 15:45 GMT', completed: true },
-      { id: 'cp-3', title: 'Cleared Diplomatic Customs & Air Cargo Transit', location: 'Heathrow VIP Air Logistics', timestamp: 'Aug 19, 2026 • 08:20 GMT', completed: true, isCurrent: true, notes: 'Flight RH-774 departed for Kamuzu International Airport' }
-    ]
-  }
-];
-
-const INITIAL_QUOTATIONS: QuotationRequest[] = [
-  {
-    id: 'qr-1001',
-    quoteNumber: 'Q-RH-2026-081',
-    userId: 'usr-buyer-01',
-    userName: 'Lord Sterling',
-    userEmail: 'sterling@royalreserves.org',
-    title: 'Bespoke CNC Titanium Aerospace Fasteners (Bulk Batch 500)',
-    category: 'Spare Parts',
-    estimatedQuantity: 500,
-    targetBudget: '$8,500 - $10,000 USD',
-    urgency: 'Express (48 Hours)',
-    specifications: 'Grade 5 Ti-6Al-4V machined bolts with roll-formed threads and custom anodized blue heads.',
-    deliveryLocation: 'Geneva Private Hangar, Switzerland',
-    contactNumber: '+41 22 991 4400',
-    status: 'Quote Ready',
-    submittedAt: Date.now() - 3600000 * 12,
-    adminQuote: {
-      unitPrice: 18.50,
-      totalAmount: 9250.00,
-      leadTimeDays: 7,
-      validityDate: 'Valid for 14 Days',
-      officialNotes: 'Manufactured under ISO 9001 certified precision protocol. Certificate of conformity included.',
-      includesTaxShipping: true
-    }
-  }
-];
-
-const INITIAL_BESPOKE: BespokeSourcingRequest[] = [
-  {
-    id: 'bsr-2001',
-    referenceNumber: 'BSR-RH-88912',
-    userId: 'usr-buyer-02',
-    userName: 'Elena Rostova',
-    userEmail: 'elena@archivaltextiles.eu',
-    itemName: '18th-Century Venetian Silk Brocade Archive Sample Roll',
-    category: 'Fabric',
-    makerOrBrand: 'Bevilacqua Venetian Atelier Historical Weave',
-    conditionPreference: 'Archival / Vintage Verified',
-    budgetEstimate: '$3,500 - $5,000 USD',
-    urgency: 'Within 7 Days',
-    referenceLinkOrImageUrl: 'https://images.unsplash.com/photo-1607083206869-4c7672e72a8a?auto=format&fit=crop&q=80&w=800',
-    detailedRequirements: 'Looking for at least 3 continuous metres of deep indigo/cobalt blue brocade with pure silver/gold weft thread.',
-    adminRecipient: 'Admin Sourcing Desk (admin@royalhints.com)',
-    status: 'Sourcing Specialist Assigned',
-    submittedAt: Date.now() - 3600000 * 6,
-    adminResponse: {
-      assignedSpecialist: 'Lord Sterling (Curator of Heritage Textiles)',
-      networkLocationFound: 'Located private estate collection in Florence, Italy',
-      directOfferPrice: 4200,
-      responseDate: 'Aug 20, 2026',
-      adminMessage: 'Our Florentine partner has verified a 4.2-metre roll in pristine archival condition. Ready for escrow approval.'
-    }
-  }
-];
-
-const INITIAL_USERS: User[] = [
-  {
-    id: 'admin-1',
-    name: 'Royal Hints Administrator',
-    email: 'admin@royalhints.com',
-    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=400',
-    role: 'admin',
-    isAdmin: true
-  },
-  {
-    id: 'buyer-1',
-    name: 'Chikuse Hopeson',
-    email: 'chikusehopeson@gmail.com',
-    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=400',
-    role: 'admin',
-    isAdmin: true
-  }
-];
+const INITIAL_SHIPMENTS: ShipmentTracking[] = [];
+const INITIAL_QUOTATIONS: QuotationRequest[] = [];
+const INITIAL_BESPOKE: BespokeSourcingRequest[] = [];
+const INITIAL_USERS: User[] = [];
 
 class PostgresStore {
   private seeded = false;
@@ -137,130 +24,239 @@ class PostgresStore {
   async ensureSeeded() {
     if (this.seeded) return;
     try {
-      const existingProducts = await db.select().from(products).limit(1);
-      if (existingProducts.length === 0) {
-        for (const p of INITIAL_PRODUCTS) {
-          await db.insert(products).values({
-            id: p.id,
-            name: p.name,
-            price: p.price,
-            rating: p.rating,
-            category: p.category,
-            image: p.image,
-            isNew: p.isNew ?? true,
-            sku: p.sku,
-            inStock: p.inStock ?? true,
-            stockQuantity: p.stockQuantity,
-            stockStatus: p.stockStatus,
-            warehouseLocation: p.warehouseLocation,
-            dispatchTime: p.dispatchTime,
-            description: p.description,
-            highlights: p.highlights,
-            specifications: p.specifications,
-            variants: p.variants,
-            galleryImages: p.galleryImages || []
-          }).onConflictDoNothing();
-        }
+      await this.ensureSchema();
 
-        for (const post of INITIAL_POSTS) {
-          await db.insert(businessPosts).values({
-            id: post.id,
-            userId: post.userId,
-            userName: post.userName,
-            title: post.title,
-            description: post.description || '',
-            image: post.image,
-            category: post.category,
-            timestamp: String(post.timestamp),
-            price: post.price,
-            stockCount: post.stockCount,
-            sku: post.sku,
-            condition: post.condition,
-            location: post.location,
-            dispatchTime: post.dispatchTime,
-            reviews: post.reviews || []
-          }).onConflictDoNothing();
-        }
-
-        for (const s of INITIAL_SHIPMENTS) {
-          await db.insert(shipments).values({
-            id: s.id || `ship-${Date.now()}`,
-            trackingNumber: s.trackingNumber,
-            orderId: s.orderId,
-            carrier: s.carrier,
-            serviceType: s.serviceType,
-            status: s.status,
-            origin: s.origin,
-            destination: s.destination,
-            estimatedDelivery: s.estimatedDelivery,
-            dispatchedDate: s.dispatchedDate,
-            orderDate: s.orderDate,
-            paymentMethod: s.paymentMethod,
-            deliveryConfirmedByCustomer: s.deliveryConfirmedByCustomer,
-            deliveryConfirmedAt: s.deliveryConfirmedAt,
-            items: s.items,
-            checkpoints: s.checkpoints || []
-          }).onConflictDoNothing();
-        }
-
-        for (const q of INITIAL_QUOTATIONS) {
-          await db.insert(quotations).values({
-            id: q.id,
-            quoteNumber: q.quoteNumber,
-            userId: q.userId,
-            userName: q.userName,
-            userEmail: q.userEmail,
-            title: q.title,
-            category: q.category,
-            estimatedQuantity: q.estimatedQuantity,
-            targetBudget: q.targetBudget,
-            urgency: q.urgency,
-            specifications: q.specifications,
-            deliveryLocation: q.deliveryLocation,
-            contactNumber: q.contactNumber,
-            status: q.status,
-            submittedAt: String(q.submittedAt),
-            adminQuote: q.adminQuote
-          }).onConflictDoNothing();
-        }
-
-        for (const b of INITIAL_BESPOKE) {
-          await db.insert(bespokeRequests).values({
-            id: b.id,
-            referenceNumber: b.referenceNumber,
-            userId: b.userId,
-            userName: b.userName,
-            userEmail: b.userEmail,
-            itemName: b.itemName,
-            category: b.category,
-            makerOrBrand: b.makerOrBrand,
-            conditionPreference: b.conditionPreference,
-            budgetEstimate: b.budgetEstimate,
-            urgency: b.urgency,
-            referenceLinkOrImageUrl: b.referenceLinkOrImageUrl,
-            detailedRequirements: b.detailedRequirements,
-            adminRecipient: b.adminRecipient,
-            status: b.status,
-            submittedAt: String(b.submittedAt),
-            adminResponse: b.adminResponse
-          }).onConflictDoNothing();
-        }
-
-        for (const u of INITIAL_USERS) {
-          await db.insert(users).values({
-            id: u.id,
-            name: u.name,
-            email: u.email,
-            avatar: u.avatar,
-            role: u.role || 'buyer',
-            isAdmin: u.isAdmin || false
-          }).onConflictDoNothing();
-        }
+      const adminEmail = process.env.ADMIN_EMAIL?.trim().toLowerCase();
+      if (adminEmail) {
+        await pool.query(
+          `INSERT INTO users (id, name, email, role, is_admin)
+           SELECT $1, $2, $3, $4, $5
+           WHERE NOT EXISTS (SELECT 1 FROM users WHERE lower(email) = lower($3))`,
+          [randomUUID(), 'Royal Hints Administrator', adminEmail, 'admin', true]
+        );
       }
       this.seeded = true;
     } catch (err) {
-      console.error('Failed to seed initial PostgreSQL records:', err);
+      console.error('Failed to initialize PostgreSQL records:', err);
     }
+  }
+
+  private async ensureSchema() {
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS products (
+        id text PRIMARY KEY,
+        name text NOT NULL,
+        price double precision NOT NULL,
+        rating double precision NOT NULL DEFAULT 5.0,
+        category text NOT NULL,
+        image text NOT NULL,
+        is_new boolean DEFAULT true,
+        sku text NOT NULL,
+        in_stock boolean NOT NULL DEFAULT true,
+        stock_quantity integer NOT NULL DEFAULT 10,
+        stock_status text NOT NULL DEFAULT 'In Stock',
+        warehouse_location text NOT NULL DEFAULT 'Main Vault',
+        dispatch_time text NOT NULL DEFAULT 'Dispatches in 24 hours',
+        description text NOT NULL DEFAULT '',
+        highlights jsonb DEFAULT '[]'::jsonb,
+        specifications jsonb DEFAULT '{}'::jsonb,
+        variants jsonb DEFAULT '[]'::jsonb,
+        gallery_images jsonb DEFAULT '[]'::jsonb,
+        created_at timestamp DEFAULT now()
+      );
+
+      CREATE TABLE IF NOT EXISTS business_posts (
+        id text PRIMARY KEY,
+        user_id text NOT NULL,
+        user_name text NOT NULL,
+        title text NOT NULL,
+        description text DEFAULT '',
+        image text NOT NULL,
+        category text NOT NULL,
+        timestamp text NOT NULL,
+        price double precision,
+        stock_count integer,
+        sku text,
+        condition text,
+        location text,
+        dispatch_time text,
+        reviews jsonb DEFAULT '[]'::jsonb,
+        created_at timestamp DEFAULT now()
+      );
+
+      CREATE TABLE IF NOT EXISTS shipments (
+        id text PRIMARY KEY,
+        tracking_number text NOT NULL UNIQUE,
+        order_id text NOT NULL,
+        carrier text DEFAULT 'Royal Hints Courier',
+        service_type text DEFAULT 'Courier Delivery',
+        status text NOT NULL DEFAULT 'Order Placed',
+        origin text DEFAULT 'Royal Hints Dispatch',
+        destination text NOT NULL,
+        estimated_delivery text,
+        dispatched_date text,
+        order_date text,
+        payment_method text,
+        delivery_confirmed_by_customer boolean DEFAULT false,
+        delivery_confirmed_at text,
+        items jsonb DEFAULT '[]'::jsonb,
+        checkpoints jsonb DEFAULT '[]'::jsonb,
+        created_at timestamp DEFAULT now()
+      );
+
+      CREATE TABLE IF NOT EXISTS quotations (
+        id text PRIMARY KEY,
+        quote_number text NOT NULL UNIQUE,
+        user_id text NOT NULL,
+        user_name text NOT NULL,
+        user_email text NOT NULL,
+        title text NOT NULL,
+        category text NOT NULL,
+        estimated_quantity integer NOT NULL DEFAULT 1,
+        target_budget text NOT NULL,
+        urgency text NOT NULL,
+        specifications text DEFAULT '',
+        delivery_location text NOT NULL,
+        contact_number text NOT NULL,
+        status text NOT NULL DEFAULT 'Under Review',
+        submitted_at text NOT NULL,
+        admin_quote jsonb,
+        created_at timestamp DEFAULT now()
+      );
+
+      CREATE TABLE IF NOT EXISTS bespoke_requests (
+        id text PRIMARY KEY,
+        reference_number text NOT NULL UNIQUE,
+        user_id text NOT NULL,
+        user_name text NOT NULL,
+        user_email text NOT NULL,
+        item_name text NOT NULL,
+        category text NOT NULL,
+        maker_or_brand text,
+        condition_preference text NOT NULL,
+        budget_estimate text NOT NULL,
+        urgency text NOT NULL,
+        reference_link_or_image_url text,
+        detailed_requirements text DEFAULT '',
+        admin_recipient text NOT NULL,
+        status text NOT NULL DEFAULT 'Received by Admin',
+        submitted_at text NOT NULL,
+        admin_response jsonb,
+        created_at timestamp DEFAULT now()
+      );
+
+      CREATE TABLE IF NOT EXISTS users (
+        id text PRIMARY KEY,
+        name text NOT NULL,
+        email text NOT NULL UNIQUE,
+        avatar text,
+        role text NOT NULL DEFAULT 'buyer',
+        is_admin boolean DEFAULT false,
+        created_at timestamp DEFAULT now()
+      );
+    `);
+
+    await pool.query(`
+      ALTER TABLE IF EXISTS products
+        ADD COLUMN IF NOT EXISTS name text,
+        ADD COLUMN IF NOT EXISTS price double precision DEFAULT 0,
+        ADD COLUMN IF NOT EXISTS rating double precision DEFAULT 5.0,
+        ADD COLUMN IF NOT EXISTS category text,
+        ADD COLUMN IF NOT EXISTS image text,
+        ADD COLUMN IF NOT EXISTS is_new boolean DEFAULT true,
+        ADD COLUMN IF NOT EXISTS sku text,
+        ADD COLUMN IF NOT EXISTS in_stock boolean DEFAULT true,
+        ADD COLUMN IF NOT EXISTS stock_quantity integer DEFAULT 10,
+        ADD COLUMN IF NOT EXISTS stock_status text DEFAULT 'In Stock',
+        ADD COLUMN IF NOT EXISTS warehouse_location text DEFAULT 'Main Vault',
+        ADD COLUMN IF NOT EXISTS dispatch_time text DEFAULT 'Dispatches in 24 hours',
+        ADD COLUMN IF NOT EXISTS description text DEFAULT '',
+        ADD COLUMN IF NOT EXISTS highlights jsonb DEFAULT '[]'::jsonb,
+        ADD COLUMN IF NOT EXISTS specifications jsonb DEFAULT '{}'::jsonb,
+        ADD COLUMN IF NOT EXISTS variants jsonb DEFAULT '[]'::jsonb,
+        ADD COLUMN IF NOT EXISTS gallery_images jsonb DEFAULT '[]'::jsonb,
+        ADD COLUMN IF NOT EXISTS created_at timestamp DEFAULT now();
+
+      ALTER TABLE IF EXISTS business_posts
+        ADD COLUMN IF NOT EXISTS user_id text,
+        ADD COLUMN IF NOT EXISTS user_name text,
+        ADD COLUMN IF NOT EXISTS title text,
+        ADD COLUMN IF NOT EXISTS description text DEFAULT '',
+        ADD COLUMN IF NOT EXISTS image text,
+        ADD COLUMN IF NOT EXISTS category text,
+        ADD COLUMN IF NOT EXISTS timestamp text,
+        ADD COLUMN IF NOT EXISTS price double precision,
+        ADD COLUMN IF NOT EXISTS stock_count integer,
+        ADD COLUMN IF NOT EXISTS sku text,
+        ADD COLUMN IF NOT EXISTS condition text,
+        ADD COLUMN IF NOT EXISTS location text,
+        ADD COLUMN IF NOT EXISTS dispatch_time text,
+        ADD COLUMN IF NOT EXISTS reviews jsonb DEFAULT '[]'::jsonb,
+        ADD COLUMN IF NOT EXISTS created_at timestamp DEFAULT now();
+
+      ALTER TABLE IF EXISTS shipments
+        ADD COLUMN IF NOT EXISTS tracking_number text,
+        ADD COLUMN IF NOT EXISTS order_id text,
+        ADD COLUMN IF NOT EXISTS carrier text DEFAULT 'Royal Hints Courier',
+        ADD COLUMN IF NOT EXISTS service_type text DEFAULT 'Courier Delivery',
+        ADD COLUMN IF NOT EXISTS status text DEFAULT 'Order Placed',
+        ADD COLUMN IF NOT EXISTS origin text DEFAULT 'Royal Hints Dispatch',
+        ADD COLUMN IF NOT EXISTS destination text,
+        ADD COLUMN IF NOT EXISTS estimated_delivery text,
+        ADD COLUMN IF NOT EXISTS dispatched_date text,
+        ADD COLUMN IF NOT EXISTS order_date text,
+        ADD COLUMN IF NOT EXISTS payment_method text,
+        ADD COLUMN IF NOT EXISTS delivery_confirmed_by_customer boolean DEFAULT false,
+        ADD COLUMN IF NOT EXISTS delivery_confirmed_at text,
+        ADD COLUMN IF NOT EXISTS items jsonb DEFAULT '[]'::jsonb,
+        ADD COLUMN IF NOT EXISTS checkpoints jsonb DEFAULT '[]'::jsonb,
+        ADD COLUMN IF NOT EXISTS created_at timestamp DEFAULT now();
+
+      ALTER TABLE IF EXISTS quotations
+        ADD COLUMN IF NOT EXISTS quote_number text,
+        ADD COLUMN IF NOT EXISTS user_id text,
+        ADD COLUMN IF NOT EXISTS user_name text,
+        ADD COLUMN IF NOT EXISTS user_email text,
+        ADD COLUMN IF NOT EXISTS title text,
+        ADD COLUMN IF NOT EXISTS category text,
+        ADD COLUMN IF NOT EXISTS estimated_quantity integer DEFAULT 1,
+        ADD COLUMN IF NOT EXISTS target_budget text,
+        ADD COLUMN IF NOT EXISTS urgency text,
+        ADD COLUMN IF NOT EXISTS specifications text DEFAULT '',
+        ADD COLUMN IF NOT EXISTS delivery_location text,
+        ADD COLUMN IF NOT EXISTS contact_number text,
+        ADD COLUMN IF NOT EXISTS status text DEFAULT 'Under Review',
+        ADD COLUMN IF NOT EXISTS submitted_at text,
+        ADD COLUMN IF NOT EXISTS admin_quote jsonb,
+        ADD COLUMN IF NOT EXISTS created_at timestamp DEFAULT now();
+
+      ALTER TABLE IF EXISTS bespoke_requests
+        ADD COLUMN IF NOT EXISTS reference_number text,
+        ADD COLUMN IF NOT EXISTS user_id text,
+        ADD COLUMN IF NOT EXISTS user_name text,
+        ADD COLUMN IF NOT EXISTS user_email text,
+        ADD COLUMN IF NOT EXISTS item_name text,
+        ADD COLUMN IF NOT EXISTS category text,
+        ADD COLUMN IF NOT EXISTS maker_or_brand text,
+        ADD COLUMN IF NOT EXISTS condition_preference text,
+        ADD COLUMN IF NOT EXISTS budget_estimate text,
+        ADD COLUMN IF NOT EXISTS urgency text,
+        ADD COLUMN IF NOT EXISTS reference_link_or_image_url text,
+        ADD COLUMN IF NOT EXISTS detailed_requirements text DEFAULT '',
+        ADD COLUMN IF NOT EXISTS admin_recipient text,
+        ADD COLUMN IF NOT EXISTS status text DEFAULT 'Received by Admin',
+        ADD COLUMN IF NOT EXISTS submitted_at text,
+        ADD COLUMN IF NOT EXISTS admin_response jsonb,
+        ADD COLUMN IF NOT EXISTS created_at timestamp DEFAULT now();
+
+      ALTER TABLE IF EXISTS users
+        ADD COLUMN IF NOT EXISTS name text,
+        ADD COLUMN IF NOT EXISTS email text,
+        ADD COLUMN IF NOT EXISTS avatar text,
+        ADD COLUMN IF NOT EXISTS role text DEFAULT 'buyer',
+        ADD COLUMN IF NOT EXISTS is_admin boolean DEFAULT false,
+        ADD COLUMN IF NOT EXISTS created_at timestamp DEFAULT now();
+    `);
   }
 
   // Products
@@ -290,7 +286,7 @@ class PostgresStore {
       }));
     } catch (error) {
       console.error('PostgreSQL getProducts error:', error);
-      return INITIAL_PRODUCTS;
+      return [];
     }
   }
 
@@ -322,7 +318,7 @@ class PostgresStore {
       };
     } catch (error) {
       console.error('PostgreSQL getProductById error:', error);
-      return INITIAL_PRODUCTS.find(p => p.id === id);
+      return undefined;
     }
   }
 
@@ -417,7 +413,7 @@ class PostgresStore {
       }));
     } catch (error) {
       console.error('PostgreSQL getPosts error:', error);
-      return INITIAL_POSTS;
+      return [];
     }
   }
 
@@ -536,7 +532,7 @@ class PostgresStore {
       }));
     } catch (error) {
       console.error('PostgreSQL getShipments error:', error);
-      return INITIAL_SHIPMENTS;
+      return [];
     }
   }
 
@@ -624,7 +620,7 @@ class PostgresStore {
       }));
     } catch (error) {
       console.error('PostgreSQL getQuotations error:', error);
-      return INITIAL_QUOTATIONS;
+      return [];
     }
   }
 
@@ -697,7 +693,7 @@ class PostgresStore {
       }));
     } catch (error) {
       console.error('PostgreSQL getBespokeRequests error:', error);
-      return INITIAL_BESPOKE;
+      return [];
     }
   }
 
@@ -760,7 +756,7 @@ class PostgresStore {
       }));
     } catch (error) {
       console.error('PostgreSQL getUsers error:', error);
-      return INITIAL_USERS;
+      return [];
     }
   }
 
@@ -780,8 +776,28 @@ class PostgresStore {
       };
     } catch (error) {
       console.error('PostgreSQL getUserByEmail error:', error);
-      return INITIAL_USERS.find(u => u.email.toLowerCase() === email.toLowerCase());
+      return undefined;
     }
+  }
+
+  async createUser(user: User): Promise<User> {
+    await this.ensureSeeded();
+    const createdUser = { ...user, id: this.normalizeId(user.id) };
+    await db.insert(users).values({
+      id: createdUser.id,
+      name: user.name,
+      email: user.email.toLowerCase(),
+      avatar: user.avatar,
+      role: user.role || 'buyer',
+      isAdmin: user.isAdmin || false
+    }).onConflictDoNothing();
+    return createdUser;
+  }
+
+  private normalizeId(id?: string) {
+    return id && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id)
+      ? id
+      : randomUUID();
   }
 }
 

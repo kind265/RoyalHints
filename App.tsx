@@ -21,13 +21,6 @@ import {
   QuotationRequest,
   BespokeSourcingRequest
 } from './types';
-import { 
-  INITIAL_MARKETPLACE_POSTS, 
-  TRENDING_PRODUCTS,
-  INITIAL_SHIPMENTS,
-  INITIAL_QUOTATIONS,
-  INITIAL_BESPOKE_REQUESTS
-} from './constants';
 import { apiClient } from './backend/api-client';
 
 type Page = 'Home' | 'Auth' | 'Admin' | 'Dashboard' | 'Marketplace' | 'Checkout';
@@ -86,17 +79,17 @@ const App: React.FC = () => {
   // Tracking, Quotations, and Bespoke Requests State
   const [shipments, setShipments] = useState<ShipmentTracking[]>(() => {
     const saved = localStorage.getItem('royalhints_shipments');
-    return saved ? JSON.parse(saved) : INITIAL_SHIPMENTS;
+    return saved ? JSON.parse(saved) : [];
   });
 
   const [quotations, setQuotations] = useState<QuotationRequest[]>(() => {
     const saved = localStorage.getItem('royalhints_quotations');
-    return saved ? JSON.parse(saved) : INITIAL_QUOTATIONS;
+    return saved ? JSON.parse(saved) : [];
   });
 
   const [bespokeRequests, setBespokeRequests] = useState<BespokeSourcingRequest[]>(() => {
     const saved = localStorage.getItem('royalhints_bespoke_requests');
-    return saved ? JSON.parse(saved) : INITIAL_BESPOKE_REQUESTS;
+    return saved ? JSON.parse(saved) : [];
   });
 
   // Load from PostgreSQL Backend API on mount
@@ -113,9 +106,9 @@ const App: React.FC = () => {
 
         if (Array.isArray(fetchedPosts)) setPosts(fetchedPosts);
         if (Array.isArray(fetchedProducts)) setProducts(fetchedProducts);
-        if (fetchedShipments && fetchedShipments.length > 0) setShipments(fetchedShipments);
-        if (fetchedQuotations && fetchedQuotations.length > 0) setQuotations(fetchedQuotations);
-        if (fetchedBespoke && fetchedBespoke.length > 0) setBespokeRequests(fetchedBespoke);
+        if (Array.isArray(fetchedShipments)) setShipments(fetchedShipments);
+        if (Array.isArray(fetchedQuotations)) setQuotations(fetchedQuotations);
+        if (Array.isArray(fetchedBespoke)) setBespokeRequests(fetchedBespoke);
       } catch (err) {
         console.warn('Backend sync warning (using cached state):', err);
       }
@@ -277,20 +270,12 @@ const App: React.FC = () => {
     const quote: QuotationRequest = {
       ...newQuote,
       id: `quo-${Date.now()}`,
-      quoteNumber: `RH-QUO-2026-${num}`,
+      quoteNumber: `RH-QUO-${new Date().getFullYear()}-${num}`,
       submittedAt: Date.now(),
-      status: 'Quote Ready',
-      adminQuote: {
-        unitPrice: 85.00,
-        totalAmount: (newQuote.estimatedQuantity || 1) * 85.00,
-        validityDate: 'Valid for 14 Days',
-        leadTimeDays: 5,
-        officialNotes: 'Official Royal Hints wholesale valuation confirmed. Tamper-proof packaging and expedited freight included.',
-        includesTaxShipping: true
-      }
+      status: 'Under Review'
     };
-    setQuotations([quote, ...quotations]);
-    await apiClient.submitQuotation(quote);
+    const created = await apiClient.submitQuotation(quote);
+    setQuotations(prev => [created || quote, ...prev]);
   };
 
   const handleAcceptQuoteToCart = (quote: QuotationRequest) => {
@@ -298,15 +283,15 @@ const App: React.FC = () => {
       id: `prod-${quote.id}`,
       name: `Quotation Order: ${quote.title}`,
       description: `Official Quotation #${quote.quoteNumber} (${quote.estimatedQuantity} units). ${quote.specifications}`,
-      price: quote.adminQuote ? quote.adminQuote.totalAmount : 500,
+      price: quote.adminQuote ? quote.adminQuote.totalAmount : 0,
       category: (quote.category === 'Industrial & Bespoke' ? 'Spare Parts' : quote.category) as ProductCategory,
-      image: 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&q=80&w=800',
+      image: 'assets/jacket.png',
       rating: 5.0,
       sku: quote.quoteNumber,
       inStock: true,
       stockQuantity: quote.estimatedQuantity,
-      stockStatus: 'Ready to Ship',
-      warehouseLocation: 'Main Vault',
+      stockStatus: 'Ready to Send',
+      warehouseLocation: 'Lilongwe',
       dispatchTime: 'Dispatches in 24 hours',
       highlights: ['Custom manufactured', 'Full warranty coverage'],
       specifications: {},
@@ -326,16 +311,9 @@ const App: React.FC = () => {
       submittedAt: Date.now(),
       status: 'Received by Admin',
       adminRecipient: 'admin@royalhints.com',
-      adminResponse: {
-        assignedSpecialist: 'Elena Rostova (Lead Curator)',
-        responseDate: 'Just now',
-        adminMessage: 'Your bespoke sourcing dossier has been received at the central desk. We have initiated a scan across our Geneva, Milan, and London vault partners.',
-        directOfferPrice: 3400,
-        networkLocationFound: 'Geneva Central Vault #4'
-      }
     };
-    setBespokeRequests([req, ...bespokeRequests]);
-    await apiClient.submitBespokeRequest(req);
+    const created = await apiClient.submitBespokeRequest(req);
+    setBespokeRequests(prev => [created || req, ...prev]);
   };
 
   const handleAcceptBespokeOfferToCart = (req: BespokeSourcingRequest) => {
@@ -343,17 +321,17 @@ const App: React.FC = () => {
       id: `prod-${req.id}`,
       name: `Bespoke Sourced: ${req.itemName}`,
       description: `Bespoke Concierge item (${req.category}) sourced directly via Admin Desk #${req.referenceNumber}. Condition: ${req.conditionPreference}.`,
-      price: req.adminResponse?.directOfferPrice || 3400,
+      price: req.adminResponse?.directOfferPrice || 0,
       category: (req.category === 'Industrial & Bespoke' || req.category === 'Rare Collectible' ? 'Spare Parts' : req.category) as ProductCategory,
-      image: req.referenceLinkOrImageUrl || 'https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&q=80&w=800',
+      image: req.referenceLinkOrImageUrl || 'assets/coffie.png',
       rating: 5.0,
       sku: req.referenceNumber,
       inStock: true,
       stockQuantity: 1,
       stockStatus: 'In Stock',
-      warehouseLocation: 'Geneva Central Vault #4',
-      dispatchTime: 'Hand-inspected before dispatch',
-      highlights: ['Authenticity guaranteed', 'Vault archived'],
+      warehouseLocation: req.adminResponse?.networkLocationFound || 'Royal Hints Dispatch',
+      dispatchTime: 'Dispatch after admin confirmation',
+      highlights: ['Custom sourced item'],
       specifications: {},
       variants: []
     };
@@ -404,13 +382,13 @@ const App: React.FC = () => {
       trackingNumber: orderData.trackingNumber,
       orderId: orderData.orderId,
       status: 'In Transit',
-      carrier: 'Royal Hints Express Logistics',
-      serviceType: 'Armored Diplomatic Transit',
-      origin: 'London Central Vault (UK)',
+      carrier: 'Royal Hints Logistics',
+      serviceType: 'Courier Delivery',
+      origin: 'Royal Hints Dispatch',
       destination: orderData.shippingAddress,
       dispatchedDate: formattedDate,
       orderDate: formattedDate,
-      estimatedDelivery: 'Tomorrow, 14:00 CAT',
+      estimatedDelivery: 'Pending courier update',
       paymentMethod: 'Verified Card / Wire Escrow',
       deliveryConfirmedByCustomer: false,
       items: orderData.items.map((it) => ({
@@ -549,7 +527,7 @@ const App: React.FC = () => {
                   inStock: (p.stockCount ?? 1) > 0,
                   stockQuantity: p.stockCount ?? 1,
                   stockStatus: 'In Stock' as const,
-                  warehouseLocation: p.location || 'Vault',
+                  warehouseLocation: p.location || 'Shop',
                   dispatchTime: p.dispatchTime || '24h',
                   description: p.description || '',
                   highlights: [],
@@ -590,12 +568,12 @@ const App: React.FC = () => {
               <div className="animate-in fade-in duration-700">
                 <Dashboard 
                   user={user || {
-                    id: 'RH-USR-GUEST',
-                    name: 'Valued Client',
-                    email: 'client@royalhints.com',
+                    id: 'guest-session',
+                    name: 'Guest Session',
+                    email: '',
                     role: 'buyer',
                     isAdmin: false,
-                    buyerUniqueId: 'RH-USR-GUEST'
+                    buyerUniqueId: 'guest-session'
                   }} 
                   onLogout={handleLogout} 
                   onNavigate={navigateTo}

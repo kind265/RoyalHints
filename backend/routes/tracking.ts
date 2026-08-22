@@ -39,10 +39,10 @@ trackingRouter.get('/:query', async (req: Request, res: Response) => {
 trackingRouter.post('/', async (req: Request, res: Response) => {
   try {
     const body = req.body;
-    if (!body.trackingNumber || !body.orderId) {
+    if (!body.trackingNumber || !body.orderId || !body.destination) {
       return res.status(400).json({
         success: false,
-        message: 'Tracking number and Order ID are required'
+        message: 'Tracking number, Order ID, and destination are required'
       });
     }
 
@@ -50,15 +50,15 @@ trackingRouter.post('/', async (req: Request, res: Response) => {
       id: body.id || `ship-${Date.now()}`,
       trackingNumber: body.trackingNumber,
       orderId: body.orderId,
-      carrier: body.carrier || 'Royal Hints Logistics Courier',
-      serviceType: body.serviceType || 'VIP Secure Vault Transit',
+      carrier: body.carrier || 'Royal Hints Logistics',
+      serviceType: body.serviceType || 'Courier Delivery',
       status: body.status || 'Order Placed',
-      origin: body.origin || 'London Central Vault (UK)',
-      destination: body.destination || 'Client Delivery Address',
-      estimatedDelivery: body.estimatedDelivery || 'Estimated 2-3 Business Days',
+      origin: body.origin || 'Royal Hints Dispatch',
+      destination: body.destination,
+      estimatedDelivery: body.estimatedDelivery,
       dispatchedDate: body.dispatchedDate,
       orderDate: body.orderDate || new Date().toLocaleDateString(),
-      paymentMethod: body.paymentMethod || 'Royal Escrow Verified',
+      paymentMethod: body.paymentMethod,
       deliveryConfirmedByCustomer: false,
       items: body.items || [],
       checkpoints: body.checkpoints || [

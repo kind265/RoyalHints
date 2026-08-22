@@ -61,7 +61,7 @@ export const NameWhatYouWant: React.FC<NameWhatYouWantProps> = ({
     category: SOURCING_CATEGORIES[0] as any,
     makerOrBrand: '',
     conditionPreference: 'Brand New (Mint)' as BespokeSourcingRequest['conditionPreference'],
-    budgetEstimate: 'MWK3,000,000 - MWK5,000,000',
+    budgetEstimate: '',
     urgency: 'Within 7 Days' as BespokeSourcingRequest['urgency'],
     referenceLinkOrImageUrl: '',
     detailedRequirements: ''
@@ -90,7 +90,7 @@ export const NameWhatYouWant: React.FC<NameWhatYouWantProps> = ({
       category: SOURCING_CATEGORIES[0] as any,
       makerOrBrand: '',
       conditionPreference: 'Brand New (Mint)',
-      budgetEstimate: 'MWK3,000,000 - MWK5,000,000',
+      budgetEstimate: '',
       urgency: 'Within 7 Days',
       referenceLinkOrImageUrl: '',
       detailedRequirements: ''

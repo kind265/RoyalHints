@@ -32,10 +32,10 @@ postsRouter.get('/', async (req: Request, res: Response) => {
 postsRouter.post('/', async (req: Request, res: Response) => {
   try {
     const body = req.body;
-    if (!body.title || !body.category) {
+    if (!body.title || !body.category || !body.image || body.price === undefined) {
       return res.status(400).json({
         success: false,
-        message: 'Post requires title and category'
+        message: 'Post requires title, category, image, and price'
       });
     }
 
@@ -45,15 +45,15 @@ postsRouter.post('/', async (req: Request, res: Response) => {
       userName: body.userName || 'Royal Hints Official',
       title: body.title,
       description: body.description || '',
-      image: body.image || 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&q=80&w=800',
+      image: body.image,
       category: body.category,
       timestamp: body.timestamp || Date.now(),
-      price: body.price !== undefined && body.price !== '' ? Number(body.price) : 150,
+      price: body.price !== undefined && body.price !== '' ? Number(body.price) : 0,
       stockCount: body.stockCount !== undefined && body.stockCount !== '' ? Number(body.stockCount) : undefined,
       sku: body.sku,
-      condition: body.condition || 'Mint Condition',
-      location: body.location || 'London Vaults',
-      dispatchTime: body.dispatchTime || '24h Inspected Dispatch',
+      condition: body.condition,
+      location: body.location,
+      dispatchTime: body.dispatchTime,
       reviews: body.reviews || []
     };
 

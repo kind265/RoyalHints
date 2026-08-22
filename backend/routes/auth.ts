@@ -20,15 +20,18 @@ authRouter.post('/login', async (req: Request, res: Response) => {
       });
     }
 
-    // Auto-create or guest session
-    const isSpecialAdmin = email.toLowerCase().includes('admin') || email.toLowerCase() === 'chikusehopeson@gmail.com';
+    const normalizedEmail = email.toLowerCase();
+    const configuredAdminEmail = process.env.ADMIN_EMAIL?.trim().toLowerCase();
+    const isSpecialAdmin = configuredAdminEmail ? normalizedEmail === configuredAdminEmail : normalizedEmail.includes('admin');
     const newUser = {
       id: `usr-${Date.now()}`,
-      name: isSpecialAdmin ? (email.toLowerCase() === 'chikusehopeson@gmail.com' ? 'Chikuse Hopeson (Admin)' : 'Royal Hints Administrator') : email.split('@')[0],
-      email: email,
+      name: isSpecialAdmin ? 'Royal Hints Administrator' : email.split('@')[0],
+      email: normalizedEmail,
       role: isSpecialAdmin ? ('admin' as const) : ('buyer' as const),
       isAdmin: isSpecialAdmin
     };
+
+    await postgresStore.createUser(newUser);
 
     res.json({
       success: true,

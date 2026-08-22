@@ -38,7 +38,7 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLogin, onNavigateHome }) => {
       const isAdminEmail = isChikuse || cleanEmail.includes('admin') || cleanEmail.endsWith('@royalhints.com');
 
       if (!isAdminEmail) {
-        setError('Access Restricted: This login terminal is reserved exclusively for Royal Hints Administrators. Regular buyers receive auto-generated Unique IDs upon placing an order.');
+        setError('Access Restricted: This login terminal is reserved exclusively for Royal Hints Administrators.');
         return;
       }
 
@@ -68,31 +68,18 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLogin, onNavigateHome }) => {
             onClick={onNavigateHome}
             className="absolute top-5 left-5 text-gray-400 hover:text-white flex items-center gap-1 text-[11px] font-black uppercase tracking-wider transition-colors"
           >
-            <ChevronLeft className="h-4 w-4" /> Boutique
+            <ChevronLeft className="h-4 w-4" /> Back
           </button>
 
-          <div className="h-14 w-14 bg-gradient-to-br from-amber-500 to-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-xl shadow-blue-500/20 ring-1 ring-white/20">
-            <Crown className="h-7 w-7 text-white" />
-          </div>
-
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300 text-[10px] font-black uppercase tracking-[0.2em] mb-3">
-            <ShieldCheck className="h-3 w-3 text-amber-400" /> Admin Clearance Portal
+            <ShieldCheck className="h-3 w-3 text-amber-400" /> Admin Portal
           </div>
-
-          <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-white mb-2">
-            Executive Terminal
-          </h2>
-          <p className="text-gray-400 text-xs max-w-xs mx-auto leading-relaxed">
-            Restricted access for Royal Hints Administrators to manage stock, ventures, quotes, and dispatch telemetry.
-          </p>
         </div>
 
         {/* Quick Credentials Presets */}
         <div className="p-4 bg-white/[0.02] border-b border-white/5">
-          <p className="text-[10px] uppercase tracking-widest font-black text-gray-400 mb-2.5 flex items-center gap-1.5">
-            <KeyRound className="h-3.5 w-3.5 text-[#2563EB]" /> Fast Admin Key Selection
-          </p>
           <div className="grid grid-cols-2 gap-2">
+            {/*
             <button
               type="button"
               onClick={() => handleAdminPreset('chikusehopeson@gmail.com')}
@@ -105,6 +92,7 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLogin, onNavigateHome }) => {
               <span className="block text-[10px] font-black text-amber-400 uppercase">Primary Owner</span>
               <span className="block text-[11px] font-bold truncate">chikusehopeson@gmail.com</span>
             </button>
+            */}
 
             <button
               type="button"
@@ -150,7 +138,7 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLogin, onNavigateHome }) => {
           <div className="space-y-1.5">
             <div className="flex justify-between items-center">
               <label className="text-[10px] uppercase tracking-[0.2em] font-black text-gray-400 ml-1">
-                Security Password / Secret Key
+                Password
               </label>
             </div>
             <div className="relative">
@@ -178,18 +166,12 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLogin, onNavigateHome }) => {
               </span>
             ) : (
               <>
-                Authorize Admin Terminal
+                PROCEED
                 <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
               </>
             )}
           </button>
-
-          {/* Buyer Information Notice */}
-          <div className="pt-4 border-t border-white/10 text-center">
-            <p className="text-[11px] text-gray-400 leading-relaxed">
-              <strong className="text-gray-200">Buyer Policy:</strong> Customers do not need accounts or passwords. A unique buyer ID is automatically assigned and activated upon completing any order in the boutique checkout.
-            </p>
-          </div>
+    
         </form>
 
       </div>

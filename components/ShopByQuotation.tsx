@@ -53,12 +53,12 @@ export const ShopByQuotation: React.FC<ShopByQuotationProps> = ({
   const [formData, setFormData] = useState({
     title: '',
     category: QUOTATION_CATEGORIES[0],
-    estimatedQuantity: 50,
-    targetBudget: '$5,000 - $10,000',
+    estimatedQuantity: 1,
+    targetBudget: '',
     urgency: 'Standard (5-7 Days)' as QuotationRequest['urgency'],
     specifications: '',
-    deliveryLocation: 'Primary Residence / Commercial Facility',
-    contactNumber: '+1 (555) 019-2834'
+    deliveryLocation: '',
+    contactNumber: ''
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -79,12 +79,12 @@ export const ShopByQuotation: React.FC<ShopByQuotationProps> = ({
     setFormData({
       title: '',
       category: QUOTATION_CATEGORIES[0],
-      estimatedQuantity: 50,
-      targetBudget: '$5,000 - $10,000',
+      estimatedQuantity: 1,
+      targetBudget: '',
       urgency: 'Standard (5-7 Days)',
       specifications: '',
-      deliveryLocation: 'Primary Residence / Commercial Facility',
-      contactNumber: '+1 (555) 019-2834'
+      deliveryLocation: '',
+      contactNumber: ''
     });
   };
 

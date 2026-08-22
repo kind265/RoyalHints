@@ -50,10 +50,10 @@ productsRouter.get('/:id', async (req: Request, res: Response) => {
 productsRouter.post('/', async (req: Request, res: Response) => {
   try {
     const body = req.body;
-    if (!body.name || !body.category || body.price === undefined) {
+    if (!body.name || !body.category || body.price === undefined || !body.image) {
       return res.status(400).json({ 
         success: false, 
-        message: 'Missing required product attributes (name, category, price)' 
+        message: 'Missing required product attributes (name, category, price, image)' 
       });
     }
 
@@ -63,7 +63,7 @@ productsRouter.post('/', async (req: Request, res: Response) => {
       price: Number(body.price),
       rating: body.rating || 5.0,
       category: body.category,
-      image: body.image || 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&q=80&w=800',
+      image: body.image,
       isNew: body.isNew ?? true,
       sku: body.sku || `RH-${body.category.substring(0, 2).toUpperCase()}-${Math.floor(1000 + Math.random() * 9000)}`,
       inStock: body.inStock ?? true,

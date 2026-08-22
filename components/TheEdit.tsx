@@ -11,25 +11,25 @@ interface TheEditProps {
 const TheEdit: React.FC<TheEditProps> = ({ onSelectCategory, onSelectProduct }) => {
   const pillars = [
     {
-      title: 'Archival Books',
+      title: 'Books',
       category: 'Books' as ProductCategory,
       desc: 'Museum-grade collector volumes and engineering manuals.',
       icon: BookOpen
     },
     {
-      title: 'Precision Spare Parts',
+      title: 'Spare Parts',
       category: 'Spare Parts' as ProductCategory,
       desc: 'Forged titanium hardware and micron-calibrated assemblies.',
       icon: Wrench
     },
     {
-      title: 'Luxury Fabric Yardage',
+      title: 'Fabric',
       category: 'Fabric' as ProductCategory,
       desc: 'Grade-6A Mulberry silk and heavyweight Belgian linens.',
       icon: Scissors
     },
     {
-      title: 'Bespoke Fashion',
+      title: 'Fashion',
       category: 'Fashion' as ProductCategory,
       desc: 'Handcrafted virgin wool tailoring and Tuscan calfskin shoes.',
       icon: Sparkles
@@ -46,7 +46,7 @@ const TheEdit: React.FC<TheEditProps> = ({ onSelectCategory, onSelectProduct }) 
             <div className="relative">
               <div className="absolute -top-12 -left-12 w-64 h-64 bg-[#2563EB]/10 rounded-full blur-3xl"></div>
               <img 
-                src="https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&q=80&w=1000" 
+                src="assets/Russian_satin(Beige).jpg" 
                 alt="Royal Hints Curation" 
                 className="relative rounded-[16px] w-full h-auto shadow-2xl transition-all duration-700 hover:scale-[1.01]"
               />

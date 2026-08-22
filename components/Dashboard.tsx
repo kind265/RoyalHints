@@ -88,12 +88,7 @@ const CONDITION_OPTIONS = [
 ];
 
 const LOCATION_PRESETS = [
-  'Geneva Central Vault',
-  'London Atelier Workshop',
-  'Stuttgart Precision Depot',
-  'Como Artisanal Mill',
-  'Savile Row Guild Workshop',
-  'Zurich FreePort Vault 04'
+  'Royal Hints Dispatch'
 ];
 
 const DISPATCH_PRESETS = [
@@ -131,10 +126,10 @@ const Dashboard: React.FC<DashboardProps> = ({
     title: '', 
     description: '', 
     category: BUSINESS_CATEGORIES[0], 
-    image: GALLERY_PHOTO_PRESETS[0]?.url || '',
-    price: 350,
-    stockCount: 15,
-    sku: `RH-INV-${Math.floor(1000 + Math.random() * 9000)}`,
+    image: '',
+    price: 0,
+    stockCount: 1,
+    sku: '',
     condition: CONDITION_OPTIONS[0],
     location: LOCATION_PRESETS[0],
     dispatchTime: DISPATCH_PRESETS[0]
@@ -160,7 +155,7 @@ const Dashboard: React.FC<DashboardProps> = ({
 
   const [photoHistory, setPhotoHistory] = useState<Array<{ id: string; title: string; category: string; url: string }>>(() => {
     const saved = localStorage.getItem('royalhints_photo_history');
-    return saved ? JSON.parse(saved) : GALLERY_PHOTO_PRESETS;
+    return saved ? JSON.parse(saved) : [];
   });
 
   // Venture Management filters and states
@@ -357,7 +352,7 @@ const Dashboard: React.FC<DashboardProps> = ({
       title: postData.title,
       description: postData.description.trim() || undefined,
       category: postData.category,
-      image: postData.image || GALLERY_PHOTO_PRESETS[0].url,
+      image: postData.image,
       price: Number(postData.price) || 0,
       stockCount: Number(postData.stockCount) || 1,
       sku: postData.sku || `RH-INV-${Date.now().toString().slice(-4)}`,
@@ -370,10 +365,10 @@ const Dashboard: React.FC<DashboardProps> = ({
       title: '', 
       description: '', 
       category: BUSINESS_CATEGORIES[0], 
-      image: GALLERY_PHOTO_PRESETS[0]?.url || '',
-      price: 350,
-      stockCount: 15,
-      sku: `RH-INV-${Math.floor(1000 + Math.random() * 9000)}`,
+      image: '',
+      price: 0,
+      stockCount: 1,
+      sku: '',
       condition: CONDITION_OPTIONS[0],
       location: LOCATION_PRESETS[0],
       dispatchTime: DISPATCH_PRESETS[0]
@@ -1109,7 +1104,7 @@ const Dashboard: React.FC<DashboardProps> = ({
                           <div className="grid grid-cols-2 gap-2 text-[10px] font-medium bg-gray-50 p-2.5 rounded-xl border border-gray-100">
                             <div className="flex items-center gap-1.5 text-gray-600 truncate">
                               <MapPin className="h-3 w-3 text-[#2563EB] shrink-0" />
-                              <span className="truncate">{post.location || 'Geneva Central Vault'}</span>
+                              <span className="truncate">{post.location || 'No location set'}</span>
                             </div>
                             <div className="flex items-center gap-1.5 text-gray-600 truncate">
                               <Tag className="h-3 w-3 text-amber-500 shrink-0" />

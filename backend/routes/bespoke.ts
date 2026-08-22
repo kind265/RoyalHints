@@ -32,10 +32,10 @@ bespokeRouter.get('/', async (req: Request, res: Response) => {
 bespokeRouter.post('/', async (req: Request, res: Response) => {
   try {
     const body = req.body;
-    if (!body.itemName || !body.category) {
+    if (!body.itemName || !body.category || !body.userId || !body.userName || !body.userEmail || !body.budgetEstimate) {
       return res.status(400).json({
         success: false,
-        message: 'Item name and category are required'
+        message: 'Item, category, client, and budget details are required'
       });
     }
 
@@ -44,18 +44,18 @@ bespokeRouter.post('/', async (req: Request, res: Response) => {
     const newRequest: BespokeSourcingRequest = {
       id: body.id || `bsr-${Date.now()}`,
       referenceNumber: body.referenceNumber || refNumber,
-      userId: body.userId || 'usr-guest',
-      userName: body.userName || 'Distinguished Patron',
-      userEmail: body.userEmail || 'client@royalhints.com',
+      userId: body.userId,
+      userName: body.userName,
+      userEmail: body.userEmail,
       itemName: body.itemName,
       category: body.category,
       makerOrBrand: body.makerOrBrand,
       conditionPreference: body.conditionPreference || 'Archival / Vintage Verified',
-      budgetEstimate: body.budgetEstimate || 'Bespoke Valuation',
+      budgetEstimate: body.budgetEstimate,
       urgency: body.urgency || 'Within 7 Days',
       referenceLinkOrImageUrl: body.referenceLinkOrImageUrl,
       detailedRequirements: body.detailedRequirements || '',
-      adminRecipient: 'Admin Sourcing Desk (admin@royalhints.com)',
+      adminRecipient: process.env.ADMIN_EMAIL || 'admin@royalhints.com',
       status: 'Received by Admin',
       submittedAt: body.submittedAt || Date.now()
     };

@@ -32,10 +32,10 @@ quotationsRouter.get('/', async (req: Request, res: Response) => {
 quotationsRouter.post('/', async (req: Request, res: Response) => {
   try {
     const body = req.body;
-    if (!body.title || !body.category) {
+    if (!body.title || !body.category || !body.userId || !body.userName || !body.userEmail || !body.targetBudget || !body.deliveryLocation || !body.contactNumber) {
       return res.status(400).json({
         success: false,
-        message: 'Quotation requires item title and category'
+        message: 'Quotation requires client, item, budget, delivery, and contact details'
       });
     }
 
@@ -44,17 +44,17 @@ quotationsRouter.post('/', async (req: Request, res: Response) => {
     const newQuotation: QuotationRequest = {
       id: body.id || `qr-${Date.now()}`,
       quoteNumber: body.quoteNumber || quoteNumber,
-      userId: body.userId || 'usr-guest',
-      userName: body.userName || 'Valued Client',
-      userEmail: body.userEmail || 'client@royalhints.com',
+      userId: body.userId,
+      userName: body.userName,
+      userEmail: body.userEmail,
       title: body.title,
       category: body.category,
       estimatedQuantity: Number(body.estimatedQuantity) || 1,
-      targetBudget: body.targetBudget || 'Flexible Market Rate',
+      targetBudget: body.targetBudget,
       urgency: body.urgency || 'Standard (5-7 Days)',
       specifications: body.specifications || '',
-      deliveryLocation: body.deliveryLocation || 'Client Delivery Address',
-      contactNumber: body.contactNumber || 'Confidential',
+      deliveryLocation: body.deliveryLocation,
+      contactNumber: body.contactNumber,
       status: 'Under Review',
       submittedAt: body.submittedAt || Date.now()
     };

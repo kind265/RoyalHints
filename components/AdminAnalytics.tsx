@@ -77,7 +77,7 @@ export const AdminAnalytics: React.FC<AdminAnalyticsProps> = ({
         destination: shipment.destination,
         status: shipment.status,
         orderDate: shipment.orderDate || shipment.dispatchedDate || 'Recent',
-        buyer: 'Lord Alistair Sterling'
+        buyer: shipment.orderId
       });
     });
   });
@@ -113,7 +113,7 @@ export const AdminAnalytics: React.FC<AdminAnalyticsProps> = ({
   const bespokeStatusCounts = {
     received: activeBespokeRequests.filter(r => r.status === 'Received by Admin').length,
     assigned: activeBespokeRequests.filter(r => r.status === 'Sourcing Specialist Assigned').length,
-    located: activeBespokeRequests.filter(r => r.status === 'Located in Vault Network').length,
+    located: activeBespokeRequests.filter(r => r.status === 'Located in Lilongwe At Our Shop').length,
     quoted: activeBespokeRequests.filter(r => r.status === 'Quoted & Ready').length,
   };
 
@@ -142,16 +142,15 @@ export const AdminAnalytics: React.FC<AdminAnalyticsProps> = ({
         <div>
           <div className="flex items-center gap-2 mb-2">
             <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-blue-50 border border-blue-200/60 text-[#2563EB] text-[10px] font-black uppercase tracking-wider">
-              <Crown className="h-3 w-3 text-amber-500" />
               Administrative Intelligence
             </div>
-            <span className="text-[10px] text-gray-400 font-medium">Live Vault Telemetry</span>
+            <span className="text-[10px] text-gray-400 font-medium">Live Updates</span>
           </div>
           <h2 className="text-2xl sm:text-4xl font-black tracking-tight text-[#1A1A1A]">
             Analytics Summary
           </h2>
           <p className="text-gray-400 font-light text-xs sm:text-base mt-1">
-            Real-time metrics for marketplace item sales, order fulfillment, and bespoke concierge sourcing requests.
+            Real time metrics for marketplace sales, order fulfillment, and sourcing requests.
           </p>
         </div>
 
@@ -161,7 +160,7 @@ export const AdminAnalytics: React.FC<AdminAnalyticsProps> = ({
             onClick={() => onNavigateTab('bespoke')}
             className="flex items-center gap-1.5 px-4 py-2.5 bg-gray-50 hover:bg-gray-100 text-gray-700 border border-gray-200 rounded-xl text-xs font-bold transition-all"
           >
-            <Sparkles className="h-3.5 w-3.5 text-[#2563EB]" /> Sourcing Desk
+            Sourcing Desk
           </button>
           <button
             onClick={() => onNavigateTab('my-posts')}
@@ -201,9 +200,9 @@ export const AdminAnalytics: React.FC<AdminAnalyticsProps> = ({
           </div>
 
           <div className="mt-4 pt-3 border-t border-gray-100/90 flex items-center justify-between text-xs">
-            <span className="text-gray-500 font-medium">Delivered & In-Transit:</span>
+            <span className="text-gray-500 font-medium">Delivered & In Transit:</span>
             <span className="font-bold text-[#1A1A1A]">
-              {deliveredShipmentsCount} Delivered / {inTransitShipmentsCount} In-Transit
+              {deliveredShipmentsCount} Delivered / {inTransitShipmentsCount} In Transit
             </span>
           </div>
         </div>
@@ -211,17 +210,15 @@ export const AdminAnalytics: React.FC<AdminAnalyticsProps> = ({
         {/* Card 2: ACTIVE BESPOKE SOURCING REQUESTS (Core Requirement) */}
         <div className="p-5 sm:p-6 bg-gradient-to-br from-amber-50/70 via-white to-white rounded-2xl border border-amber-200/80 shadow-sm relative overflow-hidden group">
           <div className="flex justify-between items-start mb-4">
-            <div className="h-11 w-11 rounded-xl bg-amber-500 text-white flex items-center justify-center shadow-lg shadow-amber-500/20">
-              <Sparkles className="h-5 w-5" />
-            </div>
+            
             <span className="inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-wider text-amber-700 bg-amber-100/70 px-2.5 py-1 rounded-full border border-amber-300/60">
-              Concierge Active
+              Active
             </span>
           </div>
 
           <div>
             <p className="text-[10px] uppercase tracking-[0.25em] font-black text-gray-400 mb-1">
-              Active Bespoke Requests
+              Active Requests
             </p>
             <div className="flex items-baseline gap-2">
               <span className="text-3xl sm:text-4xl font-black text-[#1A1A1A] tracking-tight">
@@ -234,7 +231,7 @@ export const AdminAnalytics: React.FC<AdminAnalyticsProps> = ({
           </div>
 
           <div className="mt-4 pt-3 border-t border-gray-100/90 flex items-center justify-between text-xs">
-            <span className="text-gray-500 font-medium">Vault Located & Ready:</span>
+            <span className="text-gray-500 font-medium">Shop Located & Ready:</span>
             <span className="font-bold text-[#1A1A1A]">
               {bespokeStatusCounts.located + bespokeStatusCounts.quoted} of {activeBespokeRequests.length}
             </span>
@@ -258,7 +255,7 @@ export const AdminAnalytics: React.FC<AdminAnalyticsProps> = ({
             </p>
             <div className="flex items-baseline gap-1">
               <span className="text-3xl sm:text-4xl font-black text-[#1A1A1A] tracking-tight font-mono">
-                ${totalSalesRevenue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                MWK{totalSalesRevenue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </span>
             </div>
           </div>
@@ -266,7 +263,7 @@ export const AdminAnalytics: React.FC<AdminAnalyticsProps> = ({
           <div className="mt-4 pt-3 border-t border-gray-100 flex items-center justify-between text-xs">
             <span className="text-gray-500 font-medium">Avg Transaction:</span>
             <span className="font-mono font-bold text-[#1A1A1A]">
-              ${totalItemsSold > 0 ? (totalSalesRevenue / totalItemsSold).toFixed(2) : '0.00'}
+              MWK{totalItemsSold > 0 ? (totalSalesRevenue / totalItemsSold).toFixed(2) : '0.00'}
             </span>
           </div>
         </div>
@@ -297,7 +294,7 @@ export const AdminAnalytics: React.FC<AdminAnalyticsProps> = ({
           </div>
 
           <div className="mt-4 pt-3 border-t border-gray-100 flex items-center justify-between text-xs">
-            <span className="text-gray-500 font-medium">Admin Vault Capacity:</span>
+            <span className="text-gray-500 font-medium">Shop Capacity:</span>
             <span className="font-bold text-emerald-600">Operational</span>
           </div>
         </div>
@@ -312,13 +309,12 @@ export const AdminAnalytics: React.FC<AdminAnalyticsProps> = ({
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-4 border-b border-gray-100">
             <div>
               <div className="flex items-center gap-2">
-                <Sparkles className="h-4 w-4 text-amber-500" />
                 <h3 className="text-lg sm:text-xl font-black text-[#1A1A1A]">
-                  Active Bespoke Sourcing Queue
+                  Active Sourcing Queue
                 </h3>
               </div>
               <p className="text-xs text-gray-400 mt-0.5">
-                {activeBespokeRequests.length} active custom concierge procurement missions
+                {activeBespokeRequests.length} active custom procurement missions
               </p>
             </div>
 
@@ -326,7 +322,7 @@ export const AdminAnalytics: React.FC<AdminAnalyticsProps> = ({
               onClick={() => onNavigateTab('bespoke')}
               className="inline-flex items-center gap-1 text-xs font-black uppercase tracking-wider text-[#2563EB] hover:text-[#1D4ED8] self-start sm:self-auto"
             >
-              Open Concierge Desk <ArrowRight className="h-3.5 w-3.5" />
+              Open Desk <ArrowRight className="h-3.5 w-3.5" />
             </button>
           </div>
 
@@ -341,7 +337,7 @@ export const AdminAnalytics: React.FC<AdminAnalyticsProps> = ({
               <p className="text-lg font-black text-blue-700 mt-0.5">{bespokeStatusCounts.assigned}</p>
             </div>
             <div className="p-3 bg-amber-50/70 rounded-xl border border-amber-100 text-center">
-              <p className="text-xs text-amber-700 font-medium">Vault Located</p>
+              <p className="text-xs text-amber-700 font-medium">Shop</p>
               <p className="text-lg font-black text-amber-800 mt-0.5">{bespokeStatusCounts.located}</p>
             </div>
             <div className="p-3 bg-emerald-50/70 rounded-xl border border-emerald-100 text-center">
@@ -399,7 +395,7 @@ export const AdminAnalytics: React.FC<AdminAnalyticsProps> = ({
                     </span>
                     {req.adminResponse.directOfferPrice && (
                       <span className="font-mono font-bold text-emerald-600">
-                        Offered: ${req.adminResponse.directOfferPrice.toLocaleString()}
+                        Offered: MWK{req.adminResponse.directOfferPrice.toLocaleString()}
                       </span>
                     )}
                     <button 
@@ -417,7 +413,7 @@ export const AdminAnalytics: React.FC<AdminAnalyticsProps> = ({
               <div className="text-center py-10 bg-gray-50 rounded-xl border border-dashed border-gray-200 p-4">
                 <CheckCircle2 className="h-8 w-8 text-emerald-500 mx-auto mb-2" />
                 <p className="font-black text-sm text-[#1A1A1A]">No Active Sourcing Requests</p>
-                <p className="text-xs text-gray-400 mt-0.5">All bespoke procurement submissions are fulfilled.</p>
+                <p className="text-xs text-gray-400 mt-0.5">All procurement submissions are fulfilled.</p>
               </div>
             )}
           </div>
@@ -446,7 +442,7 @@ export const AdminAnalytics: React.FC<AdminAnalyticsProps> = ({
                     <span className="font-bold text-[#1A1A1A]">{item.category}</span>
                     <div className="flex items-center gap-2 font-mono text-gray-500">
                       <span className="font-bold text-gray-800">{item.count} {item.count === 1 ? 'unit' : 'units'}</span>
-                      <span>(${item.revenue.toLocaleString()})</span>
+                      <span>(MWK{item.revenue.toLocaleString()})</span>
                     </div>
                   </div>
                   {/* Progress bar */}
@@ -488,10 +484,6 @@ export const AdminAnalytics: React.FC<AdminAnalyticsProps> = ({
                 </p>
               </div>
             </div>
-
-            <p className="text-[11px] text-gray-400 leading-relaxed pt-1 font-light">
-              All transactions are secured via Royal Escrow and monitored by the Central Geneva Vault dispatch desk.
-            </p>
           </div>
         </div>
 
@@ -590,11 +582,11 @@ export const AdminAnalytics: React.FC<AdminAnalyticsProps> = ({
                   </td>
 
                   <td className="py-3.5 px-3 text-right font-mono text-gray-600">
-                    ${sold.price.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                    MWK{sold.price.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                   </td>
 
                   <td className="py-3.5 px-3 text-right font-mono font-bold text-[#1A1A1A]">
-                    ${sold.totalAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                    MWK{sold.totalAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                   </td>
 
                   <td className="py-3.5 px-3">
