@@ -1,7 +1,7 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Product, User } from '../types';
-import { ChevronLeft, Lock, ShieldCheck, CreditCard, Truck, CheckCircle2, ArrowRight, Zap } from 'lucide-react';
+import { ChevronLeft, Lock, ShieldCheck, CreditCard, Truck, CheckCircle2, ArrowRight, Zap, Landmark } from 'lucide-react';
 
 interface CheckoutProps {
   cartItems: Product[];
@@ -18,6 +18,10 @@ interface CheckoutProps {
 
 const Checkout: React.FC<CheckoutProps> = ({ cartItems, onNavigate, onComplete, onOrderPlaced }) => {
   const [shippingMethod, setShippingMethod] = useState('standard');
+  const [paymentMethod, setPaymentMethod] = useState<'card' | 'paychangu'>('card');
+  const [isPayChanguLoading, setIsPayChanguLoading] = useState(false);
+  const [gatewayStatus, setGatewayStatus] = useState<'success' | 'cancelled' | 'pending' | null>(null);
+  const [gatewayMessage, setGatewayMessage] = useState('');
   const [orderConfirmed, setOrderConfirmed] = useState(false);
   const [generatedTracking, setGeneratedTracking] = useState('');
   const [generatedOrderId, setGeneratedOrderId] = useState('');
@@ -37,8 +41,79 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, onNavigate, onComplete, 
   const tax = subtotal * 0.08;
   const total = subtotal + shippingCost + tax;
 
-  const handleCompletePurchase = (e: React.FormEvent) => {
+  const formatCurrency = (value: number) => `MWK ${value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const status = params.get('status');
+    const payment = params.get('payment');
+    const message = params.get('message');
+
+    if (status === 'success' || payment === 'success') {
+      setGatewayStatus('success');
+      setGatewayMessage(message || 'Your PayChangu payment was successful. Your order is now being processed in MWK.');
+      setOrderConfirmed(true);
+      return;
+    }
+
+    if (status === 'cancelled' || status === 'failed' || payment === 'cancelled' || payment === 'failed') {
+      setGatewayStatus('cancelled');
+      setGatewayMessage(message || 'Your PayChangu payment was cancelled or failed. You can try again or use card payment instead.');
+    }
+  }, []);
+
+  const handlePayChanguPayment = async () => {
+    const checkedAmount = Number((total || 0).toFixed(2));
+    const firstName = addressData.firstName || 'Royal';
+    const lastName = addressData.lastName || 'Hints';
+    const email = addressData.email || 'customer@royalhints.com';
+
+    setIsPayChanguLoading(true);
+
+    try {
+      const response = await fetch('/api/payments/paychangu/initiate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          amount: checkedAmount,
+          email,
+          phone: '',
+          firstName,
+          lastName,
+          reference: `RH-${Date.now()}`,
+          callbackUrl: `${window.location.origin}/checkout?status=success&payment=success`,
+          returnUrl: `${window.location.origin}/checkout?status=success&payment=success`,
+          metadata: {
+            orderType: 'checkout',
+            currency: 'MWK',
+            items: cartItems.map(item => ({ id: item.id, name: item.name, price: item.price }))
+          }
+        })
+      });
+
+      const json = await response.json();
+
+      if (!response.ok || !json.success || !json.data?.redirectUrl) {
+        throw new Error(json.message || 'PayChangu payment could not be initialized.');
+      }
+
+      window.location.href = json.data.redirectUrl;
+      return;
+    } catch (error: any) {
+      window.alert(error?.message || 'PayChangu payment failed. Please try another payment option.');
+    } finally {
+      setIsPayChanguLoading(false);
+    }
+  };
+
+  const handleCompletePurchase = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (paymentMethod === 'paychangu') {
+      await handlePayChanguPayment();
+      return;
+    }
+
     const trk = `RH-TRK-${Math.floor(100000 + Math.random() * 900000)}`;
     const ord = `ORD-${Math.floor(10000 + Math.random() * 90000)}`;
     const uniqueUserId = `RH-USR-${Math.floor(1000 + Math.random() * 9000)}`;
@@ -71,14 +146,40 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, onNavigate, onComplete, 
     onComplete();
   };
 
-  if (orderConfirmed) {
+  if (gatewayStatus === 'cancelled') {
+    return (
+      <div className="min-h-screen bg-white flex flex-col items-center justify-center px-4 sm:px-6 py-24 text-center animate-in fade-in zoom-in-95 duration-700">
+        <div className="h-20 w-20 sm:h-24 sm:w-24 bg-gradient-to-tr from-amber-500 to-orange-500 text-white rounded-full flex items-center justify-center mb-6 shadow-2xl shadow-orange-500/30 ring-8 ring-orange-50">
+          <X className="h-10 w-10 sm:h-12 sm:w-12" />
+        </div>
+        <h1 className="text-3xl sm:text-5xl font-black text-[#1A1A1A] tracking-tighter mb-2 uppercase">Payment Cancelled</h1>
+        <p className="text-sm text-gray-600 max-w-lg mb-8">{gatewayMessage}</p>
+        <div className="flex flex-col sm:flex-row gap-4 w-full max-w-md">
+          <button
+            onClick={() => setGatewayStatus(null)}
+            className="flex-1 bg-[#2563EB] text-white px-6 py-4 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-[#1D4ED8] transition-all shadow-xl shadow-blue-500/20"
+          >
+            Try Again
+          </button>
+          <button
+            onClick={() => onNavigate('Home')}
+            className="bg-gray-100 text-gray-800 px-6 py-4 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-gray-200 transition-all"
+          >
+            Return Home
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (orderConfirmed || gatewayStatus === 'success') {
     return (
       <div className="min-h-screen bg-white flex flex-col items-center justify-center px-4 sm:px-6 py-24 text-center animate-in fade-in zoom-in-95 duration-700">
         <div className="h-20 w-20 sm:h-24 sm:w-24 bg-gradient-to-tr from-[#2563EB] to-blue-400 text-white rounded-full flex items-center justify-center mb-6 shadow-2xl shadow-blue-500/30 ring-8 ring-blue-50">
           <CheckCircle2 className="h-10 w-10 sm:h-12 sm:w-12" />
         </div>
         <h1 className="text-3xl sm:text-5xl font-black text-[#1A1A1A] tracking-tighter mb-2 uppercase">Royal Order Confirmed</h1>
-        <p className="text-xs sm:text-sm font-bold text-gray-500 uppercase tracking-widest mb-6">Payment Verified • Auto-Activated Member Account</p>
+<p className="text-xs sm:text-sm font-bold text-gray-500 uppercase tracking-widest mb-6">{gatewayStatus === 'success' ? 'PayChangu Payment Verified • Auto-Activated Member Account' : 'Payment Verified • Auto-Activated Member Account'}</p>
         
         {/* Buyer Identity & Consignment Voucher */}
         <div className="bg-gradient-to-br from-gray-900 to-[#1A1A1A] text-white p-6 sm:p-8 rounded-2xl max-w-lg w-full mb-8 shadow-2xl border border-white/10 text-left font-mono text-xs space-y-4">
@@ -116,7 +217,7 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, onNavigate, onComplete, 
           </div>
 
           <p className="text-[11px] text-gray-300 font-sans leading-relaxed pt-2 border-t border-white/10">
-            No password required. Your unique ID <strong className="text-white">{generatedUserId}</strong> acts as your permanent buyer username, linking your order tracking, quotations, and concierge requests.
+            {gatewayStatus === 'success' ? gatewayMessage : `No password required. Your unique ID ${generatedUserId} acts as your permanent buyer username, linking your order tracking, quotations, and concierge requests.`}
           </p>
         </div>
 
@@ -260,30 +361,73 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, onNavigate, onComplete, 
                 <span className="h-6 w-6 rounded-full bg-blue-100 text-[#2563EB] flex items-center justify-center text-[8px] font-bold">03</span>
                 Vault Transaction
               </h3>
-              <div className="bg-[#1A1A1A] p-8 rounded-[12px] text-white space-y-6 relative overflow-hidden border border-white/5">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-[#2563EB] opacity-15 blur-3xl -mr-16 -mt-16"></div>
-                <div className="flex justify-between items-start relative z-10">
-                  <CreditCard className="h-8 w-8 text-[#2563EB]" />
-                  <div className="flex gap-2">
-                    <div className="h-5 w-8 bg-white/10 rounded-sm"></div>
-                    <div className="h-5 w-8 bg-white/10 rounded-sm"></div>
+
+              <div className="space-y-3">
+                <label className={`flex items-center justify-between p-4 border rounded-xl cursor-pointer transition-all ${paymentMethod === 'card' ? 'border-[#2563EB] bg-blue-50/40' : 'border-gray-200 bg-white'}`}>
+                  <div className="flex items-center gap-3">
+                    <input type="radio" name="paymentMethod" checked={paymentMethod === 'card'} onChange={() => setPaymentMethod('card')} className="accent-[#2563EB]" />
+                    <CreditCard className="h-5 w-5 text-[#2563EB]" />
+                    <div>
+                      <p className="text-xs font-black uppercase tracking-widest">Card Payment</p>
+                      <p className="text-[10px] text-gray-500">Visa / Mastercard / Bank Card</p>
+                    </div>
+                  </div>
+                  <span className="text-[10px] font-black uppercase tracking-widest text-gray-500">USD / MWK</span>
+                </label>
+
+                <label className={`flex items-center justify-between p-4 border rounded-xl cursor-pointer transition-all ${paymentMethod === 'paychangu' ? 'border-[#2563EB] bg-blue-50/40' : 'border-gray-200 bg-white'}`}>
+                  <div className="flex items-center gap-3">
+                    <input type="radio" name="paymentMethod" checked={paymentMethod === 'paychangu'} onChange={() => setPaymentMethod('paychangu')} className="accent-[#2563EB]" />
+                    <Landmark className="h-5 w-5 text-[#2563EB]" />
+                    <div>
+                      <p className="text-xs font-black uppercase tracking-widest">PayChangu</p>
+                      <p className="text-[10px] text-gray-500">Malawi Kwacha payment gateway</p>
+                    </div>
+                  </div>
+                  <span className="text-[10px] font-black uppercase tracking-widest text-gray-500">MWK</span>
+                </label>
+              </div>
+
+              {paymentMethod === 'card' ? (
+                <div className="bg-[#1A1A1A] p-8 rounded-[12px] text-white space-y-6 relative overflow-hidden border border-white/5">
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-[#2563EB] opacity-15 blur-3xl -mr-16 -mt-16"></div>
+                  <div className="flex justify-between items-start relative z-10">
+                    <CreditCard className="h-8 w-8 text-[#2563EB]" />
+                    <div className="flex gap-2">
+                      <div className="h-5 w-8 bg-white/10 rounded-sm"></div>
+                      <div className="h-5 w-8 bg-white/10 rounded-sm"></div>
+                    </div>
+                  </div>
+                  <div className="space-y-4 relative z-10">
+                    <input required placeholder="CARD NUMBER" className="w-full bg-white/5 border border-white/10 rounded-[8px] px-4 py-4 text-sm font-mono tracking-widest placeholder:text-gray-600 focus:outline-none focus:border-[#2563EB]" />
+                    <div className="grid grid-cols-2 gap-4">
+                      <input required placeholder="EXPIRY (MM/YY)" className="bg-white/5 border border-white/10 rounded-[8px] px-4 py-4 text-sm font-mono tracking-widest placeholder:text-gray-600 focus:outline-none focus:border-[#2563EB]" />
+                      <input required placeholder="CVC" className="bg-white/5 border border-white/10 rounded-[8px] px-4 py-4 text-sm font-mono tracking-widest placeholder:text-gray-600 focus:outline-none focus:border-[#2563EB]" />
+                    </div>
                   </div>
                 </div>
-                <div className="space-y-4 relative z-10">
-                   <input required placeholder="CARD NUMBER" className="w-full bg-white/5 border border-white/10 rounded-[8px] px-4 py-4 text-sm font-mono tracking-widest placeholder:text-gray-600 focus:outline-none focus:border-[#2563EB]" />
-                   <div className="grid grid-cols-2 gap-4">
-                     <input required placeholder="EXPIRY (MM/YY)" className="bg-white/5 border border-white/10 rounded-[8px] px-4 py-4 text-sm font-mono tracking-widest placeholder:text-gray-600 focus:outline-none focus:border-[#2563EB]" />
-                     <input required placeholder="CVC" className="bg-white/5 border border-white/10 rounded-[8px] px-4 py-4 text-sm font-mono tracking-widest placeholder:text-gray-600 focus:outline-none focus:border-[#2563EB]" />
-                   </div>
+              ) : (
+                <div className="bg-gradient-to-br from-[#0f172a] via-[#111827] to-[#1e293b] p-6 rounded-[12px] text-white border border-white/10">
+                  <div className="flex items-center gap-3 mb-4">
+                    <Landmark className="h-7 w-7 text-emerald-400" />
+                    <div>
+                      <p className="text-xs font-black uppercase tracking-[0.25em] text-emerald-300">PayChangu</p>
+                      <p className="text-[10px] text-slate-300">Secure Malawi Kwacha checkout</p>
+                    </div>
+                  </div>
+                  <div className="rounded-xl border border-emerald-400/30 bg-emerald-500/5 p-4 text-sm leading-relaxed text-slate-200">
+                    You will be redirected to PayChangu to complete payment in MWK. The amount due is <span className="font-black text-white">{formatCurrency(total)}</span>.
+                  </div>
                 </div>
-              </div>
+              )}
             </section>
 
             <button 
               type="submit"
-              className="w-full bg-[#2563EB] text-white py-8 rounded-[12px] font-black text-sm uppercase tracking-[0.4em] hover:bg-[#1D4ED8] transition-all transform hover:-translate-y-2 shadow-2xl shadow-blue-500/30 flex items-center justify-center gap-4 group"
+              disabled={isPayChanguLoading}
+              className="w-full bg-[#2563EB] text-white py-8 rounded-[12px] font-black text-sm uppercase tracking-[0.4em] hover:bg-[#1D4ED8] transition-all transform hover:-translate-y-2 shadow-2xl shadow-blue-500/30 flex items-center justify-center gap-4 group disabled:opacity-70 disabled:cursor-not-allowed"
             >
-              Complete Order <ArrowRight className="h-5 w-5 group-hover:translate-x-2 transition-transform" />
+              {isPayChanguLoading ? 'Redirecting to PayChangu...' : paymentMethod === 'paychangu' ? 'Pay with PayChangu' : 'Complete Order'} <ArrowRight className="h-5 w-5 group-hover:translate-x-2 transition-transform" />
             </button>
 
             <div className="flex justify-center items-center gap-8 pt-6">
@@ -312,7 +456,7 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, onNavigate, onComplete, 
                  <div className="flex-1 flex flex-col justify-center">
                     <p className="text-xs font-black uppercase tracking-widest mb-1">{item.name}</p>
                     <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">{item.category}</p>
-                    <p className="text-sm font-black mt-2 text-[#2563EB]">${item.price.toFixed(2)}</p>
+                    <p className="text-sm font-black mt-2 text-[#2563EB]">{formatCurrency(item.price)}</p>
                  </div>
                </div>
              ))}
@@ -321,19 +465,19 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, onNavigate, onComplete, 
            <div className="pt-8 border-t border-gray-200 space-y-4">
               <div className="flex justify-between text-xs font-bold uppercase tracking-widest text-gray-400">
                 <span>Subtotal</span>
-                <span className="text-[#1A1A1A]">${subtotal.toFixed(2)}</span>
+                <span className="text-[#1A1A1A]">{formatCurrency(subtotal)}</span>
               </div>
               <div className="flex justify-between text-xs font-bold uppercase tracking-widest text-gray-400">
                 <span>Shipping Fee</span>
-                <span className="text-[#1A1A1A]">{shippingCost === 0 ? 'COMPLIMENTARY' : `$${shippingCost.toFixed(2)}`}</span>
+                <span className="text-[#1A1A1A]">{shippingCost === 0 ? 'COMPLIMENTARY' : formatCurrency(shippingCost)}</span>
               </div>
               <div className="flex justify-between text-xs font-bold uppercase tracking-widest text-gray-400">
                 <span>Estimated Tax (8%)</span>
-                <span className="text-[#1A1A1A]">${tax.toFixed(2)}</span>
+                <span className="text-[#1A1A1A]">{formatCurrency(tax)}</span>
               </div>
               <div className="flex justify-between items-end pt-6 border-t border-gray-200">
                 <span className="text-sm font-black uppercase tracking-[0.3em]">Total</span>
-                <span className="text-4xl font-black tracking-tighter text-[#1A1A1A]">${total.toFixed(2)}</span>
+                <span className="text-4xl font-black tracking-tighter text-[#1A1A1A]">{formatCurrency(total)}</span>
               </div>
            </div>
 

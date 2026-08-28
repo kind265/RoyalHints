@@ -2,10 +2,18 @@ import path from 'path';
 import express from 'express';
 import { createServer as createViteServer } from 'vite';
 import { createBackendApp } from './backend/app';
+import { postgresStore } from './backend/db/store';
 
 async function startServer() {
   const app = createBackendApp();
   const PORT = 3000;
+
+  try {
+    await postgresStore.ensureSeeded();
+  } catch (error) {
+    console.error('Database initialization failed during startup:', error);
+    process.exit(1);
+  }
 
   // Vite middleware for development
   if (process.env.NODE_ENV !== 'production') {

@@ -134,6 +134,7 @@ const Marketplace: React.FC<MarketplaceProps> = ({ posts, user, onAddReview, onN
       condition: newPostForm.condition || 'Brand New (Mint)',
       location: newPostForm.location || 'Geneva Central Vault',
       dispatchTime: newPostForm.dispatchTime || 'Dispatches in 24 hours',
+      galleryImages: [],
       sku: `RH-MP-${Math.floor(1000 + Math.random() * 9000)}`
     });
     setIsCreateModalOpen(false);

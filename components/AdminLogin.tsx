@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { User } from '../types';
 import { Lock, Mail, ArrowRight, ShieldCheck, Crown, ChevronLeft, KeyRound, AlertTriangle } from 'lucide-react';
+import { apiClient } from '../backend/api-client';
 
 interface AdminLoginProps {
   onLogin: (user: User) => void;
@@ -9,49 +10,27 @@ interface AdminLoginProps {
 
 const AdminLogin: React.FC<AdminLoginProps> = ({ onLogin, onNavigateHome }) => {
   const [email, setEmail] = useState('chikusehopeson@gmail.com');
-  const [password, setPassword] = useState('royaladmin2024');
+  const [password, setPassword] = useState('hopeson@gmail.com@415');
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   const handleAdminPreset = (presetEmail: string) => {
     setEmail(presetEmail);
-    setPassword('royaladmin2024');
+    setPassword('hopeson@gmail.com@415');
     setError(null);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setIsLoading(true);
-
-    setTimeout(() => {
-      setIsLoading(false);
-      const cleanEmail = email.trim().toLowerCase();
-      
-      // Verification for admin authentication
-      if (!cleanEmail) {
-        setError('Please enter a valid administrator email address.');
-        return;
-      }
-
-      const isChikuse = cleanEmail === 'chikusehopeson@gmail.com';
-      const isAdminEmail = isChikuse || cleanEmail.includes('admin') || cleanEmail.endsWith('@royalhints.com');
-
-      if (!isAdminEmail) {
-        setError('Access Restricted: This login terminal is reserved exclusively for Royal Hints Administrators.');
-        return;
-      }
-
-      const adminUser: User = {
-        id: 'admin-1',
-        name: isChikuse ? 'Chikuse Hopeson (Administrator)' : 'Royal Hints Administration',
-        email: cleanEmail,
-        role: 'admin',
-        isAdmin: true
-      };
-
-      onLogin(adminUser);
-    }, 400);
+    const authenticatedUser = await apiClient.login(email.trim(), password);
+    setIsLoading(false);
+    if (!authenticatedUser || !authenticatedUser.isAdmin) {
+      setError('Invalid administrator email or password.');
+      return;
+    }
+    onLogin(authenticatedUser);
   };
 
   return (

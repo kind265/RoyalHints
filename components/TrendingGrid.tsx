@@ -1,12 +1,10 @@
 import React, { useState } from 'react';
-import { ShoppingCart, Star, Heart, ArrowRight, Plus, Check, Box, PlusCircle, ShieldCheck } from 'lucide-react';
+import { ShoppingCart, Star, ArrowRight, Plus, Check, Box, PlusCircle, ShieldCheck } from 'lucide-react';
 import { Product, ProductCategory, BusinessPost } from '../types';
 
 interface TrendingGridProps {
   onSelectProduct?: (product: Product) => void;
   onAddToCart?: (product: Product) => void;
-  onToggleWishlist?: (product: Product) => void;
-  wishlistIds?: string[];
   selectedCategory?: ProductCategory | 'All';
   onCategoryChange?: (category: ProductCategory | 'All') => void;
   posts?: BusinessPost[];
@@ -17,8 +15,6 @@ interface TrendingGridProps {
 const TrendingGrid: React.FC<TrendingGridProps> = ({ 
   onSelectProduct,
   onAddToCart, 
-  onToggleWishlist, 
-  wishlistIds = [],
   selectedCategory = 'All',
   onCategoryChange,
   posts = [],
@@ -52,6 +48,7 @@ const TrendingGrid: React.FC<TrendingGridProps> = ({
       'Escrow protection & verified merchant'
     ],
     specifications: {},
+    galleryImages: post.galleryImages || [],
     variants: [
       {
         id: `var-${post.id}`,
@@ -62,8 +59,10 @@ const TrendingGrid: React.FC<TrendingGridProps> = ({
     ]
   }));
 
-  // Combine any database products and marketplace products
-  const allInStockProducts = [...products, ...marketplaceProducts];
+  // Admin inventory is mirrored in both tables; the shared ID keeps one card visible.
+  const allInStockProducts = Array.from(
+    new Map([...products, ...marketplaceProducts].map(product => [product.id, product])).values()
+  );
 
   const filteredProducts = selectedCategory === 'All'
     ? allInStockProducts
@@ -119,7 +118,6 @@ const TrendingGrid: React.FC<TrendingGridProps> = ({
         {filteredProducts.length > 0 ? (
           <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 lg:gap-8">
             {filteredProducts.map((product) => {
-              const isWishlisted = wishlistIds.includes(product.id);
               const isJustAdded = addedProductId === product.id;
 
               return (
@@ -141,20 +139,6 @@ const TrendingGrid: React.FC<TrendingGridProps> = ({
                     <div className="absolute top-2 left-2 sm:top-3 sm:left-3 bg-[#1A1A1A]/80 backdrop-blur-md px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full text-[8px] sm:text-[10px] font-black uppercase tracking-wider text-white">
                       {product.category}
                     </div>
-
-                    {/* Wishlist Button */}
-                    <button 
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onToggleWishlist?.(product);
-                      }}
-                      className={`absolute top-2 right-2 sm:top-4 sm:right-4 p-1.5 sm:p-2.5 bg-white/90 backdrop-blur-md rounded-full transition-all duration-300 hover:scale-110 active:scale-95 shadow-md ${
-                        isWishlisted ? 'text-red-500' : 'text-gray-400 hover:text-red-500'
-                      }`}
-                      aria-label="Wishlist"
-                    >
-                      <Heart className={`h-3 w-3 sm:h-4 sm:w-4 ${isWishlisted ? 'fill-current' : ''}`} />
-                    </button>
 
                     {/* Quick Add Overlay on Hover (Desktop) */}
                     <div className="hidden sm:block absolute bottom-0 left-0 w-full p-4 transform translate-y-full group-hover:translate-y-0 transition-transform duration-300 bg-gradient-to-t from-[#1A1A1A]/90 via-[#1A1A1A]/60 to-transparent">

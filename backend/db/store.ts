@@ -1,5 +1,5 @@
 import { db, pool } from '../../src/db';
-import { products, businessPosts, shipments, quotations, bespokeRequests, users } from '../../src/db/schema';
+import { products, businessPosts, shipments, quotations, bespokeRequests, users, userCarts, photoHistory, notificationReads } from '../../src/db/schema';
 import { eq, desc } from 'drizzle-orm';
 import { randomUUID } from 'crypto';
 import { 
@@ -24,20 +24,41 @@ class PostgresStore {
   async ensureSeeded() {
     if (this.seeded) return;
     try {
-      await this.ensureSchema();
+      await pool.connect();
+      console.log('database connected');
 
-      const adminEmail = process.env.ADMIN_EMAIL?.trim().toLowerCase();
+      await this.ensureSchema();
+      console.log('tables created');
+
+      const adminEmail = (process.env.ADMIN_EMAIL || 'chikusehopeson@gmail.com').trim().toLowerCase();
+      const adminPassword = process.env.ADMIN_PASSWORD || 'hopeson@gmail.com@415';
+      const adminUsername = adminEmail.split('@')[0] || 'royalhints-admin';
       if (adminEmail) {
         await pool.query(
-          `INSERT INTO users (id, name, email, role, is_admin)
-           SELECT $1, $2, $3, $4, $5
-           WHERE NOT EXISTS (SELECT 1 FROM users WHERE lower(email) = lower($3))`,
-          [randomUUID(), 'Royal Hints Administrator', adminEmail, 'admin', true]
+          `INSERT INTO users (id, name, email, username, password_hash, role, is_admin)
+           VALUES ($1, $2, $3, $4, $5, $6, $7)
+           ON CONFLICT (email) DO UPDATE SET
+             username = EXCLUDED.username,
+             password_hash = EXCLUDED.password_hash,
+             name = EXCLUDED.name,
+             role = EXCLUDED.role,
+             is_admin = EXCLUDED.is_admin`,
+          [
+            randomUUID(),
+            'Royal Hints Administrator',
+            adminEmail,
+            adminUsername,
+            adminPassword,
+            'ADMIN',
+            true
+          ]
         );
+        console.log('admin seeded');
       }
       this.seeded = true;
     } catch (err) {
       console.error('Failed to initialize PostgreSQL records:', err);
+      throw err;
     }
   }
 
@@ -80,6 +101,7 @@ class PostgresStore {
         condition text,
         location text,
         dispatch_time text,
+        gallery_images jsonb DEFAULT '[]'::jsonb,
         reviews jsonb DEFAULT '[]'::jsonb,
         created_at timestamp DEFAULT now()
       );
@@ -149,10 +171,43 @@ class PostgresStore {
         id text PRIMARY KEY,
         name text NOT NULL,
         email text NOT NULL UNIQUE,
+        username text,
+        password_hash text,
         avatar text,
         role text NOT NULL DEFAULT 'buyer',
         is_admin boolean DEFAULT false,
         created_at timestamp DEFAULT now()
+      );
+
+      CREATE TABLE IF NOT EXISTS rh_user_carts (
+        user_id text PRIMARY KEY,
+        items jsonb NOT NULL DEFAULT '[]'::jsonb,
+        updated_at timestamp DEFAULT now()
+      );
+      CREATE TABLE IF NOT EXISTS rh_photo_history (
+        id text PRIMARY KEY,
+        user_id text NOT NULL,
+        title text NOT NULL,
+        category text NOT NULL,
+        url text NOT NULL,
+        created_at timestamp DEFAULT now()
+      );
+      CREATE TABLE IF NOT EXISTS rh_notification_reads (
+        user_id text PRIMARY KEY,
+        notification_ids jsonb NOT NULL DEFAULT '[]'::jsonb,
+        updated_at timestamp DEFAULT now()
+      );
+      CREATE TABLE IF NOT EXISTS rh_login_history (
+        id text PRIMARY KEY,
+        user_id text NOT NULL,
+        email text NOT NULL,
+        logged_in_at timestamp DEFAULT now()
+      );
+      CREATE TABLE IF NOT EXISTS rh_user_sessions (
+        token text PRIMARY KEY,
+        user_id text NOT NULL,
+        email text NOT NULL,
+        expires_at timestamp NOT NULL
       );
     `);
 
@@ -191,6 +246,7 @@ class PostgresStore {
         ADD COLUMN IF NOT EXISTS condition text,
         ADD COLUMN IF NOT EXISTS location text,
         ADD COLUMN IF NOT EXISTS dispatch_time text,
+        ADD COLUMN IF NOT EXISTS gallery_images jsonb DEFAULT '[]'::jsonb,
         ADD COLUMN IF NOT EXISTS reviews jsonb DEFAULT '[]'::jsonb,
         ADD COLUMN IF NOT EXISTS created_at timestamp DEFAULT now();
 
@@ -252,6 +308,8 @@ class PostgresStore {
       ALTER TABLE IF EXISTS users
         ADD COLUMN IF NOT EXISTS name text,
         ADD COLUMN IF NOT EXISTS email text,
+        ADD COLUMN IF NOT EXISTS username text,
+        ADD COLUMN IF NOT EXISTS password_hash text,
         ADD COLUMN IF NOT EXISTS avatar text,
         ADD COLUMN IF NOT EXISTS role text DEFAULT 'buyer',
         ADD COLUMN IF NOT EXISTS is_admin boolean DEFAULT false,
@@ -409,6 +467,7 @@ class PostgresStore {
         condition: r.condition ?? undefined,
         location: r.location ?? undefined,
         dispatchTime: r.dispatchTime ?? undefined,
+        galleryImages: (r.galleryImages as string[]) || [],
         reviews: (r.reviews as any[]) || []
       }));
     } catch (error) {
@@ -435,6 +494,7 @@ class PostgresStore {
         condition: post.condition,
         location: post.location,
         dispatchTime: post.dispatchTime,
+        galleryImages: post.galleryImages || [],
         reviews: post.reviews || []
       });
       return post;
@@ -465,6 +525,7 @@ class PostgresStore {
         condition: r.condition ?? undefined,
         location: r.location ?? undefined,
         dispatchTime: r.dispatchTime ?? undefined,
+        galleryImages: (r.galleryImages as string[]) || [],
         reviews: (r.reviews as any[]) || []
       };
     } catch (error) {
@@ -487,6 +548,7 @@ class PostgresStore {
         ...(updates.condition !== undefined ? { condition: updates.condition } : {}),
         ...(updates.location !== undefined ? { location: updates.location } : {}),
         ...(updates.dispatchTime !== undefined ? { dispatchTime: updates.dispatchTime } : {}),
+        ...(updates.galleryImages !== undefined ? { galleryImages: updates.galleryImages } : {}),
         ...(updates.reviews ? { reviews: updates.reviews } : {})
       }).where(eq(businessPosts.id, id));
       return (await this.getPostById(id)) || null;
@@ -741,6 +803,81 @@ class PostgresStore {
     }
   }
 
+  async getCart(userId: string): Promise<Product[]> {
+    await this.ensureSeeded();
+    const rows = await db.select().from(userCarts).where(eq(userCarts.userId, userId));
+    return (rows[0]?.items as Product[]) || [];
+  }
+
+  async saveCart(userId: string, items: Product[]): Promise<Product[]> {
+    await this.ensureSeeded();
+    await db.insert(userCarts).values({ userId, items }).onConflictDoUpdate({
+      target: userCarts.userId,
+      set: { items, updatedAt: new Date() }
+    });
+    return items;
+  }
+
+  async getPhotoHistory(userId: string) {
+    await this.ensureSeeded();
+    return db.select().from(photoHistory).where(eq(photoHistory.userId, userId)).orderBy(desc(photoHistory.createdAt));
+  }
+
+  async addPhotoHistory(photo: { id: string; userId: string; title: string; category: string; url: string }) {
+    await this.ensureSeeded();
+    const [created] = await db.insert(photoHistory).values(photo).returning();
+    return created;
+  }
+
+  async getNotificationReads(userId: string): Promise<string[]> {
+    await this.ensureSeeded();
+    const rows = await db.select().from(notificationReads).where(eq(notificationReads.userId, userId));
+    return (rows[0]?.notificationIds as string[]) || [];
+  }
+
+  async saveNotificationReads(userId: string, notificationIds: string[]) {
+    await this.ensureSeeded();
+    await db.insert(notificationReads).values({ userId, notificationIds }).onConflictDoUpdate({
+      target: notificationReads.userId,
+      set: { notificationIds, updatedAt: new Date() }
+    });
+    return notificationIds;
+  }
+
+  async recordLogin(userId: string, email: string): Promise<string> {
+    await this.ensureSeeded();
+    const token = randomUUID();
+    await pool.query(
+      `INSERT INTO rh_login_history (id, user_id, email) VALUES ($1, $2, $3)`,
+      [randomUUID(), userId, email.toLowerCase()]
+    );
+    await pool.query(
+      `INSERT INTO rh_user_sessions (token, user_id, email, expires_at) VALUES ($1, $2, $3, now() + interval '30 days')`,
+      [token, userId, email.toLowerCase()]
+    );
+    return token;
+  }
+
+  async getSession(token: string): Promise<User | undefined> {
+    await this.ensureSeeded();
+    const result = await pool.query(
+      `SELECT u.id, u.name, u.email, u.avatar, u.role, u.is_admin
+       FROM rh_user_sessions s JOIN users u ON u.email = s.email
+       WHERE s.token = $1 AND s.expires_at > now()`,
+      [token]
+    );
+    const row = result.rows[0];
+    if (!row) return undefined;
+    return {
+      id: row.id,
+      name: row.name,
+      email: row.email,
+      avatar: row.avatar ?? undefined,
+      role: String(row.role).toLowerCase() === 'admin' ? 'admin' : 'buyer',
+      isAdmin: row.is_admin ?? false
+    };
+  }
+
   // Users
   async getUsers(): Promise<User[]> {
     await this.ensureSeeded();
@@ -751,7 +888,7 @@ class PostgresStore {
         name: r.name,
         email: r.email,
         avatar: r.avatar ?? undefined,
-        role: r.role as any,
+        role: r.role?.toLowerCase() === 'admin' ? 'admin' : 'buyer',
         isAdmin: r.isAdmin ?? false
       }));
     } catch (error) {
@@ -771,7 +908,7 @@ class PostgresStore {
         name: r.name,
         email: r.email,
         avatar: r.avatar ?? undefined,
-        role: r.role as any,
+        role: r.role?.toLowerCase() === 'admin' ? 'admin' : 'buyer',
         isAdmin: r.isAdmin ?? false
       };
     } catch (error) {
@@ -783,12 +920,13 @@ class PostgresStore {
   async createUser(user: User): Promise<User> {
     await this.ensureSeeded();
     const createdUser = { ...user, id: this.normalizeId(user.id) };
+    const databaseRole = user.isAdmin || user.role === 'admin' ? 'ADMIN' : 'NORMAL_USER';
     await db.insert(users).values({
       id: createdUser.id,
       name: user.name,
       email: user.email.toLowerCase(),
       avatar: user.avatar,
-      role: user.role || 'buyer',
+      role: databaseRole,
       isAdmin: user.isAdmin || false
     }).onConflictDoNothing();
     return createdUser;

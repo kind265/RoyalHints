@@ -51,48 +51,39 @@ const App: React.FC = () => {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<ProductCategory | 'All'>('All');
   const [user, setUser] = useState<User | null>(() => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('royalhints_user') || localStorage.getItem('primepulse_user');
-      return saved ? JSON.parse(saved) : null;
-    }
     return null;
   });
-  const [cartItems, setCartItems] = useState<Product[]>(() => {
-    const saved = localStorage.getItem('royalhints_cart');
-    return saved ? JSON.parse(saved) : [];
-  });
-  const [wishlistItems, setWishlistItems] = useState<Product[]>(() => {
-    const saved = localStorage.getItem('royalhints_wishlist');
-    return saved ? JSON.parse(saved) : [];
-  });
+  const [cartItems, setCartItems] = useState<Product[]>([]);
+  const [cartLoaded, setCartLoaded] = useState(false);
   
   const [posts, setPosts] = useState<BusinessPost[]>(() => {
-    const savedPosts = localStorage.getItem('royalhints_posts');
-    return savedPosts ? JSON.parse(savedPosts) : [];
+    return [];
   });
 
   const [products, setProducts] = useState<Product[]>(() => {
-    const savedProducts = localStorage.getItem('royalhints_products');
-    return savedProducts ? JSON.parse(savedProducts) : [];
+    return [];
   });
 
   // Tracking, Quotations, and Bespoke Requests State
   const [shipments, setShipments] = useState<ShipmentTracking[]>(() => {
-    const saved = localStorage.getItem('royalhints_shipments');
-    return saved ? JSON.parse(saved) : [];
+    return [];
   });
 
   const [quotations, setQuotations] = useState<QuotationRequest[]>(() => {
-    const saved = localStorage.getItem('royalhints_quotations');
-    return saved ? JSON.parse(saved) : [];
+    return [];
   });
 
   const [bespokeRequests, setBespokeRequests] = useState<BespokeSourcingRequest[]>(() => {
-    const saved = localStorage.getItem('royalhints_bespoke_requests');
-    return saved ? JSON.parse(saved) : [];
+    return [];
   });
 
   // Load from PostgreSQL Backend API on mount
+  useEffect(() => {
+    apiClient.getSession().then(savedUser => {
+      if (savedUser) setUser(savedUser);
+    }).catch(() => {});
+  }, []);
+
   useEffect(() => {
     const syncWithBackend = async () => {
       try {
@@ -122,71 +113,73 @@ const App: React.FC = () => {
       setIsScrolled(window.scrollY > 50);
     };
     window.addEventListener('scroll', handleScroll);
-    
-    const savedUser = localStorage.getItem('royalhints_user') || localStorage.getItem('primepulse_user');
-    if (savedUser) setUser(JSON.parse(savedUser));
 
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   useEffect(() => {
-    localStorage.setItem('royalhints_cart', JSON.stringify(cartItems));
-  }, [cartItems]);
+    if (!user) {
+      setCartItems([]);
+      setCartLoaded(false);
+      return;
+    }
+    setCartLoaded(false);
+    apiClient.getCart(user.id).then(items => {
+      setCartItems(items);
+      setCartLoaded(true);
+    }).catch(() => setCartLoaded(true));
+  }, [user]);
 
   useEffect(() => {
-    localStorage.setItem('royalhints_wishlist', JSON.stringify(wishlistItems));
-  }, [wishlistItems]);
-
-  useEffect(() => {
-    localStorage.setItem('royalhints_posts', JSON.stringify(posts));
-  }, [posts]);
-
-  useEffect(() => {
-    localStorage.setItem('royalhints_products', JSON.stringify(products));
-  }, [products]);
-
-  useEffect(() => {
-    localStorage.setItem('royalhints_shipments', JSON.stringify(shipments));
-  }, [shipments]);
-
-  useEffect(() => {
-    localStorage.setItem('royalhints_quotations', JSON.stringify(quotations));
-  }, [quotations]);
-
-  useEffect(() => {
-    localStorage.setItem('royalhints_bespoke_requests', JSON.stringify(bespokeRequests));
-  }, [bespokeRequests]);
+    if (user && cartLoaded) apiClient.saveCart(user.id, cartItems).catch(err => console.error('Save cart error:', err));
+  }, [user, cartItems, cartLoaded]);
 
   const handleLogin = async (u: User) => {
-    setUser(u);
-    localStorage.setItem('royalhints_user', JSON.stringify(u));
-    // Also notify PostgreSQL backend session
-    await apiClient.login(u.email);
+    const savedUser = await apiClient.login(u.email);
+    setUser(savedUser || u);
     setCurrentPage('Dashboard');
     window.scrollTo(0, 0);
   };
 
   const handleLogout = () => {
     setUser(null);
-    localStorage.removeItem('royalhints_user');
-    localStorage.removeItem('primepulse_user');
     setCurrentPage('Home');
     window.scrollTo(0, 0);
   };
 
   const deletePost = async (postId: string) => {
-    setPosts(prev => prev.filter(p => p.id !== postId));
     try {
-      await apiClient.deletePost(postId);
+      const deleted = await apiClient.deletePost(postId);
+      if (deleted) {
+        await apiClient.deleteProduct(postId);
+        setPosts(prev => prev.filter(p => p.id !== postId));
+        setProducts(prev => prev.filter(p => p.id !== postId));
+      }
     } catch (e) {
       console.error('Delete post error:', e);
     }
   };
 
   const updatePost = async (updatedPost: BusinessPost) => {
-    setPosts(prev => prev.map(p => p.id === updatedPost.id ? updatedPost : p));
     try {
-      await apiClient.updatePost(updatedPost.id, updatedPost);
+      const savedPost = await apiClient.updatePost(updatedPost.id, updatedPost);
+      if (savedPost) {
+        const savedProduct = await apiClient.updateProduct(updatedPost.id, {
+          name: updatedPost.title,
+          price: updatedPost.price ?? 0,
+          category: updatedPost.category as ProductCategory,
+          image: updatedPost.image,
+          sku: updatedPost.sku,
+          inStock: (updatedPost.stockCount ?? 0) > 0,
+          stockQuantity: updatedPost.stockCount ?? 0,
+          description: updatedPost.description || '',
+          warehouseLocation: updatedPost.location,
+          dispatchTime: updatedPost.dispatchTime,
+          galleryImages: updatedPost.galleryImages || []
+        });
+        setPosts(prev => prev.map(p => p.id === updatedPost.id ? savedPost : p));
+        if (savedProduct) setProducts(prev => prev.map(p => p.id === updatedPost.id ? savedProduct : p));
+      }
     } catch (e) {
       console.error('Update post error:', e);
     }
@@ -202,9 +195,28 @@ const App: React.FC = () => {
       timestamp: Date.now(),
       reviews: [],
     };
-    setPosts(prev => [post, ...prev]);
     try {
-      await apiClient.createPost(post);
+      const savedPost = await apiClient.createPost(post);
+      if (!savedPost) return;
+
+      if (user.role === 'admin' || user.isAdmin) {
+        const savedProduct = await apiClient.createProduct({
+          id: savedPost.id,
+          name: savedPost.title,
+          price: savedPost.price ?? 0,
+          category: savedPost.category as ProductCategory,
+          image: savedPost.image,
+          sku: savedPost.sku,
+          inStock: (savedPost.stockCount ?? 0) > 0,
+          stockQuantity: savedPost.stockCount ?? 0,
+          description: savedPost.description || '',
+          warehouseLocation: savedPost.location,
+          dispatchTime: savedPost.dispatchTime,
+          galleryImages: savedPost.galleryImages || []
+        });
+        if (savedProduct) setProducts(prev => [savedProduct, ...prev]);
+      }
+      setPosts(prev => [savedPost, ...prev]);
     } catch (e) {
       console.error('Create post error:', e);
     }
@@ -246,17 +258,7 @@ const App: React.FC = () => {
     setCartItems(prev => prev.filter(item => item.id !== id));
   };
 
-  const toggleWishlist = (product: Product) => {
-    setWishlistItems(prev => {
-      if (prev.find(item => item.id === product.id)) {
-        return prev.filter(item => item.id !== product.id);
-      }
-      return [...prev, product];
-    });
-  };
-
   const moveToCart = (product: Product) => {
-    toggleWishlist(product);
     addToCart(product);
   };
 
@@ -372,7 +374,6 @@ const App: React.FC = () => {
     // 1. Auto-activate buyer user session with unique ID as username
     if (orderData.buyerUser) {
       setUser(orderData.buyerUser);
-      localStorage.setItem('royalhints_user', JSON.stringify(orderData.buyerUser));
       apiClient.login(orderData.buyerUser.email).catch(() => {});
     }
 
@@ -510,8 +511,6 @@ const App: React.FC = () => {
               onBack={() => setSelectedProduct(null)}
               onSelectProduct={handleSelectProduct}
               onAddToCart={addToCart}
-              onToggleWishlist={toggleWishlist}
-              isWishlisted={wishlistItems.some(i => i.id === selectedProduct.id)}
               onDirectCheckout={handleDirectCheckout}
               allProducts={[
                 ...products,
@@ -530,6 +529,7 @@ const App: React.FC = () => {
                   warehouseLocation: p.location || 'Shop',
                   dispatchTime: p.dispatchTime || '24h',
                   description: p.description || '',
+                  galleryImages: p.galleryImages || [],
                   highlights: [],
                   specifications: {},
                   variants: []
@@ -545,8 +545,6 @@ const App: React.FC = () => {
                 <TrendingGrid 
                   onSelectProduct={handleSelectProduct}
                   onAddToCart={addToCart} 
-                  onToggleWishlist={toggleWishlist} 
-                  wishlistIds={wishlistItems.map(i => i.id)} 
                   selectedCategory={selectedCategory}
                   onCategoryChange={setSelectedCategory}
                   posts={posts}
@@ -583,8 +581,6 @@ const App: React.FC = () => {
                   posts={user && (user.role === 'admin' || user.isAdmin || user.email?.toLowerCase() === 'admin@royalhints.com') ? posts : posts.filter(p => user ? p.userId === user.id : true)}
                   cartItems={cartItems}
                   onRemoveFromCart={removeFromCart}
-                  wishlistItems={wishlistItems}
-                  onToggleWishlist={toggleWishlist}
                   onMoveToCart={moveToCart}
                   shipments={shipments}
                   onConfirmDelivery={handleConfirmDelivery}

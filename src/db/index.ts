@@ -13,7 +13,11 @@ declare global {
 export const createPool = () => {
   if (!global._postgresPool) {
     const connectionString = process.env.DATABASE_URL;
-    const sslEnabled = process.env.DATABASE_SSL === 'true' || connectionString?.includes('sslmode=require');
+    const sslEnabled = process.env.DATABASE_SSL !== 'false' && (
+      process.env.DATABASE_SSL === 'true' ||
+      connectionString?.includes('sslmode=require') ||
+      connectionString?.includes('render.com')
+    );
 
     global._postgresPool = connectionString
       ? new Pool({

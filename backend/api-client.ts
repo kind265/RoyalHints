@@ -290,12 +290,12 @@ export const apiClient = {
   },
 
   // Auth
-  async login(email: string): Promise<User | null> {
+  async login(email: string, password?: string): Promise<User | null> {
     try {
       const res = await fetch(`${API_BASE}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email })
+        body: JSON.stringify({ email, password })
       });
       const json = await res.json();
       return json.success ? json.data : null;
@@ -303,6 +303,12 @@ export const apiClient = {
       console.error('Auth login error:', err);
       return null;
     }
+  },
+
+  async getSession(): Promise<User | null> {
+    const res = await fetch(`${API_BASE}/auth/session`);
+    const json = await res.json();
+    return json.success ? json.data : null;
   },
 
   async getUsers(): Promise<User[]> {
@@ -314,5 +320,47 @@ export const apiClient = {
       console.error('Get users error:', err);
       return [];
     }
+  },
+
+  async getCart(userId: string): Promise<Product[]> {
+    const res = await fetch(`${API_BASE}/persistence/cart/${encodeURIComponent(userId)}`);
+    const json = await res.json();
+    return json.success ? json.data : [];
+  },
+
+  async saveCart(userId: string, items: Product[]): Promise<Product[]> {
+    const res = await fetch(`${API_BASE}/persistence/cart/${encodeURIComponent(userId)}`, {
+      method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ items })
+    });
+    const json = await res.json();
+    return json.success ? json.data : items;
+  },
+
+  async getPhotoHistory(userId: string) {
+    const res = await fetch(`${API_BASE}/persistence/photos/${encodeURIComponent(userId)}`);
+    const json = await res.json();
+    return json.success ? json.data : [];
+  },
+
+  async addPhotoHistory(photo: { id: string; userId: string; title: string; category: string; url: string }) {
+    const res = await fetch(`${API_BASE}/persistence/photos`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(photo)
+    });
+    const json = await res.json();
+    return json.success ? json.data : null;
+  },
+
+  async getNotificationReads(userId: string): Promise<string[]> {
+    const res = await fetch(`${API_BASE}/persistence/notifications/${encodeURIComponent(userId)}`);
+    const json = await res.json();
+    return json.success ? json.data : [];
+  },
+
+  async saveNotificationReads(userId: string, notificationIds: string[]): Promise<string[]> {
+    const res = await fetch(`${API_BASE}/persistence/notifications/${encodeURIComponent(userId)}`, {
+      method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ notificationIds })
+    });
+    const json = await res.json();
+    return json.success ? json.data : notificationIds;
   }
 };

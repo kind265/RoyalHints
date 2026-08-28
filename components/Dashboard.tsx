@@ -43,12 +43,13 @@ import {
   CheckCheck,
   Inbox
 } from 'lucide-react';
-import { User, BusinessPost, Product, ShipmentTracking, QuotationRequest, BespokeSourcingRequest, DashboardTab } from '../types';
+import { User, BusinessPost, Product, ShipmentTracking, QuotationRequest, olderSourcingRequest, DashboardTab } from '../types';
 import { GALLERY_PHOTO_PRESETS } from '../constants';
 import OrderTracking from './OrderTracking';
 import ShopByQuotation from './ShopByQuotation';
 import NameWhatYouWant from './NameWhatYouWant';
 import AdminAnalytics from './AdminAnalytics';
+import { apiClient } from '../backend/api-client';
 
 interface DashboardProps {
   user: User;
@@ -65,9 +66,9 @@ interface DashboardProps {
   quotations?: QuotationRequest[];
   onAddQuotation?: (quote: Omit<QuotationRequest, 'id' | 'quoteNumber' | 'submittedAt' | 'status'>) => void;
   onAcceptQuoteToCart?: (quote: QuotationRequest) => void;
-  bespokeRequests?: BespokeSourcingRequest[];
-  onSubmitBespokeRequest?: (req: Omit<BespokeSourcingRequest, 'id' | 'referenceNumber' | 'submittedAt' | 'status' | 'adminRecipient'>) => void;
-  onAcceptBespokeOfferToCart?: (req: BespokeSourcingRequest) => void;
+  olderRequests?: olderSourcingRequest[];
+  onSubmitolderRequest?: (req: Omit<olderSourcingRequest, 'id' | 'referenceNumber' | 'submittedAt' | 'status' | 'adminRecipient'>) => void;
+  onAcceptolderOfferToCart?: (req: olderSourcingRequest) => void;
   initialTab?: string;
   onTabChange?: (tab: string) => void;
 }
@@ -77,7 +78,7 @@ const BUSINESS_CATEGORIES = [
   'Spare Parts',
   'Fabric',
   'Fashion',
-  'Industrial & Bespoke'
+  'Other Collections'
 ];
 
 const CONDITION_OPTIONS = [
@@ -88,7 +89,7 @@ const CONDITION_OPTIONS = [
 ];
 
 const LOCATION_PRESETS = [
-  'Royal Hints Dispatch'
+  'Royal Hints Shop'
 ];
 
 const DISPATCH_PRESETS = [
@@ -113,9 +114,9 @@ const Dashboard: React.FC<DashboardProps> = ({
   quotations = [],
   onAddQuotation = () => {},
   onAcceptQuoteToCart = () => {},
-  bespokeRequests = [],
-  onSubmitBespokeRequest = () => {},
-  onAcceptBespokeOfferToCart = () => {},
+  olderRequests = [],
+  onSubmitolderRequest = () => {},
+  onAcceptolderOfferToCart = () => {},
   initialTab = 'account',
   onTabChange
 }) => {
@@ -134,6 +135,7 @@ const Dashboard: React.FC<DashboardProps> = ({
     location: LOCATION_PRESETS[0],
     dispatchTime: DISPATCH_PRESETS[0]
   });
+  const [supportingImages, setSupportingImages] = useState<string[]>([]);
 
   const [showSuccess, setShowSuccess] = useState(false);
 
@@ -153,10 +155,7 @@ const Dashboard: React.FC<DashboardProps> = ({
     isEditing: boolean;
   } | null>(null);
 
-  const [photoHistory, setPhotoHistory] = useState<Array<{ id: string; title: string; category: string; url: string }>>(() => {
-    const saved = localStorage.getItem('royalhints_photo_history');
-    return saved ? JSON.parse(saved) : [];
-  });
+  const [photoHistory, setPhotoHistory] = useState<Array<{ id: string; title: string; category: string; url: string }>>([]);
 
   // Venture Management filters and states
   const [ventureSearch, setVentureSearch] = useState('');
@@ -164,26 +163,30 @@ const Dashboard: React.FC<DashboardProps> = ({
   const [editingPost, setEditingPost] = useState<BusinessPost | null>(null);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
-  const isAdmin = user?.role === 'admin' || user?.isAdmin || user?.email?.toLowerCase() === 'admin@royalhints.com' || user?.email?.toLowerCase() === 'chikusehopeson@gmail.com';
+  const isAdmin = user?.role === 'admin' || user?.isAdmin || user?.email?.toLowerCase() === 'ruthmhone8@gmail.com.com' || user?.email?.toLowerCase() === 'chikusehopeson@gmail.com';
 
-  // Admin Notifications for Bespoke Requests & Quotations
+  // Admin Notifications for older Requests & Quotations
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
-  const [notificationFilter, setNotificationFilter] = useState<'all' | 'bespoke' | 'quotation'>('all');
+  const [notificationFilter, setNotificationFilter] = useState<'all' | 'older' | 'quotation'>('all');
   const notificationRef = useRef<HTMLDivElement>(null);
   
-  const [readNotificationIds, setReadNotificationIds] = useState<string[]>(() => {
-    try {
-      const saved = localStorage.getItem('royalhints_admin_read_notifications');
-      return saved ? JSON.parse(saved) : [];
-    } catch {
-      return [];
-    }
-  });
+  const [readNotificationIds, setReadNotificationIds] = useState<string[]>([]);
+  const [notificationsLoaded, setNotificationsLoaded] = useState(false);
 
-  // Keep read notifications synchronized with localStorage
   useEffect(() => {
-    localStorage.setItem('royalhints_admin_read_notifications', JSON.stringify(readNotificationIds));
-  }, [readNotificationIds]);
+    setNotificationsLoaded(false);
+    apiClient.getNotificationReads(user.id).then(ids => {
+      setReadNotificationIds(ids);
+      setNotificationsLoaded(true);
+    }).catch(() => setNotificationsLoaded(true));
+    apiClient.getPhotoHistory(user.id).then(setPhotoHistory).catch(() => {});
+  }, [user.id]);
+
+  useEffect(() => {
+    if (notificationsLoaded) {
+      apiClient.saveNotificationReads(user.id, readNotificationIds).catch(() => {});
+    }
+  }, [user.id, readNotificationIds, notificationsLoaded]);
 
   // Click outside to close notifications dropdown
   useEffect(() => {
@@ -202,10 +205,10 @@ const Dashboard: React.FC<DashboardProps> = ({
 
   // Compose all alerts for the admin
   const adminNotifications = [
-    ...bespokeRequests.map(req => ({
-      id: `notif-bespoke-${req.id || req.referenceNumber}`,
+    ...olderRequests.map(req => ({
+      id: `notif-older-${req.id || req.referenceNumber}`,
       requestId: req.id,
-      type: 'bespoke' as const,
+      type: 'older' as const,
       title: req.itemName,
       refNumber: req.referenceNumber,
       category: req.category,
@@ -218,8 +221,8 @@ const Dashboard: React.FC<DashboardProps> = ({
         ? new Date(req.submittedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
         : String(req.submittedAt || 'Recently'),
       rawTime: typeof req.submittedAt === 'number' ? req.submittedAt : Date.now(),
-      targetTab: 'bespoke' as DashboardTab,
-      actionLabel: 'Review Bespoke Sourcing'
+      targetTab: 'older' as DashboardTab,
+      actionLabel: 'Review Older'
     })),
     ...quotations.map(quote => ({
       id: `notif-quote-${quote.id || quote.quoteNumber}`,
@@ -238,14 +241,14 @@ const Dashboard: React.FC<DashboardProps> = ({
         : String(quote.submittedAt || 'Recently'),
       rawTime: typeof quote.submittedAt === 'number' ? quote.submittedAt : Date.now(),
       targetTab: 'quotation' as DashboardTab,
-      actionLabel: 'Review Quotation Dossier'
+      actionLabel: 'Review Quotation'
     }))
   ].sort((a, b) => (typeof b.rawTime === 'number' && typeof a.rawTime === 'number' ? b.rawTime - a.rawTime : 0));
 
   const unreadCount = adminNotifications.filter(n => !readNotificationIds.includes(n.id)).length;
 
   const filteredNotifications = adminNotifications.filter(n => {
-    if (notificationFilter === 'bespoke') return n.type === 'bespoke';
+    if (notificationFilter === 'older') return n.type === 'older';
     if (notificationFilter === 'quotation') return n.type === 'quotation';
     return true;
   });
@@ -268,11 +271,6 @@ const Dashboard: React.FC<DashboardProps> = ({
       setActiveTab(initialTab as DashboardTab);
     }
   }, [initialTab]);
-
-  // Save photo history whenever updated
-  useEffect(() => {
-    localStorage.setItem('royalhints_photo_history', JSON.stringify(photoHistory));
-  }, [photoHistory]);
 
   // Local state for Preferences/Settings
   const [prefs, setPrefs] = useState({
@@ -322,6 +320,7 @@ const Dashboard: React.FC<DashboardProps> = ({
     };
 
     setPhotoHistory(prev => [newPhotoItem, ...prev]);
+    apiClient.addPhotoHistory({ ...newPhotoItem, userId: user.id }).catch(() => {});
 
     if (pendingUpload.isEditing && editingPost) {
       setEditingPost({ ...editingPost, image: pendingUpload.previewUrl });
@@ -335,6 +334,19 @@ const Dashboard: React.FC<DashboardProps> = ({
 
   const handleCancelPendingUpload = () => {
     setPendingUpload(null);
+  };
+
+  const handleSupportingFiles = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    files.forEach(file => {
+      const reader = new FileReader();
+      reader.onload = event => {
+        const url = event.target?.result as string;
+        if (url) setSupportingImages(prev => [...prev, url]);
+      };
+      reader.readAsDataURL(file);
+    });
+    e.target.value = '';
   };
 
   const handleSelectPhoto = (url: string) => {
@@ -358,7 +370,8 @@ const Dashboard: React.FC<DashboardProps> = ({
       sku: postData.sku || `RH-INV-${Date.now().toString().slice(-4)}`,
       condition: postData.condition,
       location: postData.location,
-      dispatchTime: postData.dispatchTime
+      dispatchTime: postData.dispatchTime,
+      galleryImages: supportingImages
     });
 
     setPostData({ 
@@ -373,6 +386,7 @@ const Dashboard: React.FC<DashboardProps> = ({
       location: LOCATION_PRESETS[0],
       dispatchTime: DISPATCH_PRESETS[0]
     });
+    setSupportingImages([]);
     setShowSuccess(true);
     setTimeout(() => {
       setShowSuccess(false);
@@ -456,19 +470,18 @@ const Dashboard: React.FC<DashboardProps> = ({
                   <button
                     type="button"
                     onClick={() => {
-                      setActiveTab('bespoke');
-                      onTabChange?.('bespoke');
+                      setActiveTab('older');
+                      onTabChange?.('older');
                     }}
                     className={`hidden sm:inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all ${
-                      activeTab === 'bespoke'
+                      activeTab === 'Older'
                         ? 'bg-[#1A1A1A] text-white shadow-sm'
                         : 'bg-gray-50 hover:bg-gray-100 text-gray-700 border border-gray-200'
                     }`}
                   >
-                    <Sparkles className="h-3.5 w-3.5 text-amber-500" />
-                    <span>Bespoke Sourcing</span>
+                    <span>Older Sourcing</span>
                     <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-amber-100 text-amber-800 font-bold">
-                      {bespokeRequests.length}
+                      {olderRequests.length}
                     </span>
                   </button>
 
@@ -503,7 +516,7 @@ const Dashboard: React.FC<DashboardProps> = ({
                           : 'bg-white hover:bg-gray-50 border-gray-200 text-gray-700'
                       }`}
                       aria-label="Admin Notifications"
-                      title="Admin Alerts: New Bespoke Sourcing & Quotations"
+                      title="Admin Alerts: New Older Sourcing & Quotations"
                     >
                       <div className="relative">
                         {unreadCount > 0 ? (
@@ -574,15 +587,15 @@ const Dashboard: React.FC<DashboardProps> = ({
                           </button>
                           <button
                             type="button"
-                            onClick={() => setNotificationFilter('bespoke')}
+                            onClick={() => setNotificationFilter('Older')}
                             className={`flex-1 py-1.5 px-2 rounded-lg text-[11px] font-bold transition-all text-center flex items-center justify-center gap-1 ${
-                              notificationFilter === 'bespoke'
+                              notificationFilter === 'older'
                                 ? 'bg-amber-50 text-amber-900 border border-amber-200/60 shadow-sm'
                                 : 'text-gray-500 hover:text-gray-900'
                             }`}
                           >
                             <Sparkles className="h-3 w-3 text-amber-500" />
-                            Bespoke ({bespokeRequests.length})
+                            older ({olderRequests.length})
                           </button>
                           <button
                             type="button"
@@ -615,12 +628,12 @@ const Dashboard: React.FC<DashboardProps> = ({
                                   <div className="relative shrink-0 mt-0.5">
                                     <div
                                       className={`h-9 w-9 rounded-xl flex items-center justify-center ${
-                                        notif.type === 'bespoke'
+                                        notif.type === 'older'
                                           ? 'bg-amber-100 text-amber-700'
                                           : 'bg-blue-100 text-[#2563EB]'
                                       }`}
                                     >
-                                      {notif.type === 'bespoke' ? (
+                                      {notif.type === 'older' ? (
                                         <Sparkles className="h-4 w-4" />
                                       ) : (
                                         <FileText className="h-4 w-4" />
@@ -636,12 +649,12 @@ const Dashboard: React.FC<DashboardProps> = ({
                                     <div className="flex items-center justify-between gap-1">
                                       <span
                                         className={`text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded ${
-                                          notif.type === 'bespoke'
+                                          notif.type === 'Older'
                                             ? 'bg-amber-100/80 text-amber-800'
                                             : 'bg-blue-100/80 text-blue-800'
                                         }`}
                                       >
-                                        {notif.type === 'bespoke' ? 'Bespoke Sourcing' : 'Quotation Request'}
+                                        {notif.type === 'Older' ? 'Older Sourcing' : 'Quotation Request'}
                                       </span>
                                       <span className="text-[10px] text-gray-400 font-medium">
                                         {notif.submittedAtFormatted}
@@ -668,7 +681,7 @@ const Dashboard: React.FC<DashboardProps> = ({
                                           Qty: {notif.quantity}
                                         </span>
                                       )}
-                                      {notif.type === 'bespoke' && notif.urgency && (
+                                      {notif.type === 'older' && notif.urgency && (
                                         <span className="bg-amber-50 text-amber-700 px-2 py-0.5 rounded font-bold">
                                           {notif.urgency}
                                         </span>
@@ -687,7 +700,7 @@ const Dashboard: React.FC<DashboardProps> = ({
                               <Inbox className="h-10 w-10 text-gray-300 mx-auto" />
                               <p className="text-xs font-bold text-gray-600">No alerts found</p>
                               <p className="text-[10px] text-gray-400">
-                                New bespoke sourcing & quotation submissions will appear here instantly.
+                                New Older sourcing & quotation submissions will appear here instantly.
                               </p>
                             </div>
                           )}
@@ -737,11 +750,11 @@ const Dashboard: React.FC<DashboardProps> = ({
             )}
 
             {/* 3. NAME WHAT YOU WANT (CONCIERGE SOURCING TO ADMIN) */}
-            {activeTab === 'bespoke' && (
+            {activeTab === 'older' && (
               <NameWhatYouWant 
-                requests={bespokeRequests}
-                onSubmitRequest={onSubmitBespokeRequest}
-                onAcceptBespokeOfferToCart={onAcceptBespokeOfferToCart}
+                requests={olderRequests}
+                onSubmitRequest={onSubmitolderRequest}
+                onAcceptolderOfferToCart={onAcceptolderOfferToCart}
                 user={user}
               />
             )}
@@ -756,7 +769,7 @@ const Dashboard: React.FC<DashboardProps> = ({
                   <div className="max-w-md mx-auto">
                     <h3 className="text-xl sm:text-2xl font-black text-[#1A1A1A] mb-2">Admin Telemetry Desk</h3>
                     <p className="text-gray-500 text-xs sm:text-sm leading-relaxed">
-                      Marketplace analytics, total units sold, and bespoke sourcing request tracking are restricted to the Royal Hints Administration Desk.
+                      Marketplace analytics, total units sold, and older sourcing request tracking are restricted to the Royal Hints Administration Desk.
                     </p>
                   </div>
                   <div className="flex flex-wrap justify-center gap-3 pt-2">
@@ -771,7 +784,7 @@ const Dashboard: React.FC<DashboardProps> = ({
               ) : (
                 <AdminAnalytics
                   shipments={shipments}
-                  bespokeRequests={bespokeRequests}
+                  olderRequests={olderRequests}
                   quotations={quotations}
                   posts={posts}
                   onNavigateTab={(tab) => {
@@ -867,7 +880,7 @@ const Dashboard: React.FC<DashboardProps> = ({
                       <textarea 
                         className="w-full p-4 sm:p-5 bg-white rounded-xl text-[#1A1A1A] border border-gray-200 focus:border-[#2563EB] focus:outline-none font-medium text-xs sm:text-sm h-28 sm:h-32 resize-none leading-relaxed" 
                         placeholder="Define your place in the Royal Hints world..."
-                        defaultValue="Collector of rare architectural folios and bespoke luxury fabrics. Valued member of the Royal Hints Guild."
+                        defaultValue="Collector of rare architectural folios and older luxury fabrics. Valued member of the Royal Hints Guild."
                       />
                     </div>
                   </div>
@@ -899,8 +912,8 @@ const Dashboard: React.FC<DashboardProps> = ({
                         highlight: true
                       },
                       { 
-                        label: 'Active Bespoke Sourcing', 
-                        val: bespokeRequests.filter(r => r.status !== 'Fulfilled').length, 
+                        label: 'Active older Sourcing', 
+                        val: olderRequests.filter(r => r.status !== 'Fulfilled').length, 
                         action: () => setActiveTab('analytics'),
                         highlight: true
                       },
@@ -930,7 +943,7 @@ const Dashboard: React.FC<DashboardProps> = ({
                     )) : [
                       { label: 'Active Shipments', val: shipments.filter(s => s.status !== 'Delivered').length, action: () => setActiveTab('tracking') },
                       { label: 'Pending Quotes', val: quotations.length, action: () => setActiveTab('quotation') },
-                      { label: 'Bespoke Requests', val: bespokeRequests.length, action: () => setActiveTab('bespoke') },
+                      { label: 'older Requests', val: olderRequests.length, action: () => setActiveTab('older') },
                       { label: 'Bag Items', val: cartItems.length, action: () => setActiveTab('cart') },
                     ].map((stat) => (
                       <div 
@@ -961,7 +974,7 @@ const Dashboard: React.FC<DashboardProps> = ({
                   <div className="max-w-md mx-auto">
                     <h3 className="text-xl sm:text-2xl font-black text-[#1A1A1A] mb-2">Administrative Registry</h3>
                     <p className="text-gray-500 text-xs sm:text-sm leading-relaxed">
-                      Publishing and editing marketplace inventory is reserved exclusively for the Royal Administration Desk. As a verified member, your account is configured for direct purchasing, order tracking, and bespoke quotation inquiries.
+                      Publishing and editing marketplace inventory is reserved exclusively for the Royal Administration Desk. As a verified member, your account is configured for direct purchasing, order tracking, and older quotation inquiries.
                     </p>
                   </div>
                   <div className="flex flex-wrap justify-center gap-3 pt-2">
@@ -1357,6 +1370,52 @@ const Dashboard: React.FC<DashboardProps> = ({
                             </div>
                           </div>
                         )}
+
+                        <div className="pt-4 mt-2 border-t border-gray-200 space-y-3">
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                            <label className="text-[10px] uppercase tracking-[0.25em] font-black text-gray-500">
+                              Supporting Photos (Optional)
+                            </label>
+                            <span className="text-[10px] text-gray-400">Add colorways, angles, or detail shots</span>
+                          </div>
+                          <div className="flex flex-col sm:flex-row gap-2">
+                            <label className="flex-1 flex items-center justify-center gap-2 bg-white hover:bg-gray-100 text-gray-800 border border-gray-300 px-4 py-3 rounded-xl text-xs font-black uppercase tracking-wider transition-all shadow-sm cursor-pointer">
+                              <Upload className="h-4 w-4 text-[#2563EB]" /> Add Supporting Photos
+                              <input type="file" accept="image/*" multiple className="hidden" onChange={handleSupportingFiles} />
+                            </label>
+                            <input
+                              className="flex-1 bg-white border border-gray-200 rounded-xl px-4 py-3 text-xs font-medium focus:outline-none focus:border-[#2563EB]"
+                              placeholder="Paste supporting image URL and press Enter"
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                  e.preventDefault();
+                                  const url = e.currentTarget.value.trim();
+                                  if (url) {
+                                    setSupportingImages(prev => [...prev, url]);
+                                    e.currentTarget.value = '';
+                                  }
+                                }
+                              }}
+                            />
+                          </div>
+                          {supportingImages.length > 0 && (
+                            <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
+                              {supportingImages.map((url, index) => (
+                                <div key={`${url}-${index}`} className="relative aspect-square rounded-lg overflow-hidden border border-gray-200 bg-white group">
+                                  <img src={url} alt={`Supporting view ${index + 1}`} className="w-full h-full object-cover" />
+                                  <button
+                                    type="button"
+                                    onClick={() => setSupportingImages(prev => prev.filter((_, itemIndex) => itemIndex !== index))}
+                                    className="absolute top-1 right-1 h-5 w-5 rounded-full bg-black/70 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                                    aria-label={`Remove supporting photo ${index + 1}`}
+                                  >
+                                    <X className="h-3 w-3" />
+                                  </button>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
                       </div>
 
                       {/* 2. ITEM TITLE & SECTOR */}
@@ -1718,7 +1777,7 @@ const Dashboard: React.FC<DashboardProps> = ({
             {/* Category tabs & Upload shortcut */}
             <div className="flex flex-wrap items-center justify-between gap-2 shrink-0">
               <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-1">
-                {['All', 'Books', 'Spare Parts', 'Fabric', 'Fashion', 'Industrial & Bespoke'].map((tab) => (
+                {['All', 'Books', 'Spare Parts', 'Fabric', 'Fashion', 'Industrial & older'].map((tab) => (
                   <button
                     key={tab}
                     onClick={() => setPhotoModalTab(tab)}

@@ -54,6 +54,7 @@ postsRouter.post('/', async (req: Request, res: Response) => {
       condition: body.condition,
       location: body.location,
       dispatchTime: body.dispatchTime,
+      galleryImages: Array.isArray(body.galleryImages) ? body.galleryImages : [],
       reviews: body.reviews || []
     };
 

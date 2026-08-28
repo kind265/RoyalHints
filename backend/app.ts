@@ -7,6 +7,8 @@ import { quotationsRouter } from './routes/quotations';
 import { bespokeRouter } from './routes/bespoke';
 import { analyticsRouter } from './routes/analytics';
 import { authRouter } from './routes/auth';
+import { persistenceRouter } from './routes/persistence';
+import { paymentsRouter } from './routes/payments';
 
 export function createBackendApp(): Express {
   const app = express();
@@ -41,6 +43,8 @@ export function createBackendApp(): Express {
   app.use('/api/bespoke', bespokeRouter);
   app.use('/api/analytics', analyticsRouter);
   app.use('/api/auth', authRouter);
+  app.use('/api/persistence', persistenceRouter);
+  app.use('/api/payments', paymentsRouter);
 
   // 404 for unhandled API routes
   app.use('/api', (req: Request, res: Response) => {

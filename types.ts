@@ -60,6 +60,11 @@ export interface User {
   activatedViaOrder?: string;
 }
 
+export interface AdminCredentials {
+  email: string;
+  password: string;
+}
+
 export interface BusinessPost {
   id: string;
   userId: string;
@@ -75,6 +80,7 @@ export interface BusinessPost {
   condition?: string;
   location?: string;
   dispatchTime?: string;
+  galleryImages?: string[];
   reviews?: Review[];
 }
 

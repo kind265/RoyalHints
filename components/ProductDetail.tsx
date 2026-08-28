@@ -6,7 +6,6 @@ import {
   Truck, 
   Box, 
   Star, 
-  Heart, 
   ShoppingBag, 
   Zap, 
   ChevronRight, 
@@ -23,8 +22,6 @@ interface ProductDetailProps {
   onBack: () => void;
   onSelectProduct: (product: Product) => void;
   onAddToCart: (product: Product, quantity?: number, selectedVariant?: ProductVariant) => void;
-  onToggleWishlist: (product: Product) => void;
-  isWishlisted: boolean;
   onDirectCheckout: (product: Product, quantity?: number, selectedVariant?: ProductVariant) => void;
   allProducts?: Product[];
 }
@@ -34,8 +31,6 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
   onBack,
   onSelectProduct,
   onAddToCart,
-  onToggleWishlist,
-  isWishlisted,
   onDirectCheckout,
   allProducts = []
 }) => {
@@ -50,6 +45,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
   const [quantity, setQuantity] = useState(1);
   const [activeImage, setActiveImage] = useState(product.image);
   const [addedToast, setAddedToast] = useState(false);
+  const galleryImages = Array.from(new Set([product.image, ...(product.galleryImages || [])]));
 
   // Compute live price with variant modifier
   const currentPrice = product.price + (selectedVariant.priceModifier || 0);
@@ -145,16 +141,6 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
                 )}
               </div>
 
-              {/* Wishlist Button */}
-              <button
-                onClick={() => onToggleWishlist(product)}
-                className={`absolute top-4 right-4 p-3 rounded-full bg-white/90 backdrop-blur-md shadow-lg transition-transform hover:scale-110 active:scale-95 ${
-                  isWishlisted ? 'text-red-500' : 'text-gray-400 hover:text-red-500'
-                }`}
-              >
-                <Heart className={`h-5 w-5 ${isWishlisted ? 'fill-current' : ''}`} />
-              </button>
-
               {/* Live Warehouse Badge */}
               <div className="absolute bottom-4 left-4 right-4 bg-white/95 backdrop-blur-md p-3.5 rounded-[10px] border border-blue-100/80 shadow-md flex items-center justify-between">
                 <div className="flex items-center gap-2.5">
@@ -175,9 +161,9 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
             </div>
 
             {/* Thumbnail Gallery */}
-            {product.galleryImages && product.galleryImages.length > 1 && (
+            {galleryImages.length > 1 && (
               <div className="flex gap-4 overflow-x-auto pb-2">
-                {product.galleryImages.map((img, idx) => (
+                {galleryImages.map((img, idx) => (
                   <button
                     key={idx}
                     onClick={() => setActiveImage(img)}

@@ -37,6 +37,7 @@ export const businessPosts = pgTable('business_posts', {
   condition: text('condition'),
   location: text('location'),
   dispatchTime: text('dispatch_time'),
+  galleryImages: jsonb('gallery_images').$type<string[]>().default([]),
   reviews: jsonb('reviews').$type<any[]>().default([]),
   createdAt: timestamp('created_at').defaultNow()
 });
@@ -111,3 +112,29 @@ export const users = pgTable('users', {
   isAdmin: boolean('is_admin').default(false),
   createdAt: timestamp('created_at').defaultNow()
 });
+
+export const userCarts = pgTable('rh_user_carts', {
+  userId: text('user_id').primaryKey(),
+  items: jsonb('items').$type<ProductCartItem[]>().default([]),
+  updatedAt: timestamp('updated_at').defaultNow()
+});
+
+export const photoHistory = pgTable('rh_photo_history', {
+  id: text('id').primaryKey(),
+  userId: text('user_id').notNull(),
+  title: text('title').notNull(),
+  category: text('category').notNull(),
+  url: text('url').notNull(),
+  createdAt: timestamp('created_at').defaultNow()
+});
+
+export const notificationReads = pgTable('rh_notification_reads', {
+  userId: text('user_id').primaryKey(),
+  notificationIds: jsonb('notification_ids').$type<string[]>().default([]),
+  updatedAt: timestamp('updated_at').defaultNow()
+});
+
+type ProductCartItem = {
+  id: string;
+  [key: string]: unknown;
+};
