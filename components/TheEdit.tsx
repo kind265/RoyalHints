@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { BookOpen, Wrench, Scissors, Sparkles, Check, ArrowRight } from 'lucide-react';
+import { BookOpen, Wrench, Scissors, Zap, Check, ArrowRight } from 'lucide-react';
 import { ProductCategory, Product } from '../types';
 
 interface TheEditProps {
@@ -32,7 +32,7 @@ const TheEdit: React.FC<TheEditProps> = ({ onSelectCategory, onSelectProduct }) 
       title: 'Fashion',
       category: 'Fashion' as ProductCategory,
       desc: 'Handcrafted virgin wool tailoring and Tuscan calfskin shoes.',
-      icon: Sparkles
+      icon: Zap
     }
   ];
 
@@ -46,7 +46,7 @@ const TheEdit: React.FC<TheEditProps> = ({ onSelectCategory, onSelectProduct }) 
             <div className="relative">
               <div className="absolute -top-12 -left-12 w-64 h-64 bg-[#2563EB]/10 rounded-full blur-3xl"></div>
               <img 
-                src="assets/Russian_satin(Beige).jpg" 
+                src="/assets/Russian_satin(Beige).jpg" 
                 alt="Royal Hints Curation" 
                 className="relative rounded-[16px] w-full h-auto shadow-2xl transition-all duration-700 hover:scale-[1.01]"
               />

@@ -18,11 +18,8 @@ import {
   CreditCard, 
   Truck, 
   FileText,
-  Sparkles,
-  PackageCheck,
+  Award,
   Search,
-  ShieldCheck,
-  Crown,
   Lock,
   Upload,
   Camera,
@@ -432,7 +429,7 @@ const Dashboard: React.FC<DashboardProps> = ({
                 {/* Left: Admin Clearance Badge & Quick Tab Selector */}
                 <div className="flex items-center gap-3 flex-wrap">
                   <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-500/10 to-blue-500/10 border border-blue-200/60 text-[#1A1A1A]">
-                    <Crown className="h-4 w-4 text-amber-500" />
+                    <Award className="h-4 w-4 text-amber-500" />
                     <span className="text-[11px] font-black uppercase tracking-wider text-[#1A1A1A]">
                       Admin Intelligence Desk
                     </span>
@@ -594,7 +591,7 @@ const Dashboard: React.FC<DashboardProps> = ({
                                 : 'text-gray-500 hover:text-gray-900'
                             }`}
                           >
-                            <Sparkles className="h-3 w-3 text-amber-500" />
+                            <Zap className="h-3 w-3 text-amber-500" />
                             older ({olderRequests.length})
                           </button>
                           <button
@@ -634,7 +631,7 @@ const Dashboard: React.FC<DashboardProps> = ({
                                       }`}
                                     >
                                       {notif.type === 'older' ? (
-                                        <Sparkles className="h-4 w-4" />
+                                        <Zap className="h-4 w-4" />
                                       ) : (
                                         <FileText className="h-4 w-4" />
                                       )}
@@ -764,7 +761,7 @@ const Dashboard: React.FC<DashboardProps> = ({
               !isAdmin ? (
                 <div className="text-center py-16 sm:py-20 bg-gray-50 rounded-2xl border border-gray-200 p-6 sm:p-8 space-y-4 sm:space-y-6">
                   <div className="h-14 w-14 sm:h-16 sm:w-16 bg-blue-50 text-[#2563EB] rounded-full flex items-center justify-center mx-auto">
-                    <ShieldCheck className="h-7 w-7 sm:h-8 sm:w-8" />
+                    <Shield className="h-7 w-7 sm:h-8 sm:w-8" />
                   </div>
                   <div className="max-w-md mx-auto">
                     <h3 className="text-xl sm:text-2xl font-black text-[#1A1A1A] mb-2">Admin Telemetry Desk</h3>
@@ -831,7 +828,7 @@ const Dashboard: React.FC<DashboardProps> = ({
                       <div className="space-y-2 md:col-span-2 bg-blue-50/60 p-4 sm:p-5 rounded-2xl border border-blue-200/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                         <div>
                           <div className="flex items-center gap-2 mb-1">
-                            <ShieldCheck className="h-4 w-4 text-[#2563EB]" />
+                            <Shield className="h-4 w-4 text-[#2563EB]" />
                             <span className="text-[10px] font-black uppercase tracking-[0.25em] text-[#2563EB]">
                               Auto-Generated Unique Buyer ID (Username)
                             </span>
@@ -969,7 +966,7 @@ const Dashboard: React.FC<DashboardProps> = ({
               !isAdmin ? (
                 <div className="text-center py-16 sm:py-20 bg-gray-50 rounded-2xl border border-gray-200 p-6 sm:p-8 space-y-4 sm:space-y-6">
                   <div className="h-14 w-14 sm:h-16 sm:w-16 bg-blue-50 text-[#2563EB] rounded-full flex items-center justify-center mx-auto">
-                    <ShieldCheck className="h-7 w-7 sm:h-8 sm:w-8" />
+                    <Shield className="h-7 w-7 sm:h-8 sm:w-8" />
                   </div>
                   <div className="max-w-md mx-auto">
                     <h3 className="text-xl sm:text-2xl font-black text-[#1A1A1A] mb-2">Administrative Registry</h3>
@@ -998,7 +995,7 @@ const Dashboard: React.FC<DashboardProps> = ({
                   <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-6 border-b border-gray-100">
                     <div>
                       <div className="flex items-center gap-2 mb-1.5">
-                        <Crown className="h-4 w-4 text-amber-500" />
+                        <Award className="h-4 w-4 text-amber-500" />
                         <span className="text-[10px] font-black text-[#2563EB] uppercase tracking-widest">Admin Control</span>
                         <span className="text-[10px] bg-blue-100 text-[#2563EB] px-2 py-0.5 rounded-full font-bold">
                           {posts.length} Active {posts.length === 1 ? 'Listing' : 'Listings'}
@@ -1218,7 +1215,7 @@ const Dashboard: React.FC<DashboardProps> = ({
                 <div className="space-y-6 sm:space-y-10 max-w-4xl">
                   <div>
                     <div className="flex items-center gap-2 mb-1.5">
-                      <Crown className="h-4 w-4 text-amber-500" />
+                      <Award className="h-4 w-4 text-amber-500" />
                       <span className="text-[10px] font-black text-[#2563EB] uppercase tracking-widest">Admin Control</span>
                     </div>
                     <h2 className="text-2xl sm:text-4xl font-black tracking-tight text-[#1A1A1A]">
@@ -1632,7 +1629,7 @@ const Dashboard: React.FC<DashboardProps> = ({
                             
                             <div className="flex items-center justify-between mt-4 pt-3 border-t border-gray-200/60 sm:border-0 sm:pt-0">
                               <p className="text-lg sm:text-2xl font-black text-[#2563EB]">
-                                ${item.price.toFixed(2)}
+                                MWK {item.price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                               </p>
                               <div className="flex items-center border border-gray-200 rounded-full px-3 py-1 sm:px-4 sm:py-1.5 gap-4 bg-white shadow-sm">
                                 <span className="text-xs text-gray-400 uppercase font-bold">Qty</span>
@@ -1672,7 +1669,7 @@ const Dashboard: React.FC<DashboardProps> = ({
                           Estimated Total ({cartItems.length} {cartItems.length === 1 ? 'item' : 'items'})
                         </p>
                         <p className="text-3xl sm:text-5xl font-black text-[#1A1A1A] tracking-tight">
-                          ${cartTotal.toFixed(2)}
+                          MWK {cartTotal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </p>
                       </div>
                       <div className="flex items-center gap-2 text-gray-500 text-xs font-bold bg-gray-50 sm:bg-transparent p-3 sm:p-0 rounded-xl">

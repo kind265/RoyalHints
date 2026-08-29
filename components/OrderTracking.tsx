@@ -10,7 +10,7 @@ import {
   ShieldCheck, 
   CreditCard, 
   ShoppingBag, 
-  Sparkles,
+  Zap,
   ArrowRight,
   Building,
   HelpCircle,
@@ -402,7 +402,7 @@ export const OrderTracking: React.FC<OrderTrackingProps> = ({
                   {activeIsDelivered ? 'Delivered & Completed' : 'In Transit (Awaiting Arrival)'}
                 </p>
                 <p className="text-[10px] text-gray-400 font-medium">
-                  {activeShipment.items.length} item(s) • Total: ${calculateOrderTotal(activeShipment).toFixed(2)}
+                  {activeShipment.items.length} item(s) • Total: MWK {calculateOrderTotal(activeShipment).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </p>
               </div>
             </div>
@@ -448,11 +448,11 @@ export const OrderTracking: React.FC<OrderTrackingProps> = ({
                     <span className="text-[11px] text-gray-400 sm:hidden">Price:</span>
                     <div>
                       <p className="text-sm sm:text-base font-black text-[#1A1A1A] font-mono">
-                        ${(item.price * item.quantity).toFixed(2)}
+                        MWK {(item.price * item.quantity).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </p>
                       {item.quantity > 1 && (
                         <p className="text-[10px] text-gray-400 font-mono">
-                          (${item.price.toFixed(2)} each)
+                          (MWK {item.price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} each)
                         </p>
                       )}
                     </div>
@@ -469,7 +469,7 @@ export const OrderTracking: React.FC<OrderTrackingProps> = ({
               </div>
               <div className="text-right">
                 <p className="text-base sm:text-xl font-black text-[#1A1A1A] font-mono">
-                  ${calculateOrderTotal(activeShipment).toFixed(2)}
+                  MWK {calculateOrderTotal(activeShipment).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </p>
                 <span className="text-[9px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 inline-block mt-0.5">
                   ✓ Verified Payment

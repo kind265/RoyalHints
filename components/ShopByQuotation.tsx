@@ -5,7 +5,7 @@ import {
   CheckCircle2, 
   Clock, 
   DollarSign, 
-  Sparkles, 
+  Zap, 
   PackageCheck, 
   ShoppingCart, 
   ChevronRight, 
@@ -19,7 +19,6 @@ import {
   HelpCircle,
   ArrowRight,
   ShieldCheck,
-  Zap,
   Check
 } from 'lucide-react';
 import { QuotationRequest, ProductCategory, User } from '../types';
@@ -100,7 +99,7 @@ export const ShopByQuotation: React.FC<ShopByQuotationProps> = ({
       case 'Spare Parts': return <Wrench className="h-4 w-4" />;
       case 'Fabric': return <Layers className="h-4 w-4" />;
       case 'Fashion': return <Shirt className="h-4 w-4" />;
-      default: return <Sparkles className="h-4 w-4" />;
+      default: return <Zap className="h-4 w-4" />;
     }
   };
 
@@ -411,7 +410,7 @@ export const ShopByQuotation: React.FC<ShopByQuotationProps> = ({
                               ${quote.adminQuote.totalAmount.toLocaleString('en-US', { minimumFractionDigits: 2 })}
                             </p>
                             <span className="text-xs text-gray-500 font-bold">
-                              (${quote.adminQuote.unitPrice.toFixed(2)} / unit)
+                              (MWK {quote.adminQuote.unitPrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / unit)
                             </span>
                           </div>
                         </div>
@@ -530,11 +529,11 @@ export const ShopByQuotation: React.FC<ShopByQuotationProps> = ({
                 <div className="border border-blue-200 bg-blue-50/50 p-3 sm:p-4 rounded-xl space-y-2">
                   <div className="flex justify-between items-center text-xs sm:text-sm font-bold">
                     <span>Unit Price:</span>
-                    <span>${selectedQuoteSlip.adminQuote.unitPrice.toFixed(2)}</span>
+                    <span>MWK {selectedQuoteSlip.adminQuote.unitPrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                   </div>
                   <div className="flex justify-between items-center text-sm sm:text-base font-black text-[#2563EB] pt-2 border-t border-blue-200">
                     <span>Total Net Quote:</span>
-                    <span>${selectedQuoteSlip.adminQuote.totalAmount.toFixed(2)}</span>
+                    <span>MWK {selectedQuoteSlip.adminQuote.totalAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                   </div>
                   <p className="text-[10px] text-gray-500 pt-1">
                     * Includes comprehensive insurance, customs dispatch clearance, and certificates of conformity.

@@ -1,6 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
-import { ArrowRight, ShoppingBag, Sparkles } from 'lucide-react';
+import { ArrowRight, ShoppingBag, Zap } from 'lucide-react';
 
 interface HeroProps {
   onNavigate: (page: any) => void;

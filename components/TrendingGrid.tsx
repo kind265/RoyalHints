@@ -33,7 +33,7 @@ const TrendingGrid: React.FC<TrendingGridProps> = ({
       ? Number((post.reviews.reduce((acc, r) => acc + r.rating, 0) / post.reviews.length).toFixed(1)) 
       : 5.0,
     category: (post.category as ProductCategory) || 'Books',
-    image: post.image || 'assets/Frontpage.jpg',
+    image: post.image || '/assets/Frontpage.jpg',
     sku: post.sku || `RH-${post.id.slice(-4).toUpperCase()}`,
     isNew: true,
     inStock: (post.stockCount ?? 1) > 0,
@@ -192,7 +192,7 @@ const TrendingGrid: React.FC<TrendingGridProps> = ({
                           Price
                         </span>
                         <span className="text-sm sm:text-xl font-black text-[#1A1A1A]">
-                          ${product.price.toFixed(2)}
+                          MWK {product.price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </span>
                       </div>
 

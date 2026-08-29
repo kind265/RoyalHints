@@ -12,8 +12,7 @@ import {
   Layers, 
   AlertCircle,
   Building,
-  RotateCcw,
-  Sparkles
+  RotateCcw
 } from 'lucide-react';
 import { Product, ProductVariant } from '../types';
 
@@ -245,11 +244,11 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
                     </span>
                     <div className="flex items-baseline gap-3">
                       <span className="text-4xl sm:text-5xl font-black tracking-tighter text-white">
-                        ${currentPrice.toFixed(2)}
+                        MWK {currentPrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </span>
                       {selectedVariant.priceModifier ? (
                         <span className="text-xs font-bold text-[#2563EB] uppercase tracking-widest">
-                          (Includes Variant Spec +${selectedVariant.priceModifier.toFixed(2)})
+                          (Includes Variant Spec +MWK {selectedVariant.priceModifier.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })})
                         </span>
                       ) : null}
                     </div>
@@ -338,7 +337,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
                         </div>
                         {variant.priceModifier ? (
                           <div className="text-[10px] font-bold text-[#2563EB] mt-1">
-                            +${variant.priceModifier.toFixed(2)}
+                            +MWK {variant.priceModifier.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                           </div>
                         ) : null}
                       </button>
@@ -379,7 +378,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
                     className="flex-1 bg-[#2563EB] text-white py-4 px-8 rounded-[12px] font-black text-xs uppercase tracking-[0.25em] hover:bg-[#1D4ED8] transition-all transform hover:-translate-y-0.5 shadow-xl shadow-blue-500/25 flex items-center justify-center gap-3 disabled:opacity-50"
                   >
                     <ShoppingBag className="h-4 w-4" />
-                    Add {quantity} to Bag • ${(currentPrice * quantity).toFixed(2)}
+                    Add {quantity} to Bag • MWK {(currentPrice * quantity).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </button>
 
                   {/* Buy Now / Direct Checkout */}
@@ -397,7 +396,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
               {/* Technical Specifications Table */}
               <div className="pt-6 border-t border-gray-100 space-y-4">
                 <h4 className="text-xs font-black uppercase tracking-[0.2em] text-[#1A1A1A] flex items-center gap-2">
-                  <Sparkles className="h-4 w-4 text-[#2563EB]" />
+                  <Zap className="h-4 w-4 text-[#2563EB]" />
                   Detailed Product & Stock Specifications
                 </h4>
 
@@ -477,7 +476,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
                     </div>
 
                     <div className="pt-3 border-t border-gray-50 flex items-center justify-between">
-                      <span className="text-[#2563EB] font-black text-xl">${(rel.price ?? 150).toFixed(2)}</span>
+                      <span className="text-[#2563EB] font-black text-xl">MWK {(rel.price ?? 150).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                       <span className="text-[10px] font-black uppercase tracking-widest text-gray-400 group-hover:text-[#1A1A1A] flex items-center gap-1 transition-colors">
                         View Stock <ChevronRight className="h-3 w-3 text-[#2563EB]" />
                       </span>

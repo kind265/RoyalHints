@@ -59,12 +59,12 @@ export const REVIEWS: Review[] = [
 ];
 
 export const INSTAGRAM_IMAGES = [
-  'assets/Russian_satin(Beige).jpg',
-  'assets/Russian_satin(coffie_brown).jpg',
-  'assets/Russian_satin(Olive_green).jpg',
-  'assets/Russian_satin(Orange).jpg',
-  'assets/Russian_satin(Pink).jpg',
-  'assets/IMG-20260814-WA0025.jpg',
+  '/assets/Russian_satin(Beige).jpg',
+  '/assets/Russian_satin(coffie_brown).jpg',
+  '/assets/Russian_satin(Olive_green).jpg',
+  '/assets/Russian_satin(Orange).jpg',
+  '/assets/Russian_satin(Pink).jpg',
+  '/assets/IMG-20260814-WA0025.jpg',
 ];
 
 export const INITIAL_SHIPMENTS: ShipmentTracking[] = [];

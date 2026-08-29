@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Star, Instagram, Sparkles } from 'lucide-react';
+import { Star, Instagram, Zap } from 'lucide-react';
 import { REVIEWS, INSTAGRAM_IMAGES } from '../constants';
 
 const SocialProof: React.FC = () => {
@@ -41,7 +41,7 @@ const SocialProof: React.FC = () => {
               <div className="flex items-center gap-2">
                 <h3 className="text-[#1A1A1A] text-xl font-bold">@royalhints_official</h3>
                 <span className="md:hidden inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-50 text-[#2563EB] text-[10px] font-black uppercase tracking-wider">
-                  <Sparkles className="h-2.5 w-2.5" /> Live Stream
+                  <Zap className="h-2.5 w-2.5" /> Live Stream
                 </span>
               </div>
               <p className="text-sm text-gray-500 mt-1">Tag us to be featured in Royal Hints.</p>

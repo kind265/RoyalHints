@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { User } from '../types';
-import { Lock, Mail, ArrowRight, ShieldCheck, Crown, ChevronLeft, KeyRound, AlertTriangle } from 'lucide-react';
+import { Lock, Mail, ArrowRight, ShieldCheck, Award, ChevronLeft, KeyRound, AlertTriangle } from 'lucide-react';
 import { apiClient } from '../backend/api-client';
 
 interface AdminLoginProps {

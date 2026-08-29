@@ -17,7 +17,7 @@ import {
   Wrench, 
   Layers, 
   Shirt, 
-  Sparkles, 
+  Zap, 
   ArrowRight, 
   ShoppingCart, 
   User as UserIcon,
@@ -26,7 +26,7 @@ import {
   Settings,
   Briefcase,
   PlusCircle,
-  Crown,
+  Award,
   BarChart3
 } from 'lucide-react';
 import { User, Product, ProductCategory, ShipmentTracking, QuotationRequest, BusinessPost } from '../types';
@@ -104,7 +104,7 @@ const Header: React.FC<HeaderProps> = ({
     },
     { 
       id: 'bespoke', 
-      icon: Sparkles, 
+      icon: Zap, 
       label: 'Name What You Want',
       badge: 'Admin Direct' 
     },
@@ -130,7 +130,7 @@ const Header: React.FC<HeaderProps> = ({
       case 'Fashion':
         return <Shirt className={className} />;
       default:
-        return <Sparkles className={className} />;
+        return <Zap className={className} />;
     }
   };
 
@@ -532,7 +532,7 @@ const Header: React.FC<HeaderProps> = ({
 
                       <div className="flex items-center gap-3 shrink-0">
                         <div className="text-right">
-                          <p className="text-xs font-black text-[#2563EB]">${product.price.toFixed(2)}</p>
+                          <p className="text-xs font-black text-[#2563EB]">MWK {product.price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
                           <span className="text-[8px] font-bold text-emerald-600 uppercase tracking-widest">In Stock</span>
                         </div>
                         {onAddToCart && (
@@ -756,7 +756,7 @@ const Header: React.FC<HeaderProps> = ({
                         <p className="text-[9px] font-black text-[#2563EB] uppercase">{product.category}</p>
                       </div>
                     </div>
-                    <span className="text-xs font-black text-[#2563EB] shrink-0">${product.price.toFixed(2)}</span>
+                    <span className="text-xs font-black text-[#2563EB] shrink-0">MWK {product.price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                   </div>
                 ))
               ) : (
@@ -801,7 +801,7 @@ const Header: React.FC<HeaderProps> = ({
           <>
             <div className="mb-6 pb-4 border-b border-white/10">
               <div className="flex items-center gap-2 mb-1">
-                <Crown className="h-4 w-4 text-amber-400" />
+                <Award className="h-4 w-4 text-amber-400" />
                 <span className="text-[#2563EB] text-xs font-black uppercase tracking-[0.3em]">Royal Console</span>
               </div>
               <h3 className="text-white text-2xl sm:text-3xl font-black">Dashboard Navigation</h3>

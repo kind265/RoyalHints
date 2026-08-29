@@ -491,7 +491,7 @@ export const NameWhatYouWant: React.FC<NameWhatYouWantProps> = ({
             </div>
           ) : (
             <div className="py-16 sm:py-24 text-center bg-gray-50 rounded-2xl border border-dashed border-gray-200 space-y-4">
-              <Sparkles className="h-10 w-10 sm:h-12 sm:w-12 text-gray-300 mx-auto" />
+              <Zap className="h-10 w-10 sm:h-12 sm:w-12 text-gray-300 mx-auto" />
               <h4 className="text-base sm:text-lg font-black text-[#1A1A1A]">No Requests Active</h4>
               <p className="text-xs sm:text-sm text-gray-400 max-w-sm mx-auto">
                 Need anything absent from our marketplace? Name what you want and our team will locate it.

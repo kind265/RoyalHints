@@ -17,12 +17,12 @@ import {
   Mail, 
   X, 
   Check, 
-  Sparkles, 
+  Zap, 
   Timer, 
   PlusCircle,
   Inbox,
   ShieldCheck,
-  Crown,
+  Award,
   ShoppingCart
 } from 'lucide-react';
 import { BusinessPost, Review, User as UserType, Product, ProductCategory } from '../types';
@@ -201,7 +201,7 @@ const Marketplace: React.FC<MarketplaceProps> = ({ posts, user, onAddReview, onN
             onClick={() => setIsCreateModalOpen(true)}
             className="self-start sm:self-auto bg-[#2563EB] text-white px-5 py-2.5 sm:py-3 rounded-full font-black text-xs uppercase tracking-wider hover:bg-[#1D4ED8] transition-all shadow-md shadow-blue-500/25 flex items-center gap-2 shrink-0"
           >
-            <Crown className="h-4 w-4 text-amber-300" />
+            <Award className="h-4 w-4 text-amber-300" />
             Admin: Post Venture
           </button>
         )}
@@ -423,8 +423,8 @@ const Marketplace: React.FC<MarketplaceProps> = ({ posts, user, onAddReview, onN
                       ) : (
                         <>
                           <ShoppingCart className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
-                          <span className="sm:hidden">Buy • ${(post.price || 150).toFixed(0)}</span>
-                          <span className="hidden sm:inline">Purchase Item • ${(post.price || 150).toFixed(2)}</span>
+                          <span className="sm:hidden">Buy • MWK {(post.price || 150).toLocaleString('en-US', { maximumFractionDigits: 0 })}</span>
+                          <span className="hidden sm:inline">Purchase Item • MWK {(post.price || 150).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                         </>
                       )}
                     </button>
@@ -699,7 +699,7 @@ const Marketplace: React.FC<MarketplaceProps> = ({ posts, user, onAddReview, onN
                   type="submit"
                   className="w-full bg-[#2563EB] text-white py-4 rounded-[12px] font-black text-xs uppercase tracking-widest hover:bg-[#1D4ED8] transition-all shadow-xl shadow-blue-500/25 flex items-center justify-center gap-2"
                 >
-                  <Sparkles className="h-4 w-4" />
+                  <Zap className="h-4 w-4" />
                   Publish Live (Active in New Arrivals for 48h)
                 </button>
               </div>
