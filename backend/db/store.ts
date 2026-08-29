@@ -806,14 +806,15 @@ class PostgresStore {
   async getCart(userId: string): Promise<Product[]> {
     await this.ensureSeeded();
     const rows = await db.select().from(userCarts).where(eq(userCarts.userId, userId));
-    return (rows[0]?.items as Product[]) || [];
+    return (rows[0]?.items as unknown as Product[]) || [];
   }
 
   async saveCart(userId: string, items: Product[]): Promise<Product[]> {
     await this.ensureSeeded();
-    await db.insert(userCarts).values({ userId, items }).onConflictDoUpdate({
+    const serializedItems = items as any;
+    await db.insert(userCarts).values({ userId, items: serializedItems }).onConflictDoUpdate({
       target: userCarts.userId,
-      set: { items, updatedAt: new Date() }
+      set: { items: serializedItems, updatedAt: new Date() }
     });
     return items;
   }

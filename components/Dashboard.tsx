@@ -344,7 +344,7 @@ const Dashboard: React.FC<DashboardProps> = ({
         const url = event.target?.result as string;
         if (url) setSupportingImages(prev => [...prev, url]);
       };
-      reader.readAsDataURL(file);
+      reader.readAsDataURL(file as Blob);
     });
     e.target.value = '';
   };
@@ -470,11 +470,11 @@ const Dashboard: React.FC<DashboardProps> = ({
                   <button
                     type="button"
                     onClick={() => {
-                      setActiveTab('older');
-                      onTabChange?.('older');
+                      setActiveTab('bespoke');
+                      onTabChange?.('bespoke');
                     }}
                     className={`hidden sm:inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all ${
-                      activeTab === 'Older'
+                      activeTab === 'bespoke'
                         ? 'bg-[#1A1A1A] text-white shadow-sm'
                         : 'bg-gray-50 hover:bg-gray-100 text-gray-700 border border-gray-200'
                     }`}
@@ -587,7 +587,7 @@ const Dashboard: React.FC<DashboardProps> = ({
                           </button>
                           <button
                             type="button"
-                            onClick={() => setNotificationFilter('Older')}
+                            onClick={() => setNotificationFilter('older')}
                             className={`flex-1 py-1.5 px-2 rounded-lg text-[11px] font-bold transition-all text-center flex items-center justify-center gap-1 ${
                               notificationFilter === 'older'
                                 ? 'bg-amber-50 text-amber-900 border border-amber-200/60 shadow-sm'
@@ -649,12 +649,12 @@ const Dashboard: React.FC<DashboardProps> = ({
                                     <div className="flex items-center justify-between gap-1">
                                       <span
                                         className={`text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded ${
-                                          notif.type === 'Older'
+                                          notif.type === 'older'
                                             ? 'bg-amber-100/80 text-amber-800'
                                             : 'bg-blue-100/80 text-blue-800'
                                         }`}
                                       >
-                                        {notif.type === 'Older' ? 'Older Sourcing' : 'Quotation Request'}
+                                        {notif.type === 'older' ? 'Older Sourcing' : 'Quotation Request'}
                                       </span>
                                       <span className="text-[10px] text-gray-400 font-medium">
                                         {notif.submittedAtFormatted}
@@ -750,11 +750,11 @@ const Dashboard: React.FC<DashboardProps> = ({
             )}
 
             {/* 3. NAME WHAT YOU WANT (CONCIERGE SOURCING TO ADMIN) */}
-            {activeTab === 'older' && (
+            {activeTab === 'bespoke' && (
               <NameWhatYouWant 
                 requests={olderRequests}
                 onSubmitRequest={onSubmitolderRequest}
-                onAcceptolderOfferToCart={onAcceptolderOfferToCart}
+                onAcceptBespokeOfferToCart={onAcceptolderOfferToCart}
                 user={user}
               />
             )}
@@ -784,7 +784,7 @@ const Dashboard: React.FC<DashboardProps> = ({
               ) : (
                 <AdminAnalytics
                   shipments={shipments}
-                  olderRequests={olderRequests}
+                  bespokeRequests={olderRequests}
                   quotations={quotations}
                   posts={posts}
                   onNavigateTab={(tab) => {
@@ -943,7 +943,7 @@ const Dashboard: React.FC<DashboardProps> = ({
                     )) : [
                       { label: 'Active Shipments', val: shipments.filter(s => s.status !== 'Delivered').length, action: () => setActiveTab('tracking') },
                       { label: 'Pending Quotes', val: quotations.length, action: () => setActiveTab('quotation') },
-                      { label: 'older Requests', val: olderRequests.length, action: () => setActiveTab('older') },
+                      { label: 'Bespoke Requests', val: olderRequests.length, action: () => setActiveTab('bespoke') },
                       { label: 'Bag Items', val: cartItems.length, action: () => setActiveTab('cart') },
                     ].map((stat) => (
                       <div 

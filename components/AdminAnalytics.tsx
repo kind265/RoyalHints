@@ -113,7 +113,7 @@ export const AdminAnalytics: React.FC<AdminAnalyticsProps> = ({
   const bespokeStatusCounts = {
     received: activeBespokeRequests.filter(r => r.status === 'Received by Admin').length,
     assigned: activeBespokeRequests.filter(r => r.status === 'Sourcing Specialist Assigned').length,
-    located: activeBespokeRequests.filter(r => r.status === 'Located in Lilongwe At Our Shop').length,
+    located: activeBespokeRequests.filter(r => r.status === 'AT OUR SHOP IN LILONGWE').length,
     quoted: activeBespokeRequests.filter(r => r.status === 'Quoted & Ready').length,
   };
 

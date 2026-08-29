@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Product, User } from '../types';
-import { ChevronLeft, Lock, ShieldCheck, CreditCard, Truck, CheckCircle2, ArrowRight, Zap, Landmark } from 'lucide-react';
+import { ChevronLeft, Lock, ShieldCheck, CreditCard, Truck, CheckCircle2, ArrowRight, Zap, Landmark, X } from 'lucide-react';
 
 interface CheckoutProps {
   cartItems: Product[];

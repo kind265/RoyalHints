@@ -6,7 +6,7 @@ import { postgresStore } from './backend/db/store';
 
 async function startServer() {
   const app = createBackendApp();
-  const PORT = 3000;
+  const PORT = Number(process.env.PORT) || 3000;
 
   try {
     await postgresStore.ensureSeeded();

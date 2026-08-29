@@ -28,6 +28,7 @@ export interface Product {
   specifications: Record<string, string>;
   variants: ProductVariant[];
   galleryImages?: string[];
+  reviewsCount?: number;
 }
 
 export interface Collection {
@@ -161,7 +162,7 @@ export interface BespokeSourcingRequest {
   referenceLinkOrImageUrl?: string;
   detailedRequirements: string;
   adminRecipient: string;
-  status: 'Received by Admin' | 'Sourcing Specialist Assigned' | 'Located in Vault Network' | 'Quoted & Ready' | 'Fulfilled';
+  status: 'Received by Admin' | 'Sourcing Specialist Assigned' | 'Located in Vault Network' | 'AT OUR SHOP IN LILONGWE' | 'Quoted & Ready' | 'Fulfilled';
   submittedAt: number;
   adminResponse?: {
     assignedSpecialist: string;
@@ -172,11 +173,14 @@ export interface BespokeSourcingRequest {
   };
 }
 
+export type olderSourcingRequest = BespokeSourcingRequest;
+
 export type DashboardTab = 
   | 'account' 
   | 'tracking' 
   | 'quotation' 
   | 'bespoke' 
+  | 'older'
   | 'analytics'
   | 'my-posts' 
   | 'post' 

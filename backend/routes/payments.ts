@@ -5,6 +5,10 @@ export const paymentsRouter = Router();
 
 const confirmedTransactions = new Map<string, any>();
 
+const getPublicBaseUrl = () => {
+  return process.env.PUBLIC_BASE_URL || process.env.RENDER_EXTERNAL_URL || process.env.APP_URL || 'http://localhost:3000';
+};
+
 const toNumber = (value: unknown, fallback = 0) => {
   const parsed = Number(value);
   return Number.isFinite(parsed) ? Math.max(0, parsed) : fallback;
@@ -92,7 +96,8 @@ paymentsRouter.post('/paychangu/initiate', async (req: Request, res: Response) =
     const normalizedAmount = toNumber(amount, 0);
     const finalAmount = normalizedAmount > 0 ? normalizedAmount : 1;
     const finalReference = reference || `RH-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-    const finalReturnUrl = returnUrl || process.env.PAYCHANGU_RETURN_URL || 'http://localhost:5173/checkout?status=success';
+    const fallbackBaseUrl = getPublicBaseUrl();
+    const finalReturnUrl = returnUrl || process.env.PAYCHANGU_RETURN_URL || `${fallbackBaseUrl}/checkout?status=success`;
     const finalCallbackUrl = callbackUrl || process.env.PAYCHANGU_CALLBACK_URL || finalReturnUrl;
     const currency = process.env.PAYCHANGU_CURRENCY || 'MWK';
 

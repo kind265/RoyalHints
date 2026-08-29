@@ -292,7 +292,7 @@ const App: React.FC = () => {
       sku: quote.quoteNumber,
       inStock: true,
       stockQuantity: quote.estimatedQuantity,
-      stockStatus: 'Ready to Send',
+      stockStatus: 'Ready to Ship',
       warehouseLocation: 'Lilongwe',
       dispatchTime: 'Dispatches in 24 hours',
       highlights: ['Custom manufactured', 'Full warranty coverage'],
@@ -581,15 +581,14 @@ const App: React.FC = () => {
                   posts={user && (user.role === 'admin' || user.isAdmin || user.email?.toLowerCase() === 'admin@royalhints.com') ? posts : posts.filter(p => user ? p.userId === user.id : true)}
                   cartItems={cartItems}
                   onRemoveFromCart={removeFromCart}
-                  onMoveToCart={moveToCart}
                   shipments={shipments}
                   onConfirmDelivery={handleConfirmDelivery}
                   quotations={quotations}
                   onAddQuotation={handleAddQuotation}
                   onAcceptQuoteToCart={handleAcceptQuoteToCart}
-                  bespokeRequests={bespokeRequests}
-                  onSubmitBespokeRequest={handleAddBespokeRequest}
-                  onAcceptBespokeOfferToCart={handleAcceptBespokeOfferToCart}
+                  olderRequests={bespokeRequests}
+                  onSubmitolderRequest={handleAddBespokeRequest}
+                  onAcceptolderOfferToCart={handleAcceptBespokeOfferToCart}
                   initialTab={dashboardTab}
                   onTabChange={setDashboardTab}
                 />

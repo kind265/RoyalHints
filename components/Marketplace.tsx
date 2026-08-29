@@ -398,9 +398,16 @@ const Marketplace: React.FC<MarketplaceProps> = ({ posts, user, onAddReview, onN
                             category: (post.category === 'Industrial & Bespoke' ? 'Spare Parts' : post.category) as ProductCategory,
                             image: post.image,
                             rating: 5.0,
-                            reviewsCount: post.reviews?.length || 1,
                             sku: post.sku || `RH-MP-${post.id.slice(-4)}`,
-                            inStock: true
+                            inStock: true,
+                            stockQuantity: 1,
+                            stockStatus: 'In Stock',
+                            warehouseLocation: post.location || 'Royal Hints Shop',
+                            dispatchTime: post.dispatchTime || 'Ships in 24 hours',
+                            highlights: [],
+                            specifications: {},
+                            variants: [],
+                            galleryImages: post.galleryImages || []
                           });
                           setBoughtPostId(post.id);
                           setTimeout(() => setBoughtPostId(null), 2000);

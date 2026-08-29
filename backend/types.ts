@@ -71,6 +71,7 @@ export interface BusinessPost {
   condition?: string;
   location?: string;
   dispatchTime?: string;
+  galleryImages?: string[];
   reviews?: Review[];
 }
 
