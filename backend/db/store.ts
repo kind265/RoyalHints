@@ -24,7 +24,12 @@ class PostgresStore {
   async ensureSeeded() {
     if (this.seeded) return;
     try {
+      if (!process.env.DATABASE_URL) {
+        throw new Error('DATABASE_URL is missing. Set the Render PostgreSQL URL in the environment before starting the app.');
+      }
+
       await pool.connect();
+      await pool.query('SELECT 1');
       console.log('database connected');
 
       await this.ensureSchema();
@@ -33,28 +38,38 @@ class PostgresStore {
       const adminEmail = (process.env.ADMIN_EMAIL || 'chikusehopeson@gmail.com').trim().toLowerCase();
       const adminPassword = process.env.ADMIN_PASSWORD || 'hopeson@gmail.com@415';
       const adminUsername = adminEmail.split('@')[0] || 'royalhints-admin';
-      if (adminEmail) {
-        await pool.query(
-          `INSERT INTO users (id, name, email, username, password_hash, role, is_admin)
-           VALUES ($1, $2, $3, $4, $5, $6, $7)
-           ON CONFLICT (email) DO UPDATE SET
-             username = EXCLUDED.username,
-             password_hash = EXCLUDED.password_hash,
-             name = EXCLUDED.name,
-             role = EXCLUDED.role,
-             is_admin = EXCLUDED.is_admin`,
-          [
-            randomUUID(),
-            'Royal Hints Administrator',
-            adminEmail,
-            adminUsername,
-            adminPassword,
-            'ADMIN',
-            true
-          ]
-        );
-        console.log('admin seeded');
+      const adminName = 'Royal Hints Administrator';
+
+      await pool.query(
+        `INSERT INTO users (id, name, email, username, password_hash, role, is_admin)
+         VALUES ($1, $2, $3, $4, $5, $6, $7)
+         ON CONFLICT (email) DO UPDATE SET
+           username = EXCLUDED.username,
+           password_hash = EXCLUDED.password_hash,
+           name = EXCLUDED.name,
+           role = EXCLUDED.role,
+           is_admin = EXCLUDED.is_admin`,
+        [
+          randomUUID(),
+          adminName,
+          adminEmail,
+          adminUsername,
+          adminPassword,
+          'ADMIN',
+          true
+        ]
+      );
+
+      const adminRow = await pool.query(
+        `SELECT email, username, role, is_admin FROM users WHERE email = $1`,
+        [adminEmail]
+      );
+
+      if (adminRow.rowCount === 0) {
+        throw new Error('Admin user was not created after seeding.');
       }
+
+      console.log('admin seeded');
       this.seeded = true;
     } catch (err) {
       console.error('Failed to initialize PostgreSQL records:', err);

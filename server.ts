@@ -1,8 +1,12 @@
 import path from 'path';
 import express from 'express';
+import dotenv from 'dotenv';
 import { createServer as createViteServer } from 'vite';
 import { createBackendApp } from './backend/app';
 import { postgresStore } from './backend/db/store';
+
+dotenv.config({ path: path.resolve(process.cwd(), 'backend/.env') });
+dotenv.config();
 
 async function startServer() {
   const app = createBackendApp();
