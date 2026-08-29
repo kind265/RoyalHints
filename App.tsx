@@ -27,6 +27,7 @@ type Page = 'Home' | 'Auth' | 'Admin' | 'Dashboard' | 'Marketplace' | 'Checkout'
 
 const App: React.FC = () => {
   const [isScrolled, setIsScrolled] = useState(false);
+  const [loginNotice, setLoginNotice] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState<Page>(() => {
     if (typeof window !== 'undefined') {
       const path = window.location.pathname.toLowerCase();
@@ -134,15 +135,23 @@ const App: React.FC = () => {
     if (user && cartLoaded) apiClient.saveCart(user.id, cartItems).catch(err => console.error('Save cart error:', err));
   }, [user, cartItems, cartLoaded]);
 
-  const handleLogin = async (u: User) => {
-    const savedUser = await apiClient.login(u.email);
-    setUser(savedUser || u);
-    setCurrentPage('Dashboard');
+  const handleLogin = (u: User) => {
+    setUser(u);
+
+    if (u.role === 'admin' || u.isAdmin) {
+      setLoginNotice(null);
+      setCurrentPage('Dashboard');
+    } else {
+      setLoginNotice('Your account is auto-created when you place an order. Continue shopping and your profile will be saved automatically.');
+      setCurrentPage('Home');
+    }
+
     window.scrollTo(0, 0);
   };
 
   const handleLogout = () => {
     setUser(null);
+    setLoginNotice(null);
     setCurrentPage('Home');
     window.scrollTo(0, 0);
   };
@@ -438,6 +447,7 @@ const App: React.FC = () => {
     if (tab) {
       setDashboardTab(tab);
     }
+    setLoginNotice(null);
     
     // Update browser URL for clean routing
     try {
@@ -541,6 +551,13 @@ const App: React.FC = () => {
           <>
             {currentPage === 'Home' && (
               <div className="animate-in fade-in duration-700">
+                {loginNotice && (
+                  <div className="max-w-6xl mx-auto px-4 pt-6 sm:px-6 lg:px-8">
+                    <div className="rounded-2xl border border-blue-200 bg-blue-50 text-blue-900 px-4 py-3 text-sm font-medium shadow-sm">
+                      {loginNotice}
+                    </div>
+                  </div>
+                )}
                 <Hero onNavigate={navigateTo} />
                 <TrendingGrid 
                   onSelectProduct={handleSelectProduct}
