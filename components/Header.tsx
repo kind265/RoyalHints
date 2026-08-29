@@ -625,10 +625,10 @@ const Header: React.FC<HeaderProps> = ({
             ) : (
               <div className="flex items-center gap-2">
                 <button 
-                  onClick={() => onNavigate('Dashboard')}
+                  onClick={() => onNavigate('Auth')}
                   className="text-[10px] font-black uppercase tracking-[0.2em] px-3.5 sm:px-5 py-2 sm:py-2.5 rounded-full border border-white/30 text-white hover:bg-[#2563EB] hover:border-[#2563EB] transition-all bg-white/5"
                 >
-                  Buyer Desk
+                  Login
                 </button>
               </div>
             )}
