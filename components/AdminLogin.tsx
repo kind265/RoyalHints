@@ -25,7 +25,7 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLogin, onNavigateHome }) => {
     setIsLoading(false);
 
     if (!authenticatedUser) {
-      setError('Incorrect email or password. Normal users can sign in here, and their account is auto-created once they place an order.');
+      setError('Account is auto created once you place an Order.');
       return;
     }
 
@@ -52,10 +52,7 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLogin, onNavigateHome }) => {
             <ChevronLeft className="h-4 w-4" /> Back
           </button>
 
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/30 text-blue-300 text-[10px] font-black uppercase tracking-[0.2em] mb-3">
-            <ShieldCheck className="h-3 w-3 text-blue-400" /> Royal Hints Access
-          </div>
-          <h1 className="text-2xl font-black tracking-tight">Member Login</h1>
+          <h1 className="text-2xl font-black tracking-tight">Royal Hints Login</h1>
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 sm:p-8 space-y-5">
@@ -126,7 +123,7 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLogin, onNavigateHome }) => {
           </button>
 
           <p className="text-[11px] text-gray-400 leading-relaxed text-center">
-            Accounts are created automatically after you place an order. Admin credentials will open the dashboard.
+            Accounts are created automatically after you place an order.
           </p>
         </form>
       </div>
