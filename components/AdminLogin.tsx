@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { User } from '../types';
-import { Lock, Mail, ArrowRight, ShieldCheck, ChevronLeft, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import { Lock, Mail, ArrowRight, ChevronLeft, AlertTriangle, CheckCircle2, UserRound } from 'lucide-react';
 import { apiClient } from '../backend/api-client';
 
 interface AdminLoginProps {
@@ -14,6 +14,8 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLogin, onNavigateHome }) => {
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [mode, setMode] = useState<'login' | 'register'>('login');
+  const [name, setName] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -21,11 +23,13 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLogin, onNavigateHome }) => {
     setNotice(null);
     setIsLoading(true);
 
-    const authenticatedUser = await apiClient.login(email.trim(), password);
+    const authenticatedUser = mode === 'register'
+      ? await apiClient.register(name, email.trim(), password)
+      : await apiClient.login(email.trim(), password);
     setIsLoading(false);
 
     if (!authenticatedUser) {
-      setError('Account is auto created once you place an Order.');
+      setError(mode === 'register' ? 'We could not create your account. The email may already be registered.' : 'Invalid email or password.');
       return;
     }
 
@@ -34,17 +38,16 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLogin, onNavigateHome }) => {
       return;
     }
 
-    setNotice('Your account is auto-created when you place an order. You can continue shopping and your profile will be saved automatically.');
+    setNotice(mode === 'register' ? 'Your Royal Hints account is ready.' : 'Welcome back to Royal Hints.');
     onLogin(authenticatedUser);
   };
 
   return (
-    <div className="min-h-screen pt-28 pb-20 bg-[#0B0F19] text-white flex items-center justify-center px-4 sm:px-6 relative overflow-hidden">
-      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-gradient-to-br from-blue-600/10 via-amber-500/5 to-transparent rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute top-0 right-0 w-96 h-96 bg-blue-500/5 rounded-full blur-3xl pointer-events-none" />
-
-      <div className="w-full max-w-md bg-[#111827] rounded-2xl border border-white/10 shadow-2xl overflow-hidden relative z-10 animate-in fade-in zoom-in-95 duration-500">
-        <div className="bg-gradient-to-b from-[#1E293B] to-[#111827] p-8 text-center border-b border-white/10 relative">
+    <div className="min-h-[70vh] bg-[#eff6ff] px-4 py-16 sm:px-6 sm:py-24">
+      <div className="mx-auto grid w-full max-w-5xl overflow-hidden bg-white shadow-xl shadow-blue-900/10 lg:grid-cols-[.8fr_1.2fr]">
+        <div className="hidden bg-[#172033] p-10 text-white lg:block"><p className="text-xs font-black uppercase tracking-[.28em] text-blue-300">Royal Hints account</p><h2 className="mt-8 text-4xl font-black leading-tight">Your orders, saved in one place.</h2><p className="mt-5 text-sm leading-7 text-slate-300">Keep your profile, shopping bag, order updates, quotations, and sourcing requests connected to your account.</p><div className="mt-12 border-t border-white/15 pt-6 text-xs font-bold text-blue-200">Shop with clarity. Return with confidence.</div></div>
+        <div className="relative">
+        <div className="border-b border-blue-100 bg-white p-8 text-center">
           <button
             onClick={onNavigateHome}
             className="absolute top-5 left-5 text-gray-400 hover:text-white flex items-center gap-1 text-[11px] font-black uppercase tracking-wider transition-colors"
@@ -52,13 +55,13 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLogin, onNavigateHome }) => {
             <ChevronLeft className="h-4 w-4" /> Back
           </button>
 
-          <h1 className="text-2xl font-black tracking-tight">Royal Hints Login</h1>
+          <h1 className="text-3xl font-black tracking-tight text-[#172033]">{mode === 'login' ? 'Welcome back' : 'Create your account'}</h1>
+          <p className="mt-2 text-sm text-slate-500">{mode === 'login' ? 'Sign in to continue shopping.' : 'Join Royal Hints for a simpler way to order.'}</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 sm:p-8 space-y-5">
+        <form onSubmit={handleSubmit} className="space-y-5 p-6 sm:p-8">
           {error && (
-            <div className="p-3.5 rounded-xl bg-red-500/10 border border-red-500/30 text-red-300 text-xs flex items-start gap-2.5 animate-in fade-in duration-200">
-              <AlertTriangle className="h-4 w-4 text-red-400 shrink-0 mt-0.5" />
+              <div className="flex items-start gap-2.5 rounded-lg border border-red-200 bg-red-50 p-3.5 text-xs text-red-700 animate-in fade-in duration-200"><AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-red-500" />
               <p className="leading-relaxed">{error}</p>
             </div>
           )}
@@ -71,7 +74,11 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLogin, onNavigateHome }) => {
           )}
 
           <div className="space-y-1.5">
-            <label className="text-[10px] uppercase tracking-[0.2em] font-black text-gray-400 ml-1">
+            <label className="ml-1 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">
+              {mode === 'register' ? 'Full name' : 'Email address'}
+            </label>
+            {mode === 'register' && <div className="relative"><input type="text" required value={name} onChange={(e) => setName(e.target.value)} placeholder="Your full name" className="w-full rounded-lg border border-slate-200 bg-white py-3.5 pl-10 pr-4 text-sm text-[#172033] outline-none transition focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB]" /><UserRound className="absolute left-3.5 top-4 h-4 w-4 text-slate-400" /></div>}
+            <label className="ml-1 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">
               Email Address
             </label>
             <div className="relative">
@@ -81,14 +88,14 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLogin, onNavigateHome }) => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@example.com"
-                className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-3.5 text-sm text-white focus:outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB] transition-all font-mono"
+                className="w-full rounded-lg border border-slate-200 bg-white py-3.5 pl-10 pr-4 text-sm text-[#172033] outline-none transition focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB]"
               />
               <Mail className="absolute left-3.5 top-4 h-4 w-4 text-gray-400" />
             </div>
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-[10px] uppercase tracking-[0.2em] font-black text-gray-400 ml-1">
+            <label className="ml-1 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">
               Password
             </label>
             <div className="relative">
@@ -97,8 +104,9 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLogin, onNavigateHome }) => {
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••••••"
-                className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-3.5 text-sm text-white focus:outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB] transition-all font-mono"
+                placeholder="At least 8 characters"
+                minLength={8}
+                className="w-full rounded-lg border border-slate-200 bg-white py-3.5 pl-10 pr-4 text-sm text-[#172033] outline-none transition focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB]"
               />
               <Lock className="absolute left-3.5 top-4 h-4 w-4 text-gray-400" />
             </div>
@@ -107,7 +115,7 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLogin, onNavigateHome }) => {
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full bg-[#2563EB] hover:bg-[#1D4ED8] text-white py-4 rounded-xl font-black text-xs uppercase tracking-[0.25em] transition-all shadow-xl shadow-blue-500/25 flex items-center justify-center gap-2 group disabled:opacity-50"
+            className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#2563EB] py-4 text-xs font-black uppercase tracking-[0.25em] text-white shadow-xl shadow-blue-500/25 transition-all hover:bg-[#1D4ED8] group disabled:opacity-50"
           >
             {isLoading ? (
               <span className="flex items-center gap-2">
@@ -122,10 +130,9 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLogin, onNavigateHome }) => {
             )}
           </button>
 
-          <p className="text-[11px] text-gray-400 leading-relaxed text-center">
-            Accounts are created automatically after you place an order.
-          </p>
+          <p className="text-center text-xs text-slate-500">{mode === 'login' ? 'New to Royal Hints?' : 'Already have an account?'} <button type="button" onClick={() => { setMode(mode === 'login' ? 'register' : 'login'); setError(null); setNotice(null); }} className="font-black text-[#2563EB] underline underline-offset-4">{mode === 'login' ? 'Create an account' : 'Sign in'}</button></p>
         </form>
+        </div>
       </div>
     </div>
   );

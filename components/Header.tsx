@@ -27,7 +27,8 @@ import {
   Briefcase,
   PlusCircle,
   Award,
-  BarChart3
+  BarChart3,
+  MessageCircle
 } from 'lucide-react';
 import { User, Product, ProductCategory, ShipmentTracking, QuotationRequest, BusinessPost } from '../types';
 import { CATEGORIES } from '../constants';
@@ -325,13 +326,10 @@ const Header: React.FC<HeaderProps> = ({
             </button>
           ) : (
             <>
-              <button 
-                onClick={() => onNavigate('Marketplace')}
-                className="text-[11px] uppercase font-black tracking-[0.2em] text-white hover:text-[#60A5FA] transition-all flex items-center gap-1.5 relative group py-1"
-              >
-                <Store className="h-3.5 w-3.5 text-[#60A5FA]" /> Marketplace
-                <span className={`absolute -bottom-1 left-0 h-[2px] bg-[#2563EB] transition-all ${currentPage === 'Marketplace' ? 'w-full' : 'w-0 group-hover:w-full'}`}></span>
-              </button>
+              <button onClick={() => onNavigate('Home')} className="text-[11px] uppercase font-black tracking-[0.2em] text-white hover:text-[#60A5FA] transition-all relative group py-1">Home<span className={`absolute -bottom-1 left-0 h-[2px] bg-[#2563EB] transition-all ${currentPage === 'Home' ? 'w-full' : 'w-0 group-hover:w-full'}`}></span></button>
+              <button onClick={() => onNavigate('Marketplace')} className="text-[11px] uppercase font-black tracking-[0.2em] text-white hover:text-[#60A5FA] transition-all flex items-center gap-1.5 relative group py-1"><Store className="h-3.5 w-3.5 text-[#60A5FA]" /> Shop<span className={`absolute -bottom-1 left-0 h-[2px] bg-[#2563EB] transition-all ${currentPage === 'Marketplace' ? 'w-full' : 'w-0 group-hover:w-full'}`}></span></button>
+              <button onClick={() => onNavigate('About')} className="text-[11px] uppercase font-black tracking-[0.2em] text-white hover:text-[#60A5FA] transition-all relative group py-1">Our Story<span className={`absolute -bottom-1 left-0 h-[2px] bg-[#2563EB] transition-all ${currentPage === 'About' ? 'w-full' : 'w-0 group-hover:w-full'}`}></span></button>
+              <button onClick={() => onNavigate('Contact')} className="text-[11px] uppercase font-black tracking-[0.2em] text-white hover:text-[#60A5FA] transition-all relative group py-1">Contact<span className={`absolute -bottom-1 left-0 h-[2px] bg-[#2563EB] transition-all ${currentPage === 'Contact' ? 'w-full' : 'w-0 group-hover:w-full'}`}></span></button>
               
               {categoriesList.map((link) => {
                 const isActive = currentPage === 'Home' && (selectedCategory === link || searchCategory === link);
@@ -913,6 +911,21 @@ const Header: React.FC<HeaderProps> = ({
       </div>,
       document.body
     )}
+
+    <nav className="fixed bottom-0 left-0 right-0 z-40 flex border-t border-blue-100 bg-white/95 px-2 py-2 shadow-[0_-8px_24px_rgba(37,99,235,0.08)] backdrop-blur-xl xl:hidden" aria-label="Mobile navigation">
+      {[
+        { label: 'Home', icon: Store, page: 'Home' },
+        { label: 'Shop', icon: ShoppingBag, page: 'Marketplace' },
+        { label: 'Track', icon: Truck, page: 'OrderTracking' },
+        { label: 'Account', icon: UserIcon, page: 'Dashboard' },
+        { label: 'Contact', icon: MessageCircle, page: 'Contact' }
+      ].map(({ label, icon: Icon, page }) => (
+        <button key={label} onClick={() => onNavigate(page)} className={`flex flex-1 flex-col items-center gap-1 py-1 text-[9px] font-black uppercase tracking-wider ${currentPage === page ? 'text-[#2563EB]' : 'text-slate-500'}`}>
+          <Icon className="h-4 w-4" />
+          {label}
+        </button>
+      ))}
+    </nav>
   </>
   );
 };

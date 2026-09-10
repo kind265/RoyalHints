@@ -1,7 +1,7 @@
 import { db, pool } from '../../src/db';
 import { products, businessPosts, shipments, quotations, bespokeRequests, users, userCarts, photoHistory, notificationReads } from '../../src/db/schema';
 import { eq, desc } from 'drizzle-orm';
-import { randomUUID } from 'crypto';
+import { randomUUID, randomBytes, scryptSync, timingSafeEqual } from 'crypto';
 import { 
   Product, 
   BusinessPost, 
@@ -872,6 +872,33 @@ class PostgresStore {
       [token, userId, email.toLowerCase()]
     );
     return token;
+  }
+
+  async registerBuyer(name: string, email: string, password: string): Promise<User> {
+    await this.ensureSeeded();
+    const normalizedEmail = email.trim().toLowerCase();
+    const salt = randomBytes(16).toString('hex');
+    const passwordHash = `${salt}:${scryptSync(password, salt, 64).toString('hex')}`;
+    const id = randomUUID();
+    const result = await pool.query(
+      `INSERT INTO users (id, name, email, username, password_hash, role, is_admin)
+       VALUES ($1, $2, $3, $4, $5, 'NORMAL_USER', false)
+       RETURNING id, name, email, avatar, role, is_admin`,
+      [id, name.trim(), normalizedEmail, normalizedEmail.split('@')[0], passwordHash]
+    );
+    const row = result.rows[0];
+    return { id: row.id, name: row.name, email: row.email, avatar: row.avatar ?? undefined, role: 'buyer', isAdmin: false };
+  }
+
+  async verifyPassword(email: string, password: string): Promise<boolean> {
+    await this.ensureSeeded();
+    const result = await pool.query(`SELECT password_hash FROM users WHERE email = $1`, [email.trim().toLowerCase()]);
+    const stored = result.rows[0]?.password_hash as string | undefined;
+    if (!stored || !stored.includes(':')) return false;
+    const [salt, hash] = stored.split(':');
+    const derived = scryptSync(password, salt, 64);
+    const expected = Buffer.from(hash, 'hex');
+    return expected.length === derived.length && timingSafeEqual(expected, derived);
   }
 
   async getSession(token: string): Promise<User | undefined> {

@@ -305,6 +305,21 @@ export const apiClient = {
     }
   },
 
+  async register(name: string, email: string, password: string): Promise<User | null> {
+    try {
+      const res = await fetch(`${API_BASE}/auth/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, password })
+      });
+      const json = await res.json();
+      return json.success ? json.data : null;
+    } catch (err) {
+      console.error('Auth registration error:', err);
+      return null;
+    }
+  },
+
   async getSession(): Promise<User | null> {
     const res = await fetch(`${API_BASE}/auth/session`);
     const json = await res.json();

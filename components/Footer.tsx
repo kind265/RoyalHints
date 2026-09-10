@@ -2,7 +2,9 @@
 import React, { useState } from 'react';
 import { Send, Twitter, Instagram, Facebook } from 'lucide-react';
 
-const Footer: React.FC = () => {
+interface FooterProps { onNavigate?: (page: any, tab?: string) => void; }
+
+const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
   const [email, setEmail] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
@@ -55,10 +57,7 @@ const Footer: React.FC = () => {
           <div>
             <h4 className="font-bold text-sm uppercase tracking-widest mb-8 text-[#2563EB]">The 4 Pillars</h4>
             <ul className="space-y-4 text-sm text-gray-400">
-              <li><a href="#catalog" className="hover:text-white transition-colors">Books</a></li>
-              <li><a href="#catalog" className="hover:text-white transition-colors">Spare Parts</a></li>
-              <li><a href="#catalog" className="hover:text-white transition-colors">Fabric</a></li>
-              <li><a href="#catalog" className="hover:text-white transition-colors">Fashion</a></li>
+              {['Books', 'Spare Parts', 'Fabric', 'Fashion'].map((category) => <li key={category}><button onClick={() => onNavigate?.('Home')} className="hover:text-white transition-colors">{category}</button></li>)}
             </ul>
           </div>
 
@@ -68,8 +67,8 @@ const Footer: React.FC = () => {
             <ul className="space-y-4 text-sm text-gray-400">
               <li><a href="#" className="hover:text-white transition-colors">Stock Registry Verification</a></li>
               <li><a href="#" className="hover:text-white transition-colors">Returns & Authenticity</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Order Tracking</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Support</a></li>
+              <li><button onClick={() => onNavigate?.('OrderTracking')} className="hover:text-white transition-colors">Order Tracking</button></li>
+              <li><button onClick={() => onNavigate?.('Contact')} className="hover:text-white transition-colors">Support</button></li>
             </ul>
           </div>
 
@@ -115,8 +114,8 @@ const Footer: React.FC = () => {
         <div className="pt-12 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-6 text-[10px] uppercase tracking-widest text-gray-500 font-bold">
           <p>© 2026 ROYAL HINTS INC. ALL RIGHTS RESERVED.</p>
           <div className="flex items-center gap-6 sm:gap-8">
-            <a href="#" className="hover:text-white transition-colors">Privacy Policy</a>
-            <a href="#" className="hover:text-white transition-colors">Terms of Service</a>
+            <button onClick={() => onNavigate?.('Privacy')} className="hover:text-white transition-colors">Privacy Policy</button>
+            <button onClick={() => onNavigate?.('Terms')} className="hover:text-white transition-colors">Terms and Conditions</button>
           </div>
         </div>
       </div>

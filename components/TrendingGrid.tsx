@@ -22,7 +22,6 @@ const TrendingGrid: React.FC<TrendingGridProps> = ({
   onNavigate
 }) => {
   const [addedProductId, setAddedProductId] = useState<string | null>(null);
-  const categoriesList: (ProductCategory | 'All')[] = ['All', 'Books', 'Spare Parts', 'Fabric', 'Fashion'];
 
   // Convert dynamic marketplace posts into unified Product format for the homepage stock grid
   const marketplaceProducts: Product[] = posts.map(post => ({
@@ -79,39 +78,20 @@ const TrendingGrid: React.FC<TrendingGridProps> = ({
     <section className="bg-[#F8F9FA] py-16 sm:py-24 px-4 sm:px-8 md:px-12 lg:px-24" id="catalog">
       <div className="max-w-screen-2xl mx-auto">
         
-        {/* Section Header & Category Tabs */}
+        {/* Section Header */}
         <div className="flex flex-col lg:flex-row lg:items-end justify-between mb-8 sm:mb-16 gap-5 sm:gap-6">
           <div>
             <span className="text-[#2563EB] font-black text-[10px] sm:text-xs uppercase tracking-[0.25em] block mb-1.5 sm:mb-2">
               Verified Stock Registry
             </span>
             <h2 className="text-[#1A1A1A] text-3xl sm:text-4xl md:text-5xl font-black tracking-tight mb-1 sm:mb-2">
-              What's In Stock
+              Trending now
             </h2>
             <p className="text-gray-500 text-xs sm:text-sm font-light">
               Select any product to inspect live warehouse counts, variant allocations, and dispatch times.
             </p>
           </div>
 
-          {/* Category Filter Tabs: Horizontally arranged in a single line on mobile with smooth scrolling */}
-          <div className="flex flex-nowrap overflow-x-auto sm:flex-wrap gap-2 sm:gap-3 no-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0 pb-1 sm:pb-0">
-            {categoriesList.map((cat) => {
-              const isActive = selectedCategory === cat;
-              return (
-                <button 
-                  key={cat}
-                  onClick={() => onCategoryChange?.(cat)}
-                  className={`shrink-0 whitespace-nowrap px-4 sm:px-5 py-2 sm:py-2.5 rounded-full text-[11px] sm:text-xs font-black uppercase tracking-wider transition-all duration-300 ${
-                    isActive 
-                      ? 'bg-[#2563EB] text-white shadow-md shadow-blue-500/25 scale-105' 
-                      : 'bg-white text-[#1A1A1A] hover:text-[#2563EB] hover:bg-blue-50/50 shadow-sm border border-gray-200/70'
-                  }`}
-                >
-                  {cat}
-                </button>
-              );
-            })}
-          </div>
         </div>
 
         {/* Product Cards Grid or Graceful Empty State */}

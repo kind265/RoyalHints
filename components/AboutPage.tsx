@@ -1,0 +1,24 @@
+import React from 'react';
+import { ArrowRight, BadgeCheck, MapPin, PackageCheck, ShieldCheck, Truck } from 'lucide-react';
+
+interface AboutPageProps { onNavigate: (page: any) => void; }
+
+const AboutPage: React.FC<AboutPageProps> = ({ onNavigate }) => (
+  <div className="bg-white text-[#172033]">
+    <section className="border-b border-blue-100 bg-[#eff6ff] px-6 py-20 sm:px-10 lg:px-24">
+      <div className="mx-auto grid max-w-7xl items-center gap-12 lg:grid-cols-[1.05fr_.95fr]">
+        <div>
+          <p className="mb-4 text-xs font-black uppercase tracking-[0.28em] text-[#2563EB]">The Royal Hints story</p>
+          <h1 className="max-w-3xl text-5xl font-black leading-[.98] tracking-[-.04em] text-[#172033] sm:text-7xl">Know your support system.</h1>
+          <p className="mt-7 max-w-xl text-base leading-8 text-slate-600">Ruth Mhone, an author and artist, loves shopping. She realised this at a time when kitchen list depended on her during her work at a certain restaurant. And during her material sourcing as a tailor. <br /> <br />Lilongwe market scene is a place filled with all kinds of quality products. It can get hectic to get best quality products at best prices. <br /><br />Why not shop fine quality with us. No fuddle!</p>
+          <div className="mt-8 flex flex-wrap gap-3 text-sm font-bold text-[#172033]"><span className="inline-flex items-center gap-2"><MapPin className="h-4 w-4 text-[#2563EB]" /> Malawi based</span><span className="inline-flex items-center gap-2"><Truck className="h-4 w-4 text-[#2563EB]" /> Local dispatch</span></div>
+          <div className="mt-10 flex flex-wrap gap-3"><button onClick={() => onNavigate('Home')} className="inline-flex items-center gap-2 rounded-lg bg-[#2563EB] px-6 py-4 text-xs font-black uppercase tracking-[.18em] text-white transition hover:bg-[#1d4ed8]">Explore the collection <ArrowRight className="h-4 w-4" /></button><button onClick={() => onNavigate('Contact')} className="rounded-lg border border-blue-200 px-6 py-4 text-xs font-black uppercase tracking-[.18em] text-[#2563EB] transition hover:bg-white">Talk to our team</button></div>
+        </div>
+        <div className="relative min-h-[360px] overflow-hidden rounded-2xl bg-[#172033] shadow-2xl shadow-blue-900/10"><img src="/assets/IMG-20260814-WA0025.jpg" alt="Royal Hints collection" className="h-full min-h-[360px] w-full object-cover opacity-80" /><div className="absolute inset-0 bg-gradient-to-t from-[#172033] via-transparent to-transparent" /><div className="absolute bottom-7 left-7 text-white"><p className="text-xs font-black uppercase tracking-[.25em] text-blue-200">Curated with intent</p><p className="mt-2 text-2xl font-black">Every item has a place.</p></div></div>
+      </div>
+    </section>
+    <section className="px-6 py-20 sm:px-10 lg:px-24"><div className="mx-auto max-w-7xl"><p className="text-xs font-black uppercase tracking-[.28em] text-[#2563EB]">Why Royal Hints</p><h2 className="mt-3 max-w-2xl text-4xl font-black tracking-[-.03em] text-[#172033]">A catalogue built on trust, clarity, and follow through.</h2><div className="mt-12 grid gap-5 md:grid-cols-3">{[[ShieldCheck,'Verified inventory','Products are reviewed and described clearly before they enter the catalogue.'],[BadgeCheck,'Honest value','Useful goods, considered pricing, and no mystery between the listing and the order.'],[PackageCheck,'Reliable handoff','From order confirmation to delivery updates, every step stays visible.']].map(([Icon,title,body]) => { const FeatureIcon = Icon as typeof ShieldCheck; return <article key={title as string} className="border-t-2 border-[#2563EB] bg-[#f8fafc] p-7"><FeatureIcon className="h-6 w-6 text-[#2563EB]" /><h3 className="mt-7 text-xl font-black text-[#172033]">{title as string}</h3><p className="mt-3 text-sm leading-7 text-slate-600">{body as string}</p></article>; })}</div></div></section>
+    <section className="bg-[#172033] px-6 py-20 text-white sm:px-10 lg:px-24"><div className="mx-auto max-w-7xl"><p className="text-xs font-black uppercase tracking-[.28em] text-blue-300">Our process</p><h2 className="mt-3 max-w-2xl text-4xl font-black tracking-[-.03em]">From request to doorstep.</h2><div className="mt-12 grid gap-8 md:grid-cols-3">{[['01','Source','We identify the right item through our catalogue, network, and direct sourcing requests.'],['02','Verify','Details, condition, pricing, and availability are checked before we confirm the order.'],['03','Deliver','Your order is packed, tracked, and handed over with clear updates.']].map(([number,title,body]) => <div key={number} className="border-l border-blue-400/50 pl-6"><span className="text-sm font-black text-blue-300">{number}</span><h3 className="mt-5 text-2xl font-black">{title}</h3><p className="mt-3 text-sm leading-7 text-slate-300">{body}</p></div>)}</div></div></section>
+  </div>
+);
+export default AboutPage;

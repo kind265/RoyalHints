@@ -26,6 +26,9 @@ authRouter.post('/login', async (req: Request, res: Response) => {
       if (normalizedEmail === configuredAdminEmail && !user.isAdmin) {
         return res.status(403).json({ success: false, message: 'Administrator account is not enabled' });
       }
+      if (normalizedEmail !== configuredAdminEmail && !(await postgresStore.verifyPassword(normalizedEmail, password || ''))) {
+        return res.status(401).json({ success: false, message: 'Invalid email or password' });
+      }
       const token = await postgresStore.recordLogin(user.id, user.email);
       res.setHeader('Set-Cookie', `royal_hints_session=${token}; Path=/; Max-Age=2592000; HttpOnly; SameSite=Lax`);
       return res.json({
@@ -33,6 +36,10 @@ authRouter.post('/login', async (req: Request, res: Response) => {
         message: `Welcome back, ${user.name}`,
         data: user
       });
+    }
+
+    if (password) {
+      return res.status(401).json({ success: false, message: 'Invalid email or password' });
     }
 
     const isSpecialAdmin = normalizedEmail === configuredAdminEmail;
@@ -55,6 +62,32 @@ authRouter.post('/login', async (req: Request, res: Response) => {
     });
   } catch (error: any) {
     res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+authRouter.post('/register', async (req: Request, res: Response) => {
+  try {
+    const { name, email, password } = req.body;
+    if (!name?.trim() || !email?.trim() || !password) {
+      return res.status(400).json({ success: false, message: 'Name, email, and password are required' });
+    }
+    if (password.length < 8) {
+      return res.status(400).json({ success: false, message: 'Password must be at least 8 characters' });
+    }
+    const normalizedEmail = email.trim().toLowerCase();
+    const configuredAdminEmail = (process.env.ADMIN_EMAIL || 'chikusehopeson@gmail.com').trim().toLowerCase();
+    if (normalizedEmail === configuredAdminEmail) {
+      return res.status(409).json({ success: false, message: 'This email is reserved for the administrator' });
+    }
+    if (await postgresStore.getUserByEmail(normalizedEmail)) {
+      return res.status(409).json({ success: false, message: 'An account with this email already exists' });
+    }
+    const user = await postgresStore.registerBuyer(name, normalizedEmail, password);
+    const token = await postgresStore.recordLogin(user.id, user.email);
+    res.setHeader('Set-Cookie', `royal_hints_session=${token}; Path=/; Max-Age=2592000; HttpOnly; SameSite=Lax`);
+    return res.status(201).json({ success: true, message: `Welcome to Royal Hints, ${user.name}`, data: user });
+  } catch (error: any) {
+    return res.status(500).json({ success: false, message: error.message });
   }
 });
 

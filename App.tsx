@@ -2,14 +2,20 @@ import React, { useState, useEffect } from 'react';
 import Header from './components/Header';
 import Hero from './components/Hero';
 import TrendingGrid from './components/TrendingGrid';
-import TheEdit from './components/TheEdit';
-import SocialProof from './components/SocialProof';
+import HomeSections from './components/HomeSections';
 import Footer from './components/Footer';
 import Auth from './components/Auth';
 import Dashboard from './components/Dashboard';
 import Marketplace from './components/Marketplace';
 import Checkout from './components/Checkout';
 import ProductDetail from './components/ProductDetail';
+import AboutPage from './components/AboutPage';
+import ContactPage from './components/ContactPage';
+import PublicLookupPage from './components/PublicLookupPage';
+import FreshStock from './components/FreshStock';
+import QualitySection from './components/QualitySection';
+import LegalPage from './components/LegalPage';
+import { Bot, MessageCircle } from 'lucide-react';
 import { 
   User, 
   BusinessPost, 
@@ -23,7 +29,7 @@ import {
 } from './types';
 import { apiClient } from './backend/api-client';
 
-type Page = 'Home' | 'Auth' | 'Admin' | 'Dashboard' | 'Marketplace' | 'Checkout';
+type Page = 'Home' | 'Auth' | 'Admin' | 'Dashboard' | 'Marketplace' | 'Checkout' | 'About' | 'Contact' | 'OrderTracking' | 'CompletePayment' | 'Terms' | 'Privacy';
 
 const App: React.FC = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -45,6 +51,12 @@ const App: React.FC = () => {
       if (path.startsWith('/checkout') || hash.includes('checkout')) {
         return 'Checkout';
       }
+      if (path.startsWith('/about')) return 'About';
+      if (path.startsWith('/contact')) return 'Contact';
+      if (path.startsWith('/order-tracking')) return 'OrderTracking';
+      if (path.startsWith('/complete-payment')) return 'CompletePayment';
+      if (path.startsWith('/terms')) return 'Terms';
+      if (path.startsWith('/privacy')) return 'Privacy';
     }
     return 'Home';
   });
@@ -363,6 +375,18 @@ const App: React.FC = () => {
         setCurrentPage('Dashboard');
       } else if (path.startsWith('/checkout') || hash.includes('checkout')) {
         setCurrentPage('Checkout');
+      } else if (path.startsWith('/about')) {
+        setCurrentPage('About');
+      } else if (path.startsWith('/contact')) {
+        setCurrentPage('Contact');
+      } else if (path.startsWith('/order-tracking')) {
+        setCurrentPage('OrderTracking');
+      } else if (path.startsWith('/complete-payment')) {
+        setCurrentPage('CompletePayment');
+      } else if (path.startsWith('/terms')) {
+        setCurrentPage('Terms');
+      } else if (path.startsWith('/privacy')) {
+        setCurrentPage('Privacy');
       } else {
         setCurrentPage('Home');
       }
@@ -456,7 +480,8 @@ const App: React.FC = () => {
       } else if (page === 'Home') {
         window.history.pushState(null, '', '/');
       } else {
-        window.history.pushState(null, '', `/${page.toLowerCase()}`);
+        const route = page === 'CompletePayment' ? 'complete-payment' : page === 'OrderTracking' ? 'order-tracking' : page.toLowerCase();
+        window.history.pushState(null, '', `/${route}`);
       }
     } catch {
       // Fallback for isolated iframe environments
@@ -559,6 +584,7 @@ const App: React.FC = () => {
                   </div>
                 )}
                 <Hero onNavigate={navigateTo} />
+                <HomeSections onNavigate={navigateTo} onSelectCategory={setSelectedCategory} />
                 <TrendingGrid 
                   onSelectProduct={handleSelectProduct}
                   onAddToCart={addToCart} 
@@ -568,8 +594,8 @@ const App: React.FC = () => {
                   products={products}
                   onNavigate={navigateTo}
                 />
-                <TheEdit onSelectProduct={handleSelectProduct} />
-                <SocialProof />
+                <FreshStock products={products} onSelectProduct={handleSelectProduct} onAddToCart={addToCart} />
+                <QualitySection />
               </div>
             )}
 
@@ -635,11 +661,23 @@ const App: React.FC = () => {
                 />
               </div>
             )}
+
+            {currentPage === 'About' && <AboutPage onNavigate={navigateTo} />}
+            {currentPage === 'Contact' && <ContactPage onNavigate={navigateTo} />}
+            {currentPage === 'OrderTracking' && <PublicLookupPage mode="tracking" onNavigate={navigateTo} />}
+            {currentPage === 'CompletePayment' && <PublicLookupPage mode="payment" onNavigate={navigateTo} />}
+            {currentPage === 'Terms' && <LegalPage type="terms" onNavigate={navigateTo} />}
+            {currentPage === 'Privacy' && <LegalPage type="privacy" onNavigate={navigateTo} />}
           </>
         )}
       </main>
 
-      {['Home', 'Marketplace', 'Dashboard'].includes(currentPage) && <Footer />}
+      <div className="fixed right-4 top-1/2 z-[60] flex -translate-y-1/2 flex-col gap-3">
+        <a href="https://wa.me/265888000000" target="_blank" rel="noreferrer" aria-label="Chat on WhatsApp" title="Chat on WhatsApp" className="flex h-12 w-12 items-center justify-center rounded-full bg-[#25D366] text-white shadow-lg shadow-green-900/20 transition hover:scale-105 hover:bg-[#1ebe5d]"><MessageCircle className="h-6 w-6" /></a>
+        <button type="button" aria-label="Open Royal Hints assistant" title="Open assistant" className="flex h-12 w-12 items-center justify-center rounded-full bg-[#2563EB] text-white shadow-lg shadow-blue-900/25 transition hover:scale-105 hover:bg-[#1d4ed8]"><Bot className="h-6 w-6" /></button>
+      </div>
+
+      {['Home', 'Marketplace', 'Dashboard', 'About', 'Contact', 'OrderTracking', 'CompletePayment', 'Terms', 'Privacy'].includes(currentPage) && <Footer onNavigate={navigateTo} />}
     </div>
   );
 };
