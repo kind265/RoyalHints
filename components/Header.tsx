@@ -139,7 +139,7 @@ const Header: React.FC<HeaderProps> = ({
   const marketplaceProducts: Product[] = posts.map(post => ({
     id: post.id,
     name: post.title,
-    price: post.price ?? 150,
+    price: post.price ?? 0,
     rating: post.reviews && post.reviews.length > 0 
       ? Number((post.reviews.reduce((acc, r) => acc + r.rating, 0) / post.reviews.length).toFixed(1)) 
       : 5.0,
@@ -150,9 +150,9 @@ const Header: React.FC<HeaderProps> = ({
     inStock: (post.stockCount ?? 1) > 0,
     stockQuantity: post.stockCount ?? 1,
     stockStatus: (post.stockCount ?? 1) > 5 ? 'In Stock' : (post.stockCount ?? 1) > 0 ? 'Low Stock' : 'Out of Stock',
-    warehouseLocation: post.location || 'Verified Vault Registry',
-    dispatchTime: post.dispatchTime || 'Dispatches in 24 hours',
-    description: post.description || 'Verified authentic offering from Royal Hints Marketplace Registry.',
+    warehouseLocation: post.location || '',
+    dispatchTime: post.dispatchTime || '',
+    description: post.description || '',
     highlights: [
       post.condition ? `Condition: ${post.condition}` : 'Certified authentic & verified',
       post.dispatchTime ? `Shipping: ${post.dispatchTime}` : 'Fast worldwide dispatch'

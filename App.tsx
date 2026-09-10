@@ -552,7 +552,7 @@ const App: React.FC = () => {
                 ...posts.map(p => ({
                   id: p.id,
                   name: p.title,
-                  price: p.price ?? 150,
+                  price: p.price ?? 0,
                   rating: 5.0,
                   category: p.category as any,
                   image: p.image,

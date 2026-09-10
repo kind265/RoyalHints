@@ -1,5 +1,5 @@
 
-import { Product, Collection, Review, BusinessPost, ShipmentTracking, QuotationRequest, BespokeSourcingRequest } from './types';
+import { Product, BusinessPost, ShipmentTracking, QuotationRequest, BespokeSourcingRequest } from './types';
 
 export const COLORS = {
   charcoal: '#1A1A1A',
@@ -12,60 +12,9 @@ export const COLORS = {
 
 export const CATEGORIES = ['Books', 'Spare Parts', 'Fabric', 'Fashion'] as const;
 
-export const COLLECTIONS: Collection[] = [
-  {
-    id: 'col-books',
-    title: 'Books',
-    tagline: 'Timeless Knowledge & Monograph Rarities',
-    itemCount: 42,
-    image: 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&q=80&w=600',
-    description: 'Leatherbound volumes, architectural monographs, engineering handbooks, and rare literary works.'
-  },
-  {
-    id: 'col-spareparts',
-    title: 'Spare Parts',
-    tagline: 'High-Precision Engineering & OEM Hardware',
-    itemCount: 86,
-    image: 'https://images.unsplash.com/photo-1486006920555-c77dce18193b?auto=format&fit=crop&q=80&w=600',
-    description: 'CNC-machined performance components, titanium calipers, bearings, and heavy-duty mechanics.'
-  },
-  {
-    id: 'col-fabric',
-    title: 'Fabric',
-    tagline: 'Artisanal Weaves & Premium Yardage',
-    itemCount: 54,
-    image: 'https://images.unsplash.com/photo-1607083206869-4c7672e72a8a?auto=format&fit=crop&q=80&w=600',
-    description: 'Pure Mulberry silk, heavyweight Egyptian linen, Scottish wool tweed, and selvedge raw denim.'
-  },
-  {
-    id: 'col-fashion',
-    title: 'Fashion',
-    tagline: 'Sartorial Elegance & Tailored Luxury',
-    itemCount: 68,
-    image: 'https://images.unsplash.com/photo-1507679799987-c73779587ccf?auto=format&fit=crop&q=80&w=600',
-    description: 'Bespoke cashmere overcoats, tailored structured blazers, calfskin derby shoes, and silk accents.'
-  },
-];
-
 export const PRODUCTS: Product[] = [];
 
 export const TRENDING_PRODUCTS = PRODUCTS;
-
-export const REVIEWS: Review[] = [
-  { id: 'r1', user: 'Julian Thorne', content: "The Royal Architecture Compendium exceeded all expectations.", rating: 5, date: '2 days ago', verified: true },
-  { id: 'r2', user: 'Claire Sterling', content: "The Mulberry silk drape is unbelievable.", rating: 5, date: '4 days ago', verified: true },
-  { id: 'r3', user: 'Eng. Marcus Weber', content: "Tested the titanium caliper tolerances on my CNC rig.", rating: 5, date: '1 week ago', verified: true },
-  { id: 'r4', user: 'Lady Vivienne M.', content: "Outstanding craft and in-stock delivery speed.", rating: 5, date: '1 week ago', verified: true },
-];
-
-export const INSTAGRAM_IMAGES = [
-  '/assets/Russian_satin(Beige).jpg',
-  '/assets/Russian_satin(coffie_brown).jpg',
-  '/assets/Russian_satin(Olive_green).jpg',
-  '/assets/Russian_satin(Orange).jpg',
-  '/assets/Russian_satin(Pink).jpg',
-  '/assets/IMG-20260814-WA0025.jpg',
-];
 
 export const INITIAL_SHIPMENTS: ShipmentTracking[] = [];
 

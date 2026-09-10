@@ -476,7 +476,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
                     </div>
 
                     <div className="pt-3 border-t border-gray-50 flex items-center justify-between">
-                      <span className="text-[#2563EB] font-black text-xl">MWK {(rel.price ?? 150).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                      <span className="text-[#2563EB] font-black text-xl">{rel.price > 0 ? `MWK ${rel.price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : 'Price unavailable'}</span>
                       <span className="text-[10px] font-black uppercase tracking-widest text-gray-400 group-hover:text-[#1A1A1A] flex items-center gap-1 transition-colors">
                         View Stock <ChevronRight className="h-3 w-3 text-[#2563EB]" />
                       </span>

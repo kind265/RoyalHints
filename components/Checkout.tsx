@@ -28,12 +28,12 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, onNavigate, onComplete, 
   const [generatedUserId, setGeneratedUserId] = useState('');
 
   const [addressData, setAddressData] = useState({
-    email: 'client.registry@royalhints.com',
-    firstName: 'Royal Hints',
-    lastName: 'Sterling',
-    address: 'Lilongwe, Likuni NRC Campus',
-    city: 'Lilongwe',
-    postalCode: '265'
+    email: '',
+    firstName: '',
+    lastName: '',
+    address: '',
+    city: '',
+    postalCode: ''
   });
 
   const subtotal = cartItems.reduce((acc, item) => acc + item.price, 0);

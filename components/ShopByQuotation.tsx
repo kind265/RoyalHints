@@ -309,7 +309,7 @@ export const ShopByQuotation: React.FC<ShopByQuotationProps> = ({
                   </label>
                   <input
                     required
-                    placeholder="Lilongwe, Likuni NRC Campus"
+                    placeholder="Enter your delivery location"
                     value={formData.deliveryLocation}
                     onChange={(e) => setFormData({ ...formData, deliveryLocation: e.target.value })}
                     className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 sm:px-6 py-3.5 sm:py-4 font-bold text-xs sm:text-sm focus:outline-none focus:border-[#2563EB] focus:bg-white transition-all"

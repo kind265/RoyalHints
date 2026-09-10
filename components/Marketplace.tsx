@@ -54,11 +54,11 @@ const Marketplace: React.FC<MarketplaceProps> = ({ posts, user, onAddReview, onN
     description: '',
     category: 'Books',
     image: '',
-    price: 350,
-    stockCount: 10,
-    condition: 'Brand New (Mint)',
-    location: 'Geneva Central Vault',
-    dispatchTime: 'Dispatches in 24 hours'
+    price: '',
+    stockCount: '',
+    condition: '',
+    location: '',
+    dispatchTime: ''
   });
 
   const categories = [
@@ -124,16 +124,17 @@ const Marketplace: React.FC<MarketplaceProps> = ({ posts, user, onAddReview, onN
   const handleCreatePostSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!onAddPost) return;
+    if (!newPostForm.title.trim() || !newPostForm.image.trim() || newPostForm.price === '') return;
     onAddPost({
       title: newPostForm.title,
       description: newPostForm.description,
       category: newPostForm.category,
-      image: newPostForm.image || 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&q=80&w=800',
-      stockCount: Number(newPostForm.stockCount) || 10,
-      price: Number(newPostForm.price) || 350,
-      condition: newPostForm.condition || 'Brand New (Mint)',
-      location: newPostForm.location || 'Geneva Central Vault',
-      dispatchTime: newPostForm.dispatchTime || 'Dispatches in 24 hours',
+      image: newPostForm.image,
+      stockCount: newPostForm.stockCount === '' ? undefined : Number(newPostForm.stockCount),
+      price: Number(newPostForm.price),
+      condition: newPostForm.condition || undefined,
+      location: newPostForm.location || undefined,
+      dispatchTime: newPostForm.dispatchTime || undefined,
       galleryImages: [],
       sku: `RH-MP-${Math.floor(1000 + Math.random() * 9000)}`
     });
@@ -143,11 +144,11 @@ const Marketplace: React.FC<MarketplaceProps> = ({ posts, user, onAddReview, onN
       description: '',
       category: 'Books',
       image: '',
-      price: 350,
-      stockCount: 10,
-      condition: 'Brand New (Mint)',
-      location: 'Geneva Central Vault',
-      dispatchTime: 'Dispatches in 24 hours'
+      price: '',
+      stockCount: '',
+      condition: '',
+      location: '',
+      dispatchTime: ''
     });
     setFilter('New Arrivals');
   };
@@ -389,11 +390,12 @@ const Marketplace: React.FC<MarketplaceProps> = ({ posts, user, onAddReview, onN
                     <button
                       onClick={() => {
                         if (onAddToCart) {
-                          const itemPrice = post.price || 150;
+                          const itemPrice = post.price;
+                          if (itemPrice === undefined) return;
                           onAddToCart({
                             id: `mp-item-${post.id}`,
                             name: post.title,
-                            description: post.description || 'Verified authentic Royal Hints catalog offering.',
+                            description: post.description || '',
                             price: itemPrice,
                             category: (post.category === 'Industrial & Bespoke' ? 'Spare Parts' : post.category) as ProductCategory,
                             image: post.image,
@@ -402,8 +404,8 @@ const Marketplace: React.FC<MarketplaceProps> = ({ posts, user, onAddReview, onN
                             inStock: true,
                             stockQuantity: 1,
                             stockStatus: 'In Stock',
-                            warehouseLocation: post.location || 'Royal Hints Shop',
-                            dispatchTime: post.dispatchTime || 'Ships in 24 hours',
+                            warehouseLocation: post.location || '',
+                            dispatchTime: post.dispatchTime || '',
                             highlights: [],
                             specifications: {},
                             variants: [],
@@ -423,8 +425,8 @@ const Marketplace: React.FC<MarketplaceProps> = ({ posts, user, onAddReview, onN
                       ) : (
                         <>
                           <ShoppingCart className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
-                          <span className="sm:hidden">Buy • MWK {(post.price || 150).toLocaleString('en-US', { maximumFractionDigits: 0 })}</span>
-                          <span className="hidden sm:inline">Purchase Item • MWK {(post.price || 150).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                          <span className="sm:hidden">Buy{post.price !== undefined ? ` • MWK ${post.price.toLocaleString('en-US', { maximumFractionDigits: 0 })}` : ''}</span>
+                          <span className="hidden sm:inline">{post.price !== undefined ? `Purchase Item • MWK ${post.price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : 'Price unavailable'}</span>
                         </>
                       )}
                     </button>
@@ -662,7 +664,7 @@ const Marketplace: React.FC<MarketplaceProps> = ({ posts, user, onAddReview, onN
                     value={newPostForm.location}
                     onChange={(e) => setNewPostForm({ ...newPostForm, location: e.target.value })}
                     className="w-full bg-gray-50 border border-gray-200 rounded-[10px] px-4 py-3 text-xs focus:outline-none focus:border-[#2563EB] text-[#1A1A1A]"
-                    placeholder="Geneva Central Vault"
+                    placeholder="Enter dispatch location"
                   />
                 </div>
               </div>

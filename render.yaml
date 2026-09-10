@@ -11,3 +11,27 @@ services:
         value: production
       - key: PORT
         value: 10000
+      - key: DATABASE_URL
+        sync: false
+      - key: ADMIN_EMAIL
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: PAYCHANGU_SECRET_KEY
+        sync: false
+      - key: PAYCHANGU_PUBLIC_KEY
+        sync: false
+      - key: PAYCHANGU_WEBHOOK_SECRET
+        sync: false
+      - key: PAYCHANGU_API_BASE_URL
+        value: https://api.paychangu.com
+      - key: PAYCHANGU_CURRENCY
+        value: MWK
+      - key: PUBLIC_BASE_URL
+        sync: false
+      - key: RENDER_EXTERNAL_URL
+        sync: false
+      - key: PAYCHANGU_CALLBACK_URL
+        sync: false
+      - key: PAYCHANGU_RETURN_URL
+        sync: false
