@@ -404,12 +404,6 @@ const App: React.FC = () => {
     shippingAddress: string;
     buyerUser?: User;
   }) => {
-    // 1. Auto-activate buyer user session with unique ID as username
-    if (orderData.buyerUser) {
-      setUser(orderData.buyerUser);
-      apiClient.login(orderData.buyerUser.email).catch(() => {});
-    }
-
     const formattedDate = new Date().toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
     const newShipment: ShipmentTracking = {
       id: `ship-${Date.now()}`,
@@ -605,7 +599,13 @@ const App: React.FC = () => {
               </div>
             )}
 
-            {currentPage === 'Dashboard' && (
+            {currentPage === 'Dashboard' && !user && (
+              <div className="animate-in slide-in-from-bottom-8 fade-in duration-700">
+                <Auth onLogin={handleLogin} onNavigateHome={() => navigateTo('Home')} />
+              </div>
+            )}
+
+            {currentPage === 'Dashboard' && user && (
               <div className="animate-in fade-in duration-700">
                 <Dashboard 
                   user={user || {
@@ -655,6 +655,7 @@ const App: React.FC = () => {
               <div className="animate-in fade-in duration-700">
                 <Checkout 
                   cartItems={cartItems} 
+                  user={user}
                   onNavigate={navigateTo} 
                   onComplete={clearCart}
                   onOrderPlaced={handleOrderPlaced}
@@ -673,7 +674,7 @@ const App: React.FC = () => {
       </main>
 
       <div className="fixed right-4 top-1/2 z-[60] flex -translate-y-1/2 flex-col gap-3">
-        <a href="https://wa.me/265888000000" target="_blank" rel="noreferrer" aria-label="Chat on WhatsApp" title="Chat on WhatsApp" className="flex h-12 w-12 items-center justify-center rounded-full bg-[#25D366] text-white shadow-lg shadow-green-900/20 transition hover:scale-105 hover:bg-[#1ebe5d]"><MessageCircle className="h-6 w-6" /></a>
+        <a href="https://wa.me/265999323805" target="_blank" rel="noreferrer" aria-label="Chat on WhatsApp" title="Chat on WhatsApp" className="flex h-12 w-12 items-center justify-center rounded-full bg-[#25D366] text-white shadow-lg shadow-green-900/20 transition hover:scale-105 hover:bg-[#1ebe5d]"><MessageCircle className="h-6 w-6" /></a>
         <button type="button" aria-label="Open Royal Hints assistant" title="Open assistant" className="flex h-12 w-12 items-center justify-center rounded-full bg-[#2563EB] text-white shadow-lg shadow-blue-900/25 transition hover:scale-105 hover:bg-[#1d4ed8]"><Bot className="h-6 w-6" /></button>
       </div>
 

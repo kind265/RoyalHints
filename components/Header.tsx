@@ -292,24 +292,26 @@ const Header: React.FC<HeaderProps> = ({
         className="fixed top-0 left-0 w-full z-50 bg-[#111827]/95 backdrop-blur-xl border-b border-white/10 shadow-2xl text-white px-4 sm:px-6 md:px-12 py-3 sm:py-3.5 transition-all duration-300"
       >
       <div className="max-w-screen-2xl mx-auto flex items-center justify-between gap-3 lg:gap-6">
-        
+        <button
+          type="button"
+          onClick={() => setIsMenuOpen(!isMenuOpen)}
+          className="flex shrink-0 items-center justify-center rounded-lg p-2 text-white transition hover:bg-white/10"
+          title="Menu"
+          aria-label="Open navigation menu"
+        >
+          {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+        </button>
+
         {/* Logo */}
         <div 
           className="flex items-center gap-3 cursor-pointer group shrink-0" 
           onClick={() => onNavigate('Home')}
         >
-          <div className="hidden sm:block">
-            <span className="text-lg font-black tracking-tighter uppercase text-white group-hover:text-[#60A5FA] transition-colors">
-              Royal Hints
-            </span>
-            <span className="block text-[8px] font-black uppercase tracking-[0.25em] text-[#60A5FA]">
-              Books • Parts • Fabric • Fashion
-            </span>
-          </div>
+          <img src="/assets/Logo.jpg" alt="Royal Hints" className="h-10 w-auto max-w-[150px] object-contain" />
         </div>
 
         {/* Desktop Nav Links */}
-        <nav className="hidden xl:flex items-center space-x-5 shrink-0">
+        <nav className="hidden">
           {currentPage === 'Dashboard' ? (
             <button 
               type="button"
@@ -668,26 +670,6 @@ const Header: React.FC<HeaderProps> = ({
             )}
           </div>
 
-          {/* Menu Toggle: Visible on all screen sizes for Dashboard; for other pages, visible on mobile/tablet (<xl) */}
-          <button 
-            className={`${currentPage === 'Dashboard' ? 'flex' : 'xl:hidden'} items-center gap-1.5 p-1.5 sm:px-2.5 sm:py-1.5 text-white hover:bg-white/10 rounded-lg transition-colors border border-transparent hover:border-white/10`}
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-            title={currentPage === 'Dashboard' ? "Dashboard Navigation Menu" : "Menu"}
-            aria-label="Toggle navigation menu"
-          >
-            {isMenuOpen ? (
-              <X className="h-6 w-6" />
-            ) : (
-              <>
-                <Menu className="h-6 w-6" />
-                {currentPage === 'Dashboard' && (
-                  <span className="hidden lg:inline text-[11px] font-black uppercase tracking-wider text-gray-200">
-                    Menu
-                  </span>
-                )}
-              </>
-            )}
-          </button>
         </div>
       </div>
 
@@ -917,7 +899,7 @@ const Header: React.FC<HeaderProps> = ({
         { label: 'Home', icon: Store, page: 'Home' },
         { label: 'Shop', icon: ShoppingBag, page: 'Marketplace' },
         { label: 'Track', icon: Truck, page: 'OrderTracking' },
-        { label: 'Account', icon: UserIcon, page: 'Dashboard' },
+        { label: 'Account', icon: UserIcon, page: user ? 'Dashboard' : 'Auth' },
         { label: 'Contact', icon: MessageCircle, page: 'Contact' }
       ].map(({ label, icon: Icon, page }) => (
         <button key={label} onClick={() => onNavigate(page)} className={`flex flex-1 flex-col items-center gap-1 py-1 text-[9px] font-black uppercase tracking-wider ${currentPage === page ? 'text-[#2563EB]' : 'text-slate-500'}`}>

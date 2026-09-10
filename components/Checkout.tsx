@@ -5,6 +5,7 @@ import { ChevronLeft, Lock, ShieldCheck, CreditCard, Truck, CheckCircle2, ArrowR
 
 interface CheckoutProps {
   cartItems: Product[];
+  user: User | null;
   onNavigate: (page: any, tab?: string) => void;
   onComplete: () => void;
   onOrderPlaced?: (orderData: { 
@@ -16,7 +17,7 @@ interface CheckoutProps {
   }) => void;
 }
 
-const Checkout: React.FC<CheckoutProps> = ({ cartItems, onNavigate, onComplete, onOrderPlaced }) => {
+const Checkout: React.FC<CheckoutProps> = ({ cartItems, user, onNavigate, onComplete, onOrderPlaced }) => {
   const [shippingMethod, setShippingMethod] = useState('standard');
   const [paymentMethod, setPaymentMethod] = useState<'card' | 'paychangu'>('card');
   const [isPayChanguLoading, setIsPayChanguLoading] = useState(false);
@@ -25,7 +26,7 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, onNavigate, onComplete, 
   const [orderConfirmed, setOrderConfirmed] = useState(false);
   const [generatedTracking, setGeneratedTracking] = useState('');
   const [generatedOrderId, setGeneratedOrderId] = useState('');
-  const [generatedUserId, setGeneratedUserId] = useState('');
+  const [generatedUserId, setGeneratedUserId] = useState(user?.buyerUniqueId || user?.id || '');
 
   const [addressData, setAddressData] = useState({
     email: '',
@@ -109,6 +110,11 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, onNavigate, onComplete, 
   const handleCompletePurchase = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    if (!user) {
+      onNavigate('Auth');
+      return;
+    }
+
     if (paymentMethod === 'paychangu') {
       await handlePayChanguPayment();
       return;
@@ -116,21 +122,9 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, onNavigate, onComplete, 
 
     const trk = `RH-TRK-${Math.floor(100000 + Math.random() * 900000)}`;
     const ord = `ORD-${Math.floor(10000 + Math.random() * 90000)}`;
-    const uniqueUserId = `RH-USR-${Math.floor(1000 + Math.random() * 9000)}`;
-    
     setGeneratedTracking(trk);
     setGeneratedOrderId(ord);
-    setGeneratedUserId(uniqueUserId);
-    
-    const buyerUser: User = {
-      id: uniqueUserId,
-      name: `${addressData.firstName} ${addressData.lastName}`.trim() || `Client ${uniqueUserId}`,
-      email: addressData.email || `${uniqueUserId.toLowerCase()}@client.royalhints.com`,
-      role: 'buyer',
-      isAdmin: false,
-      buyerUniqueId: uniqueUserId,
-      activatedViaOrder: ord
-    };
+    setGeneratedUserId(user.buyerUniqueId || user.id);
 
     if (onOrderPlaced) {
       onOrderPlaced({
@@ -138,7 +132,7 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, onNavigate, onComplete, 
         trackingNumber: trk,
         items: [...cartItems],
         shippingAddress: `${addressData.address}, ${addressData.city} ${addressData.postalCode}`,
-        buyerUser
+        buyerUser: user
       });
     }
 
@@ -179,13 +173,13 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, onNavigate, onComplete, 
           <CheckCircle2 className="h-10 w-10 sm:h-12 sm:w-12" />
         </div>
         <h1 className="text-3xl sm:text-5xl font-black text-[#1A1A1A] tracking-tighter mb-2 uppercase">Royal Order Confirmed</h1>
-<p className="text-xs sm:text-sm font-bold text-gray-500 uppercase tracking-widest mb-6">{gatewayStatus === 'success' ? 'PayChangu Payment Verified • Auto-Activated Member Account' : 'Payment Verified • Auto-Activated Member Account'}</p>
+  <p className="text-xs sm:text-sm font-bold text-gray-500 uppercase tracking-widest mb-6">{gatewayStatus === 'success' ? 'PayChangu Payment Verified • Account Order Linked' : 'Payment Verified • Account Order Linked'}</p>
         
         {/* Buyer Identity & Consignment Voucher */}
         <div className="bg-gradient-to-br from-gray-900 to-[#1A1A1A] text-white p-6 sm:p-8 rounded-2xl max-w-lg w-full mb-8 shadow-2xl border border-white/10 text-left font-mono text-xs space-y-4">
           <div className="flex items-center justify-between pb-3 border-b border-white/10">
-            <span className="text-amber-400 font-black tracking-widest text-[11px] uppercase flex items-center gap-1.5">
-              <ShieldCheck className="h-4 w-4" /> Auto-Generated Buyer Identity
+              <span className="text-amber-400 font-black tracking-widest text-[11px] uppercase flex items-center gap-1.5">
+              <ShieldCheck className="h-4 w-4" /> Registered Buyer Account
             </span>
             <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] font-bold">Active</span>
           </div>
@@ -217,7 +211,7 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, onNavigate, onComplete, 
           </div>
 
           <p className="text-[11px] text-gray-300 font-sans leading-relaxed pt-2 border-t border-white/10">
-            {gatewayStatus === 'success' ? gatewayMessage : `No password required. Your unique ID ${generatedUserId} acts as your permanent buyer username, linking your order tracking, quotations, and concierge requests.`}
+            {gatewayStatus === 'success' ? gatewayMessage : `Your order is linked to your registered Royal Hints account (${generatedUserId}). Use your account to view tracking, quotations, and sourcing requests.`}
           </p>
         </div>
 
@@ -255,7 +249,7 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, onNavigate, onComplete, 
              <div className="h-10 w-10 bg-[#2563EB] rounded-lg flex items-center justify-center text-white font-black shadow-md shadow-blue-500/20">RH</div>
              <div>
                <h2 className="text-xl font-black uppercase tracking-tighter">Royal Hints Checkout</h2>
-               <p className="text-xs text-gray-400 font-medium">Automatic Buyer ID activation with zero password friction</p>
+               <p className="text-xs text-gray-400 font-medium">Secure checkout for registered Royal Hints customers</p>
              </div>
           </div>
 
@@ -277,7 +271,7 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, onNavigate, onComplete, 
                 />
                 <div className="flex items-center gap-2 text-[10px] text-gray-500 font-bold">
                   <input type="checkbox" defaultChecked className="rounded-sm border-gray-300 text-[#2563EB] focus:ring-[#2563EB]" />
-                  Auto-activate member dashboard and send consignment updates
+                  Send order confirmation and delivery updates
                 </div>
               </div>
             </section>

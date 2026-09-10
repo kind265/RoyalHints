@@ -635,7 +635,7 @@ const Marketplace: React.FC<MarketplaceProps> = ({ posts, user, onAddReview, onN
                     min="1"
                     required
                     value={newPostForm.price}
-                    onChange={(e) => setNewPostForm({ ...newPostForm, price: Number(e.target.value) })}
+                    onChange={(e) => setNewPostForm({ ...newPostForm, price: e.target.value })}
                     className="w-full bg-gray-50 border border-gray-200 rounded-[10px] px-4 py-3 text-xs focus:outline-none focus:border-[#2563EB] text-[#1A1A1A]"
                   />
                 </div>
@@ -650,7 +650,7 @@ const Marketplace: React.FC<MarketplaceProps> = ({ posts, user, onAddReview, onN
                     type="number" 
                     min="1"
                     value={newPostForm.stockCount}
-                    onChange={(e) => setNewPostForm({ ...newPostForm, stockCount: Number(e.target.value) })}
+                    onChange={(e) => setNewPostForm({ ...newPostForm, stockCount: e.target.value })}
                     className="w-full bg-gray-50 border border-gray-200 rounded-[10px] px-4 py-3 text-xs focus:outline-none focus:border-[#2563EB] text-[#1A1A1A]"
                   />
                 </div>

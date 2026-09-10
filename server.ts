@@ -29,6 +29,7 @@ async function startServer() {
   } else {
     const distPath = path.join(process.cwd(), 'dist');
 
+    app.use('/assets', express.static(path.join(process.cwd(), 'assets')));
     app.use(express.static(distPath));
 
     app.get(/^(?!\/api).*/, (_req, res) => {
