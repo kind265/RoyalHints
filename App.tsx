@@ -4,7 +4,7 @@ import Hero from './components/Hero';
 import TrendingGrid from './components/TrendingGrid';
 import HomeSections from './components/HomeSections';
 import Footer from './components/Footer';
-import Auth from './components/Auth';
+import AdminLogin from './components/AdminLogin';
 import Dashboard from './components/Dashboard';
 import Marketplace from './components/Marketplace';
 import Checkout from './components/Checkout';
@@ -29,7 +29,7 @@ import {
 } from './types';
 import { apiClient } from './backend/api-client';
 
-type Page = 'Home' | 'Auth' | 'Admin' | 'Dashboard' | 'Marketplace' | 'Checkout' | 'About' | 'Contact' | 'OrderTracking' | 'CompletePayment' | 'Terms' | 'Privacy';
+type Page = 'Home' | 'Admin' | 'Dashboard' | 'Marketplace' | 'Checkout' | 'About' | 'Contact' | 'OrderTracking' | 'CompletePayment' | 'Terms' | 'Privacy';
 
 const App: React.FC = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -66,8 +66,15 @@ const App: React.FC = () => {
   const [user, setUser] = useState<User | null>(() => {
     return null;
   });
-  const [cartItems, setCartItems] = useState<Product[]>([]);
-  const [cartLoaded, setCartLoaded] = useState(false);
+  const [cartItems, setCartItems] = useState<Product[]>(() => {
+    if (typeof window === 'undefined') return [];
+    try {
+      const saved = window.localStorage.getItem('royal_hints_guest_cart');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
   
   const [posts, setPosts] = useState<BusinessPost[]>(() => {
     return [];
@@ -93,7 +100,11 @@ const App: React.FC = () => {
   // Load from PostgreSQL Backend API on mount
   useEffect(() => {
     apiClient.getSession().then(savedUser => {
-      if (savedUser) setUser(savedUser);
+      if (savedUser?.isAdmin || savedUser?.role === 'admin') {
+        setUser(savedUser);
+      } else if (window.location.pathname.toLowerCase().startsWith('/dashboard')) {
+        setCurrentPage('Home');
+      }
     }).catch(() => {});
   }, []);
 
@@ -131,32 +142,14 @@ const App: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    if (!user) {
-      setCartItems([]);
-      setCartLoaded(false);
-      return;
-    }
-    setCartLoaded(false);
-    apiClient.getCart(user.id).then(items => {
-      setCartItems(items);
-      setCartLoaded(true);
-    }).catch(() => setCartLoaded(true));
-  }, [user]);
-
-  useEffect(() => {
-    if (user && cartLoaded) apiClient.saveCart(user.id, cartItems).catch(err => console.error('Save cart error:', err));
-  }, [user, cartItems, cartLoaded]);
+    window.localStorage.setItem('royal_hints_guest_cart', JSON.stringify(cartItems));
+  }, [cartItems]);
 
   const handleLogin = (u: User) => {
+    if (!u.isAdmin && u.role !== 'admin') return;
     setUser(u);
-
-    if (u.role === 'admin' || u.isAdmin) {
-      setLoginNotice(null);
-      setCurrentPage('Dashboard');
-    } else {
-      setLoginNotice('Your account is auto-created when you place an order. Continue shopping and your profile will be saved automatically.');
-      setCurrentPage('Home');
-    }
+    setLoginNotice(null);
+    setCurrentPage('Dashboard');
 
     window.scrollTo(0, 0);
   };
@@ -593,15 +586,9 @@ const App: React.FC = () => {
               </div>
             )}
 
-            {(currentPage === 'Auth' || currentPage === 'Admin') && (
+            {currentPage === 'Admin' && (
               <div className="animate-in slide-in-from-bottom-8 fade-in duration-700">
-                <Auth onLogin={handleLogin} onNavigateHome={() => navigateTo('Home')} />
-              </div>
-            )}
-
-            {currentPage === 'Dashboard' && !user && (
-              <div className="animate-in slide-in-from-bottom-8 fade-in duration-700">
-                <Auth onLogin={handleLogin} onNavigateHome={() => navigateTo('Home')} />
+                <AdminLogin onLogin={handleLogin} onNavigateHome={() => navigateTo('Home')} />
               </div>
             )}
 

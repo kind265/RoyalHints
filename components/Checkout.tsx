@@ -5,7 +5,7 @@ import { ChevronLeft, Lock, ShieldCheck, CreditCard, Truck, CheckCircle2, ArrowR
 
 interface CheckoutProps {
   cartItems: Product[];
-  user: User | null;
+  user?: User | null;
   onNavigate: (page: any, tab?: string) => void;
   onComplete: () => void;
   onOrderPlaced?: (orderData: { 
@@ -26,7 +26,6 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, user, onNavigate, onComp
   const [orderConfirmed, setOrderConfirmed] = useState(false);
   const [generatedTracking, setGeneratedTracking] = useState('');
   const [generatedOrderId, setGeneratedOrderId] = useState('');
-  const [generatedUserId, setGeneratedUserId] = useState(user?.buyerUniqueId || user?.id || '');
 
   const [addressData, setAddressData] = useState({
     email: '',
@@ -110,11 +109,6 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, user, onNavigate, onComp
   const handleCompletePurchase = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!user) {
-      onNavigate('Auth');
-      return;
-    }
-
     if (paymentMethod === 'paychangu') {
       await handlePayChanguPayment();
       return;
@@ -124,7 +118,6 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, user, onNavigate, onComp
     const ord = `ORD-${Math.floor(10000 + Math.random() * 90000)}`;
     setGeneratedTracking(trk);
     setGeneratedOrderId(ord);
-    setGeneratedUserId(user.buyerUniqueId || user.id);
 
     if (onOrderPlaced) {
       onOrderPlaced({
@@ -132,7 +125,6 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, user, onNavigate, onComp
         trackingNumber: trk,
         items: [...cartItems],
         shippingAddress: `${addressData.address}, ${addressData.city} ${addressData.postalCode}`,
-        buyerUser: user
       });
     }
 
@@ -184,17 +176,6 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, user, onNavigate, onComp
             <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] font-bold">Active</span>
           </div>
 
-          <div className="flex justify-between items-center bg-white/5 p-3.5 rounded-xl border border-white/5">
-            <div>
-              <span className="text-gray-400 block text-[10px] uppercase tracking-wider">Your Unique User ID (Username):</span>
-              <span className="font-black text-white text-base sm:text-lg tracking-wider text-amber-300">{generatedUserId}</span>
-            </div>
-            <div className="text-right">
-              <span className="text-gray-400 block text-[10px] uppercase tracking-wider">Dashboard Status:</span>
-              <span className="font-bold text-emerald-400">Activated</span>
-            </div>
-          </div>
-
           <div className="space-y-2 pt-1">
             <div className="flex justify-between">
               <span className="text-gray-400">ORDER REFERENCE:</span>
@@ -211,7 +192,7 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, user, onNavigate, onComp
           </div>
 
           <p className="text-[11px] text-gray-300 font-sans leading-relaxed pt-2 border-t border-white/10">
-            {gatewayStatus === 'success' ? gatewayMessage : `Your order is linked to your registered Royal Hints account (${generatedUserId}). Use your account to view tracking, quotations, and sourcing requests.`}
+            {gatewayStatus === 'success' ? gatewayMessage : 'Your order has been received. Keep your order reference and tracking number for support.'}
           </p>
         </div>
 
@@ -220,7 +201,7 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, user, onNavigate, onComp
             onClick={() => onNavigate('Dashboard', 'tracking')}
             className="flex-1 bg-[#2563EB] text-white px-6 py-4 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-[#1D4ED8] transition-all shadow-xl shadow-blue-500/20 flex items-center justify-center gap-2"
           >
-            <Truck className="h-4 w-4" /> Open Activated Dashboard
+            <Truck className="h-4 w-4" /> Track Your Order
           </button>
           <button 
             onClick={() => onNavigate('Home')}
@@ -329,7 +310,7 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, user, onNavigate, onComp
                         <Truck className={`h-5 w-5 ${shippingMethod === 'standard' ? 'text-[#2563EB]' : 'text-gray-400'}`} />
                         <div>
                           <p className="text-xs font-black uppercase tracking-widest">Standard Transit</p>
-                          <p className="text-[10px] text-gray-400">3-5 Business Days</p>
+                          <p className="text-[10px] text-gray-400">3 - 5 Business Days</p>
                         </div>
                       </div>
                       <span className="text-xs font-black uppercase tracking-widest text-[#2563EB]">Complimentary</span>
@@ -343,7 +324,7 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, user, onNavigate, onComp
                           <p className="text-[10px] text-gray-400">Next Day Guaranteed</p>
                         </div>
                       </div>
-                      <span className="text-xs font-black uppercase tracking-widest">$25.00</span>
+                      <span className="text-xs font-black uppercase tracking-widest">MWK10000.00</span>
                    </label>
                  </div>
               </div>

@@ -15,19 +15,14 @@ authRouter.post('/login', async (req: Request, res: Response) => {
     const configuredAdminEmail = (process.env.ADMIN_EMAIL || 'chikusehopeson@gmail.com').trim().toLowerCase();
     const configuredAdminPassword = process.env.ADMIN_PASSWORD || 'hopeson@gmail.com@415';
 
-    if (normalizedEmail === configuredAdminEmail) {
-      if (password !== configuredAdminPassword) {
-        return res.status(401).json({ success: false, message: 'Invalid administrator credentials' });
-      }
+    if (normalizedEmail !== configuredAdminEmail || password !== configuredAdminPassword) {
+      return res.status(401).json({ success: false, message: 'Invalid administrator credentials' });
     }
 
     const user = await postgresStore.getUserByEmail(normalizedEmail);
     if (user) {
       if (normalizedEmail === configuredAdminEmail && !user.isAdmin) {
         return res.status(403).json({ success: false, message: 'Administrator account is not enabled' });
-      }
-      if (normalizedEmail !== configuredAdminEmail && !(await postgresStore.verifyPassword(normalizedEmail, password || ''))) {
-        return res.status(401).json({ success: false, message: 'Invalid email or password' });
       }
       const token = await postgresStore.recordLogin(user.id, user.email);
       res.setHeader('Set-Cookie', `royal_hints_session=${token}; Path=/; Max-Age=2592000; HttpOnly; SameSite=Lax`);
@@ -38,34 +33,15 @@ authRouter.post('/login', async (req: Request, res: Response) => {
       });
     }
 
-    if (password) {
-      return res.status(401).json({ success: false, message: 'Invalid email or password' });
-    }
-
-    const isSpecialAdmin = normalizedEmail === configuredAdminEmail;
-    const newUser = {
-      id: `usr-${Date.now()}`,
-      name: isSpecialAdmin ? 'Royal Hints Administrator' : email.split('@')[0],
-      email: normalizedEmail,
-      role: isSpecialAdmin ? ('admin' as const) : ('buyer' as const),
-      isAdmin: isSpecialAdmin
-    };
-
-    const createdUser = await postgresStore.createUser(newUser);
-    const token = await postgresStore.recordLogin(createdUser.id, createdUser.email);
-    res.setHeader('Set-Cookie', `royal_hints_session=${token}; Path=/; Max-Age=2592000; HttpOnly; SameSite=Lax`);
-
-    res.json({
-      success: true,
-      message: 'Session initialized',
-      data: createdUser
-    });
+    return res.status(403).json({ success: false, message: 'Administrator account is not configured.' });
   } catch (error: any) {
     res.status(500).json({ success: false, message: error.message });
   }
 });
 
 authRouter.post('/register', async (req: Request, res: Response) => {
+  return res.status(403).json({ success: false, message: 'Customer accounts are not available. Checkout is available without registration.' });
+  /*
   try {
     const { name, email, password } = req.body;
     if (!name?.trim() || !email?.trim() || !password) {
@@ -89,6 +65,7 @@ authRouter.post('/register', async (req: Request, res: Response) => {
   } catch (error: any) {
     return res.status(500).json({ success: false, message: error.message });
   }
+  */
 });
 
 authRouter.get('/session', async (req: Request, res: Response) => {

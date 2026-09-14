@@ -577,7 +577,7 @@ const Header: React.FC<HeaderProps> = ({
           {/* Cart Bag Icon */}
           <button 
             className="relative p-2 text-[#172033] transition-transform hover:scale-110"
-            onClick={() => onNavigate('Dashboard')}
+            onClick={() => onNavigate('Checkout')}
             title="Shopping Bag"
           >
             <ShoppingBag className="h-5 w-5 sm:h-6 sm:w-6" />
@@ -585,61 +585,6 @@ const Header: React.FC<HeaderProps> = ({
               {cartCount}
             </span>
           </button>
-
-          {/* User Account Button */}
-          <div className="relative">
-            {user ? (
-              <button 
-                onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                className="flex items-center gap-2.5 p-1 pr-2.5 rounded-full border border-white/20 bg-white/5 text-white hover:bg-white/15 transition-all"
-              >
-                <div className="h-7 w-7 sm:h-8 sm:w-8 rounded-full bg-[#2563EB] flex items-center justify-center text-white text-xs font-black shadow-md shadow-blue-500/20">
-                   {user.name ? user.name.charAt(0) : 'U'}
-                </div>
-                <span className="hidden sm:block text-[10px] font-black uppercase tracking-widest">
-                  {user.buyerUniqueId || user.name.split(' ')[0]}
-                </span>
-              </button>
-            ) : (
-              <button onClick={() => onNavigate('Auth')} className="rounded-full p-2 text-[#172033] transition hover:bg-blue-50" title="Login or create account" aria-label="Login or create account"><UserIcon className="h-5 w-5" /></button>
-            )}
-
-            {isUserMenuOpen && user && (
-              <div className="absolute right-0 mt-4 w-64 bg-[#111827] rounded-[12px] shadow-[0_30px_60px_-15px_rgba(0,0,0,0.7)] py-3 z-50 animate-in fade-in slide-in-from-top-3 duration-200 text-white border border-white/10">
-                <div className="px-5 py-3 border-b border-white/10 mb-1">
-                  <div className="flex items-center justify-between">
-                    <p className="text-xs font-black uppercase tracking-widest truncate">{user.name}</p>
-                    {user.isAdmin && (
-                      <span className="px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 text-[8px] font-black uppercase">Admin</span>
-                    )}
-                  </div>
-                  {user.buyerUniqueId ? (
-                    <p className="text-[10px] text-amber-300 font-mono font-bold mt-0.5">ID: {user.buyerUniqueId}</p>
-                  ) : (
-                    <p className="text-[10px] text-gray-400 truncate mt-0.5">{user.email}</p>
-                  )}
-                </div>
-                <button 
-                  onClick={() => {
-                    setIsUserMenuOpen(false);
-                    onNavigate('Dashboard');
-                  }}
-                  className="w-full text-left px-5 py-3 text-[10px] font-black uppercase tracking-widest hover:bg-[#2563EB] flex items-center gap-3 transition-colors"
-                >
-                  <LayoutDashboard className="h-4 w-4" /> Dashboard & Orders
-                </button>
-                <button 
-                  onClick={() => {
-                    setIsUserMenuOpen(false);
-                    onLogout();
-                  }}
-                  className="w-full text-left px-5 py-3 text-[10px] font-black uppercase tracking-widest hover:bg-red-500/20 text-red-400 flex items-center gap-3 transition-colors"
-                >
-                  <LogOut className="h-4 w-4" />Sign Out
-                </button>
-              </div>
-            )}
-          </div>
 
         </div>
       </div>
@@ -841,7 +786,7 @@ const Header: React.FC<HeaderProps> = ({
               <button onClick={() => { onNavigate('CompletePayment'); setIsMenuOpen(false); }} className="border-b border-blue-100 pb-4 text-left text-2xl font-black uppercase tracking-tight text-[#172033] hover:text-[#2563EB]">Payments</button>
               <button onClick={() => { onNavigate('About'); setIsMenuOpen(false); }} className="border-b border-blue-100 pb-4 text-left text-2xl font-black uppercase tracking-tight text-[#172033] hover:text-[#2563EB]">About</button>
               <button onClick={() => { onNavigate('Contact'); setIsMenuOpen(false); }} className="border-b border-blue-100 pb-4 text-left text-2xl font-black uppercase tracking-tight text-[#172033] hover:text-[#2563EB]">Contact</button>
-              <button onClick={() => { onNavigate('Auth'); setIsMenuOpen(false); }} className="border-b border-blue-100 pb-4 text-left text-2xl font-black uppercase tracking-tight text-[#172033] hover:text-[#2563EB]">My Account</button>
+              <button onClick={() => { onNavigate('Checkout'); setIsMenuOpen(false); }} className="border-b border-blue-100 pb-4 text-left text-2xl font-black uppercase tracking-tight text-[#172033] hover:text-[#2563EB]">Cart</button>
               <button onClick={() => { onNavigate('OrderTracking'); setIsMenuOpen(false); }} className="border-b border-blue-100 pb-4 text-left text-2xl font-black uppercase tracking-tight text-[#172033] hover:text-[#2563EB]">Track Order</button>
               <a href="/royal-hints.apk" className="border-b border-blue-100 pb-4 text-left text-2xl font-black uppercase tracking-tight text-[#172033] hover:text-[#2563EB]">Download App</a>
             </nav>
@@ -858,7 +803,7 @@ const Header: React.FC<HeaderProps> = ({
         { label: 'Home', icon: Store, page: 'Home' },
         { label: 'Shop', icon: ShoppingBag, page: 'Marketplace' },
         { label: 'Track', icon: Truck, page: 'OrderTracking' },
-        { label: 'Account', icon: UserIcon, page: user ? 'Dashboard' : 'Auth' },
+        { label: 'Cart', icon: ShoppingBag, page: 'Checkout' },
         { label: 'Contact', icon: MessageCircle, page: 'Contact' }
       ].map(({ label, icon: Icon, page }) => (
         <button key={label} onClick={() => onNavigate(page)} className={`flex flex-1 flex-col items-center gap-1 py-1 text-[9px] font-black uppercase tracking-wider ${currentPage === page ? 'text-[#2563EB]' : 'text-slate-500'}`}>

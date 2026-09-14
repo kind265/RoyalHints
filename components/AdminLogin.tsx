@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { User } from '../types';
-import { Lock, Mail, ArrowRight, ChevronLeft, AlertTriangle, CheckCircle2, UserRound } from 'lucide-react';
+import { Lock, Mail, ArrowRight, ChevronLeft, AlertTriangle } from 'lucide-react';
 import { apiClient } from '../backend/api-client';
 
 interface AdminLoginProps {
@@ -12,24 +12,18 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLogin, onNavigateHome }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
-  const [notice, setNotice] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [mode, setMode] = useState<'login' | 'register'>('login');
-  const [name, setName] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    setNotice(null);
     setIsLoading(true);
 
-    const authenticatedUser = mode === 'register'
-      ? await apiClient.register(name, email.trim(), password)
-      : await apiClient.login(email.trim(), password);
+    const authenticatedUser = await apiClient.login(email.trim(), password);
     setIsLoading(false);
 
     if (!authenticatedUser) {
-      setError(mode === 'register' ? 'We could not create your account. The email may already be registered.' : 'Invalid email or password.');
+      setError('Invalid administrator credentials.');
       return;
     }
 
@@ -38,7 +32,6 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLogin, onNavigateHome }) => {
       return;
     }
 
-    setNotice(mode === 'register' ? 'Your Royal Hints account is ready.' : 'Welcome back to Royal Hints.');
     onLogin(authenticatedUser);
   };
 
@@ -55,8 +48,8 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLogin, onNavigateHome }) => {
             <ChevronLeft className="h-4 w-4" /> Back
           </button>
 
-          <h1 className="text-3xl font-black tracking-tight text-[#172033]">{mode === 'login' ? 'Welcome back' : 'Create your account'}</h1>
-          <p className="mt-2 text-sm text-slate-500">{mode === 'login' ? 'Sign in to continue shopping.' : 'Join Royal Hints for a simpler way to order.'}</p>
+          <h1 className="text-3xl font-black tracking-tight text-[#172033]">Administrator sign in</h1>
+          <p className="mt-2 text-sm text-slate-500">Access the Royal Hints administration desk.</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-5 p-6 sm:p-8">
@@ -66,18 +59,7 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLogin, onNavigateHome }) => {
             </div>
           )}
 
-          {notice && (
-            <div className="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-200 text-xs flex items-start gap-2.5 animate-in fade-in duration-200">
-              <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0 mt-0.5" />
-              <p className="leading-relaxed">{notice}</p>
-            </div>
-          )}
-
           <div className="space-y-1.5">
-            <label className="ml-1 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">
-              {mode === 'register' ? 'Full name' : 'Email address'}
-            </label>
-            {mode === 'register' && <div className="relative"><input type="text" required value={name} onChange={(e) => setName(e.target.value)} placeholder="Your full name" className="w-full rounded-lg border border-slate-200 bg-white py-3.5 pl-10 pr-4 text-sm text-[#172033] outline-none transition focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB]" /><UserRound className="absolute left-3.5 top-4 h-4 w-4 text-slate-400" /></div>}
             <label className="ml-1 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">
               Email Address
             </label>
@@ -130,7 +112,7 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLogin, onNavigateHome }) => {
             )}
           </button>
 
-          <p className="text-center text-xs text-slate-500">{mode === 'login' ? 'New to Royal Hints?' : 'Already have an account?'} <button type="button" onClick={() => { setMode(mode === 'login' ? 'register' : 'login'); setError(null); setNotice(null); }} className="font-black text-[#2563EB] underline underline-offset-4">{mode === 'login' ? 'Create an account' : 'Sign in'}</button></p>
+          <p className="text-center text-xs text-slate-500">Customer checkout does not require an account.</p>
         </form>
         </div>
       </div>

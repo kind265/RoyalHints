@@ -8,11 +8,11 @@ interface HeroProps {
 
 const Hero: React.FC<HeroProps> = ({ onNavigate }) => {
   const slides = [
-    { image: '/assets/Frontpage.jpg', label: 'Curated collections' },
-    { image: '/assets/IMG-20260814-WA0022.jpg', label: 'Everyday essentials' },
-    { image: '/assets/IMG-20260814-WA0023.jpg', label: 'Considered details' },
-    { image: '/assets/IMG-20260814-WA0024.jpg', label: 'Selected with care' },
-    { image: '/assets/IMG-20260814-WA0025.jpg', label: 'Made to be found' }
+    { image: '/assets/Bookshelve.jfif', label: 'Curated collections' },
+    { image: '/assets/20758848277947023.jfif', label: 'Everyday essentials' },
+    { image: '/assets/Engine.jfif', label: 'Considered details' },
+    { image: '/assets/DarkGreenFabric.jfif', label: 'Selected with care' },
+    { image: '/assets/1138355243343560932.jfif', label: 'Made to be found' }
   ];
   const [activeSlide, setActiveSlide] = useState(0);
 
