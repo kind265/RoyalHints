@@ -288,14 +288,17 @@ const Header: React.FC<HeaderProps> = ({
 
   return (
     <>
+      <div className="fixed left-0 top-0 z-[60] flex h-9 w-full items-center justify-center bg-[#2563EB] px-4 text-center text-[10px] font-black uppercase tracking-[.16em] text-white sm:text-xs">
+        Why not shop fine quality with us. No fuddle.
+      </div>
       <header 
-        className="fixed top-0 left-0 w-full z-50 bg-[#111827]/95 backdrop-blur-xl border-b border-white/10 shadow-2xl text-white px-4 sm:px-6 md:px-12 py-3 sm:py-3.5 transition-all duration-300"
+        className="fixed left-0 top-9 z-50 w-full border-b border-white/10 bg-[#111827]/95 px-4 py-2.5 text-white shadow-2xl backdrop-blur-xl transition-all duration-300 sm:px-6 sm:py-3 md:px-12"
       >
       <div className="max-w-screen-2xl mx-auto flex items-center justify-between gap-3 lg:gap-6">
         <button
           type="button"
           onClick={() => setIsMenuOpen(!isMenuOpen)}
-          className="flex shrink-0 items-center justify-center rounded-lg p-2 text-white transition hover:bg-white/10"
+          className="flex shrink-0 items-center justify-center rounded-lg p-2 text-white transition hover:bg-white/10 md:hidden"
           title="Menu"
           aria-label="Open navigation menu"
         >
@@ -311,7 +314,7 @@ const Header: React.FC<HeaderProps> = ({
         </div>
 
         {/* Desktop Nav Links */}
-        <nav className="hidden">
+        <nav className="hidden shrink-0 items-center gap-4 lg:flex">
           {currentPage === 'Dashboard' ? (
             <button 
               type="button"
@@ -328,26 +331,11 @@ const Header: React.FC<HeaderProps> = ({
             </button>
           ) : (
             <>
-              <button onClick={() => onNavigate('Home')} className="text-[11px] uppercase font-black tracking-[0.2em] text-white hover:text-[#60A5FA] transition-all relative group py-1">Home<span className={`absolute -bottom-1 left-0 h-[2px] bg-[#2563EB] transition-all ${currentPage === 'Home' ? 'w-full' : 'w-0 group-hover:w-full'}`}></span></button>
-              <button onClick={() => onNavigate('Marketplace')} className="text-[11px] uppercase font-black tracking-[0.2em] text-white hover:text-[#60A5FA] transition-all flex items-center gap-1.5 relative group py-1"><Store className="h-3.5 w-3.5 text-[#60A5FA]" /> Shop<span className={`absolute -bottom-1 left-0 h-[2px] bg-[#2563EB] transition-all ${currentPage === 'Marketplace' ? 'w-full' : 'w-0 group-hover:w-full'}`}></span></button>
-              <button onClick={() => onNavigate('About')} className="text-[11px] uppercase font-black tracking-[0.2em] text-white hover:text-[#60A5FA] transition-all relative group py-1">Our Story<span className={`absolute -bottom-1 left-0 h-[2px] bg-[#2563EB] transition-all ${currentPage === 'About' ? 'w-full' : 'w-0 group-hover:w-full'}`}></span></button>
-              <button onClick={() => onNavigate('Contact')} className="text-[11px] uppercase font-black tracking-[0.2em] text-white hover:text-[#60A5FA] transition-all relative group py-1">Contact<span className={`absolute -bottom-1 left-0 h-[2px] bg-[#2563EB] transition-all ${currentPage === 'Contact' ? 'w-full' : 'w-0 group-hover:w-full'}`}></span></button>
-              
-              {categoriesList.map((link) => {
-                const isActive = currentPage === 'Home' && (selectedCategory === link || searchCategory === link);
-                return (
-                  <button 
-                    key={link} 
-                    onClick={() => handleCategoryNavClick(link)}
-                    className={`text-[11px] uppercase font-black tracking-[0.2em] transition-all relative group py-1 flex items-center gap-1 ${
-                      isActive ? 'text-[#60A5FA]' : 'text-gray-300 hover:text-white'
-                    }`}
-                  >
-                    {link}
-                    <span className={`absolute -bottom-1 left-0 h-[2px] bg-[#2563EB] transition-all ${isActive ? 'w-full' : 'w-0 group-hover:w-full'}`}></span>
-                  </button>
-                );
-              })}
+              <button onClick={() => onNavigate('Marketplace')} className="text-[10px] font-black uppercase tracking-[.12em] text-white hover:text-[#60A5FA]">Shop</button>
+              <button onClick={() => handleCategoryNavClick('Books')} className="text-[10px] font-black uppercase tracking-[.12em] text-white hover:text-[#60A5FA]">Categories</button>
+              <button onClick={() => onNavigate('CompletePayment')} className="text-[10px] font-black uppercase tracking-[.12em] text-white hover:text-[#60A5FA]">Payments</button>
+              <button onClick={() => onNavigate('About')} className="text-[10px] font-black uppercase tracking-[.12em] text-white hover:text-[#60A5FA]">About</button>
+              <button onClick={() => onNavigate('Contact')} className="text-[10px] font-black uppercase tracking-[.12em] text-white hover:text-[#60A5FA]">Contact</button>
             </>
           )}
         </nav>
@@ -623,14 +611,7 @@ const Header: React.FC<HeaderProps> = ({
                 </span>
               </button>
             ) : (
-              <div className="flex items-center gap-2">
-                <button 
-                  onClick={() => onNavigate('Auth')}
-                  className="text-[10px] font-black uppercase tracking-[0.2em] px-3.5 sm:px-5 py-2 sm:py-2.5 rounded-full border border-white/30 text-white hover:bg-[#2563EB] hover:border-[#2563EB] transition-all bg-white/5"
-                >
-                  Login
-                </button>
-              </div>
+              <button onClick={() => onNavigate('Auth')} className="rounded-full p-2 text-white transition hover:bg-[#2563EB]" title="Login or create account" aria-label="Login or create account"><UserIcon className="h-5 w-5" /></button>
             )}
 
             {isUserMenuOpen && user && (
@@ -850,6 +831,7 @@ const Header: React.FC<HeaderProps> = ({
             </div>
 
             <nav className="flex flex-col space-y-4">
+              <button onClick={() => { onNavigate('Home'); setIsMenuOpen(false); }} className="border-b border-white/10 pb-4 text-left text-2xl font-black uppercase tracking-tight text-white hover:text-[#2563EB]">Home</button>
               <button 
                 onClick={() => {
                   onNavigate('Marketplace');
@@ -873,6 +855,12 @@ const Header: React.FC<HeaderProps> = ({
                   <ChevronRight className="h-6 w-6 text-[#2563EB] transition-transform group-hover:translate-x-2" />
                 </button>
               ))}
+              <button onClick={() => { onNavigate('CompletePayment'); setIsMenuOpen(false); }} className="border-b border-white/10 pb-4 text-left text-2xl font-black uppercase tracking-tight text-white hover:text-[#2563EB]">Payments</button>
+              <button onClick={() => { onNavigate('About'); setIsMenuOpen(false); }} className="border-b border-white/10 pb-4 text-left text-2xl font-black uppercase tracking-tight text-white hover:text-[#2563EB]">About</button>
+              <button onClick={() => { onNavigate('Contact'); setIsMenuOpen(false); }} className="border-b border-white/10 pb-4 text-left text-2xl font-black uppercase tracking-tight text-white hover:text-[#2563EB]">Contact</button>
+              <button onClick={() => { onNavigate('Auth'); setIsMenuOpen(false); }} className="border-b border-white/10 pb-4 text-left text-2xl font-black uppercase tracking-tight text-white hover:text-[#2563EB]">My Account</button>
+              <button onClick={() => { onNavigate('OrderTracking'); setIsMenuOpen(false); }} className="border-b border-white/10 pb-4 text-left text-2xl font-black uppercase tracking-tight text-white hover:text-[#2563EB]">Track Order</button>
+              <a href="/royal-hints.apk" className="border-b border-white/10 pb-4 text-left text-2xl font-black uppercase tracking-tight text-white hover:text-[#2563EB]">Download App</a>
             </nav>
             
             <div className="mt-auto pt-8 space-y-3">

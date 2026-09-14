@@ -532,7 +532,7 @@ const App: React.FC = () => {
         />
       )}
       
-      <main className="pt-0">
+      <main className={currentPage === 'Checkout' ? 'pt-0' : 'pt-20 sm:pt-24'}>
         {selectedProduct ? (
           <div className="animate-in fade-in duration-500">
             <ProductDetail
