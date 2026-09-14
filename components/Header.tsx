@@ -292,13 +292,13 @@ const Header: React.FC<HeaderProps> = ({
         Why not shop fine quality with us. No fuddle.
       </div>
       <header 
-        className="fixed left-0 top-9 z-50 w-full border-b border-white/10 bg-[#111827]/95 px-4 py-2.5 text-white shadow-2xl backdrop-blur-xl transition-all duration-300 sm:px-6 sm:py-3 md:px-12"
+        className="fixed left-0 top-9 z-50 w-full border-b border-blue-100 bg-white/95 px-4 py-2.5 text-[#172033] shadow-lg backdrop-blur-xl transition-all duration-300 sm:px-6 sm:py-3 md:px-12"
       >
       <div className="max-w-screen-2xl mx-auto flex items-center justify-between gap-3 lg:gap-6">
         <button
           type="button"
           onClick={() => setIsMenuOpen(!isMenuOpen)}
-          className="flex shrink-0 items-center justify-center rounded-lg p-2 text-white transition hover:bg-white/10 md:hidden"
+          className="flex shrink-0 items-center justify-center rounded-lg p-2 text-[#172033] transition hover:bg-blue-50 md:hidden"
           title="Menu"
           aria-label="Open navigation menu"
         >
@@ -319,7 +319,7 @@ const Header: React.FC<HeaderProps> = ({
             <button 
               type="button"
               onClick={() => setIsMenuOpen(true)}
-              className="flex items-center gap-2.5 px-4 py-2 rounded-full bg-white/10 hover:bg-white/15 border border-white/15 text-xs font-black uppercase tracking-wider text-white transition-all group shadow-sm"
+              className="flex items-center gap-2.5 rounded-full border border-blue-100 bg-blue-50 px-4 py-2 text-xs font-black uppercase tracking-wider text-[#172033] shadow-sm transition-all hover:bg-blue-100 group"
               title="Open Dashboard Navigation Menu"
             >
               <Menu className="h-4 w-4 text-[#60A5FA] group-hover:scale-110 transition-transform" />
@@ -327,15 +327,15 @@ const Header: React.FC<HeaderProps> = ({
               <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#2563EB] text-white font-bold tracking-normal">
                 {dashboardNavLinks.find(item => item.id === dashboardTab)?.label || 'Console'}
               </span>
-              <ChevronRight className="h-3.5 w-3.5 text-gray-400 group-hover:text-white transition-colors" />
+              <ChevronRight className="h-3.5 w-3.5 text-gray-400 transition-colors group-hover:text-[#2563EB]" />
             </button>
           ) : (
             <>
-              <button onClick={() => onNavigate('Marketplace')} className="text-[10px] font-black uppercase tracking-[.12em] text-white hover:text-[#60A5FA]">Shop</button>
-              <button onClick={() => handleCategoryNavClick('Books')} className="text-[10px] font-black uppercase tracking-[.12em] text-white hover:text-[#60A5FA]">Categories</button>
-              <button onClick={() => onNavigate('CompletePayment')} className="text-[10px] font-black uppercase tracking-[.12em] text-white hover:text-[#60A5FA]">Payments</button>
-              <button onClick={() => onNavigate('About')} className="text-[10px] font-black uppercase tracking-[.12em] text-white hover:text-[#60A5FA]">About</button>
-              <button onClick={() => onNavigate('Contact')} className="text-[10px] font-black uppercase tracking-[.12em] text-white hover:text-[#60A5FA]">Contact</button>
+              <button onClick={() => onNavigate('Marketplace')} className="text-[10px] font-black uppercase tracking-[.12em] text-[#172033] hover:text-[#2563EB]">Shop</button>
+              <button onClick={() => handleCategoryNavClick('Books')} className="text-[10px] font-black uppercase tracking-[.12em] text-[#172033] hover:text-[#2563EB]">Categories</button>
+              <button onClick={() => onNavigate('CompletePayment')} className="text-[10px] font-black uppercase tracking-[.12em] text-[#172033] hover:text-[#2563EB]">Payments</button>
+              <button onClick={() => onNavigate('About')} className="text-[10px] font-black uppercase tracking-[.12em] text-[#172033] hover:text-[#2563EB]">About</button>
+              <button onClick={() => onNavigate('Contact')} className="text-[10px] font-black uppercase tracking-[.12em] text-[#172033] hover:text-[#2563EB]">Contact</button>
             </>
           )}
         </nav>
@@ -344,14 +344,14 @@ const Header: React.FC<HeaderProps> = ({
         <div className="relative hidden md:flex flex-1 max-w-xl mx-2" ref={searchContainerRef}>
           <form 
             onSubmit={handleSearchSubmit} 
-            className="group flex items-center w-full rounded-full border border-white/15 bg-white/10 hover:bg-white/15 focus-within:bg-white focus-within:border-[#2563EB] focus-within:ring-4 focus-within:ring-[#2563EB]/20 transition-all duration-300 shadow-inner"
+            className="group flex w-full items-center rounded-full border border-blue-100 bg-white shadow-sm transition-all duration-300 hover:border-blue-200 focus-within:border-[#2563EB] focus-within:ring-4 focus-within:ring-[#2563EB]/20"
           >
             {/* Category Dropdown Selector Pill */}
             <div className="relative">
               <button
                 type="button"
                 onClick={() => setIsCategoryPickerOpen(!isCategoryPickerOpen)}
-                className="flex items-center gap-1.5 pl-3.5 pr-2.5 py-2 text-[11px] font-black uppercase tracking-wider rounded-l-full border-r border-white/20 text-white group-focus-within:text-[#2563EB] group-focus-within:border-gray-200 transition-colors hover:bg-white/10 group-focus-within:hover:bg-blue-50/80"
+                className="flex items-center gap-1.5 rounded-l-full border-r border-blue-100 px-3.5 py-2 pr-2.5 text-[11px] font-black uppercase tracking-wider text-[#172033] transition-colors hover:bg-blue-50 group-focus-within:border-gray-200 group-focus-within:text-[#2563EB] group-focus-within:hover:bg-blue-50/80"
                 title="Filter by category"
               >
                 {getCategoryIcon(searchCategory, "h-3.5 w-3.5 text-[#60A5FA] group-focus-within:text-[#2563EB]")}
@@ -415,7 +415,7 @@ const Header: React.FC<HeaderProps> = ({
               <input 
                 type="text" 
                 placeholder={getPlaceholder()} 
-                className="w-full py-2.5 pl-3 pr-8 text-xs font-medium bg-transparent focus:outline-none text-white group-focus-within:text-[#1A1A1A] placeholder:text-gray-400"
+                className="w-full bg-transparent py-2.5 pl-3 pr-8 text-xs font-medium text-[#172033] placeholder:text-gray-400 focus:outline-none"
                 value={searchQuery}
                 onChange={(e) => {
                   setSearchQuery(e.target.value);
@@ -578,7 +578,7 @@ const Header: React.FC<HeaderProps> = ({
           <button
             type="button"
             onClick={() => setIsMobileSearchOpen(!isMobileSearchOpen)}
-            className="md:hidden p-2 rounded-full text-white hover:bg-white/10 transition-colors"
+            className="rounded-full p-2 text-[#172033] transition-colors hover:bg-blue-50 md:hidden"
             title="Search Products"
           >
             <Search className="h-5 w-5" />
@@ -586,7 +586,7 @@ const Header: React.FC<HeaderProps> = ({
 
           {/* Cart Bag Icon */}
           <button 
-            className="relative p-2 text-white hover:scale-110 transition-transform"
+            className="relative p-2 text-[#172033] transition-transform hover:scale-110"
             onClick={() => onNavigate('Dashboard')}
             title="Shopping Bag"
           >
@@ -611,7 +611,7 @@ const Header: React.FC<HeaderProps> = ({
                 </span>
               </button>
             ) : (
-              <button onClick={() => onNavigate('Auth')} className="rounded-full p-2 text-white transition hover:bg-[#2563EB]" title="Login or create account" aria-label="Login or create account"><UserIcon className="h-5 w-5" /></button>
+              <button onClick={() => onNavigate('Auth')} className="rounded-full p-2 text-[#172033] transition hover:bg-blue-50" title="Login or create account" aria-label="Login or create account"><UserIcon className="h-5 w-5" /></button>
             )}
 
             {isUserMenuOpen && user && (
@@ -747,11 +747,11 @@ const Header: React.FC<HeaderProps> = ({
         onClick={() => setIsMenuOpen(false)}
       >
         <div 
-          className="w-full sm:max-w-md md:max-w-lg bg-[#1A1A1A] text-white flex flex-col p-6 sm:p-8 pt-16 sm:pt-20 overflow-y-auto h-full shadow-2xl border-l border-white/10 animate-in slide-in-from-right duration-300 relative"
+          className="relative flex h-full w-full flex-col overflow-y-auto border-l border-blue-100 bg-white p-6 pt-16 text-[#172033] shadow-2xl animate-in slide-in-from-right duration-300 sm:max-w-md sm:p-8 sm:pt-20 md:max-w-lg"
           onClick={(e) => e.stopPropagation()}
         >
           <button 
-            className="absolute top-6 right-6 text-white p-2 hover:bg-white/10 rounded-full transition-colors"
+            className="absolute right-6 top-6 rounded-full p-2 text-[#172033] transition-colors hover:bg-blue-50"
             onClick={() => setIsMenuOpen(false)}
             aria-label="Close navigation"
           >
@@ -765,9 +765,9 @@ const Header: React.FC<HeaderProps> = ({
                 <Award className="h-4 w-4 text-amber-400" />
                 <span className="text-[#2563EB] text-xs font-black uppercase tracking-[0.3em]">Royal Console</span>
               </div>
-              <h3 className="text-white text-2xl sm:text-3xl font-black">Dashboard Navigation</h3>
+              <h3 className="text-2xl font-black text-[#172033] sm:text-3xl">Dashboard Navigation</h3>
               {user && (
-                <p className="text-xs text-gray-400 font-mono mt-1">Signed in as <strong className="text-white">{user.name}</strong></p>
+                <p className="mt-1 font-mono text-xs text-gray-400">Signed in as <strong className="text-[#172033]">{user.name}</strong></p>
               )}
             </div>
 
@@ -788,17 +788,14 @@ const Header: React.FC<HeaderProps> = ({
                     className={`text-lg sm:text-xl font-bold uppercase tracking-tight flex items-center justify-between p-3 rounded-xl border transition-all text-left ${
                       isSelected
                         ? 'bg-[#2563EB] text-white border-[#2563EB] shadow-lg shadow-blue-500/20'
-                        : 'border-white/5 text-gray-200 hover:bg-white/5 hover:text-white'
+                        : 'border-blue-100 text-[#172033] hover:bg-blue-50 hover:text-[#2563EB]'
                     }`}
                   >
-                    <span className="flex items-center gap-3">
-                      <item.icon className={`h-5 w-5 ${isSelected ? 'text-white' : 'text-[#2563EB]'}`} />
-                      {item.label}
-                    </span>
+                    <span>{item.label}</span>
                     <div className="flex items-center gap-2">
                       {item.badge && (
                         <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-full ${
-                          isSelected ? 'bg-white/20 text-white' : 'bg-gray-800 text-gray-300'
+                          isSelected ? 'bg-white/20 text-white' : 'bg-blue-50 text-[#2563EB]'
                         }`}>
                           {item.badge}
                         </span>
@@ -827,54 +824,38 @@ const Header: React.FC<HeaderProps> = ({
           <>
             <div className="mb-8">
               <span className="text-[#2563EB] text-xs font-black uppercase tracking-[0.3em]">Royal Hints Directory</span>
-              <h3 className="text-white text-3xl font-black mt-1">Four Core Pillars</h3>
+              <h3 className="mt-1 text-3xl font-black text-[#172033]">Four Core Pillars</h3>
             </div>
 
             <nav className="flex flex-col space-y-4">
-              <button onClick={() => { onNavigate('Home'); setIsMenuOpen(false); }} className="border-b border-white/10 pb-4 text-left text-2xl font-black uppercase tracking-tight text-white hover:text-[#2563EB]">Home</button>
+              <button onClick={() => { onNavigate('Home'); setIsMenuOpen(false); }} className="border-b border-blue-100 pb-4 text-left text-2xl font-black uppercase tracking-tight text-[#172033] hover:text-[#2563EB]">Home</button>
               <button 
                 onClick={() => {
                   onNavigate('Marketplace');
                   setIsMenuOpen(false);
                 }}
-                className="text-2xl font-black text-white uppercase tracking-tight flex items-center justify-between border-b border-white/10 pb-4 text-left group hover:text-[#2563EB] transition-colors"
+                className="group flex items-center justify-between border-b border-blue-100 pb-4 text-left text-2xl font-black uppercase tracking-tight text-[#172033] transition-colors hover:text-[#2563EB]"
               >
                 <span>Marketplace</span>
-                <Store className="h-6 w-6 text-[#2563EB] group-hover:scale-110 transition-transform" />
               </button>
               {categoriesList.map((link) => (
                 <button 
                   key={link} 
                   onClick={() => handleCategoryNavClick(link)}
-                  className="text-2xl font-black text-white uppercase tracking-tight flex items-center justify-between border-b border-white/10 pb-4 text-left group hover:text-[#2563EB] transition-colors"
+                  className="group flex items-center justify-between border-b border-blue-100 pb-4 text-left text-2xl font-black uppercase tracking-tight text-[#172033] transition-colors hover:text-[#2563EB]"
                 >
-                  <span className="flex items-center gap-3">
-                    {getCategoryIcon(link, "h-6 w-6 text-[#2563EB]")}
-                    {link}
-                  </span>
+                  <span>{link}</span>
                   <ChevronRight className="h-6 w-6 text-[#2563EB] transition-transform group-hover:translate-x-2" />
                 </button>
               ))}
-              <button onClick={() => { onNavigate('CompletePayment'); setIsMenuOpen(false); }} className="border-b border-white/10 pb-4 text-left text-2xl font-black uppercase tracking-tight text-white hover:text-[#2563EB]">Payments</button>
-              <button onClick={() => { onNavigate('About'); setIsMenuOpen(false); }} className="border-b border-white/10 pb-4 text-left text-2xl font-black uppercase tracking-tight text-white hover:text-[#2563EB]">About</button>
-              <button onClick={() => { onNavigate('Contact'); setIsMenuOpen(false); }} className="border-b border-white/10 pb-4 text-left text-2xl font-black uppercase tracking-tight text-white hover:text-[#2563EB]">Contact</button>
-              <button onClick={() => { onNavigate('Auth'); setIsMenuOpen(false); }} className="border-b border-white/10 pb-4 text-left text-2xl font-black uppercase tracking-tight text-white hover:text-[#2563EB]">My Account</button>
-              <button onClick={() => { onNavigate('OrderTracking'); setIsMenuOpen(false); }} className="border-b border-white/10 pb-4 text-left text-2xl font-black uppercase tracking-tight text-white hover:text-[#2563EB]">Track Order</button>
-              <a href="/royal-hints.apk" className="border-b border-white/10 pb-4 text-left text-2xl font-black uppercase tracking-tight text-white hover:text-[#2563EB]">Download App</a>
+              <button onClick={() => { onNavigate('CompletePayment'); setIsMenuOpen(false); }} className="border-b border-blue-100 pb-4 text-left text-2xl font-black uppercase tracking-tight text-[#172033] hover:text-[#2563EB]">Payments</button>
+              <button onClick={() => { onNavigate('About'); setIsMenuOpen(false); }} className="border-b border-blue-100 pb-4 text-left text-2xl font-black uppercase tracking-tight text-[#172033] hover:text-[#2563EB]">About</button>
+              <button onClick={() => { onNavigate('Contact'); setIsMenuOpen(false); }} className="border-b border-blue-100 pb-4 text-left text-2xl font-black uppercase tracking-tight text-[#172033] hover:text-[#2563EB]">Contact</button>
+              <button onClick={() => { onNavigate('Auth'); setIsMenuOpen(false); }} className="border-b border-blue-100 pb-4 text-left text-2xl font-black uppercase tracking-tight text-[#172033] hover:text-[#2563EB]">My Account</button>
+              <button onClick={() => { onNavigate('OrderTracking'); setIsMenuOpen(false); }} className="border-b border-blue-100 pb-4 text-left text-2xl font-black uppercase tracking-tight text-[#172033] hover:text-[#2563EB]">Track Order</button>
+              <a href="/royal-hints.apk" className="border-b border-blue-100 pb-4 text-left text-2xl font-black uppercase tracking-tight text-[#172033] hover:text-[#2563EB]">Download App</a>
             </nav>
             
-            <div className="mt-auto pt-8 space-y-3">
-              <button 
-                onClick={() => {
-                  onNavigate('Dashboard');
-                  setIsMenuOpen(false);
-                }}
-                className="w-full bg-[#2563EB] text-white py-4 rounded-xl text-xs font-black uppercase tracking-[0.25em] shadow-2xl shadow-blue-500/30 hover:bg-[#1D4ED8] transition-colors"
-              >
-                {user ? `Active Dashboard (${user.buyerUniqueId || user.name.split(' ')[0]})` : 'Open Buyer Dashboard & Orders'}
-              </button>
-
-            </div>
           </>
         )}
         </div>
