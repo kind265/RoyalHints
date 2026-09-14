@@ -46,6 +46,11 @@ const resolvePayChanguPayload = (data: any) => {
   );
 };
 
+const getProviderMessage = (payload: any) => {
+  if (!payload || typeof payload !== 'object') return '';
+  return payload.message || payload.error || payload.data?.message || '';
+};
+
 const verifyPayChanguSignature = (req: Request, body: any) => {
   const secret = process.env.PAYCHANGU_WEBHOOK_SECRET;
   const signatureHeader = req.headers['x-paychangu-signature'] || req.headers['x-signature'] || req.headers['signature'];
@@ -83,13 +88,12 @@ paymentsRouter.post('/paychangu/initiate', async (req: Request, res: Response) =
   try {
     const { amount, email, phone, firstName, lastName, reference, callbackUrl, returnUrl, metadata } = req.body ?? {};
     const secretKey = process.env.PAYCHANGU_SECRET_KEY;
-    const publicKey = process.env.PAYCHANGU_PUBLIC_KEY;
     const apiBaseUrl = (process.env.PAYCHANGU_API_BASE_URL || 'https://api.paychangu.com').replace(/\/$/, '');
 
-    if (!secretKey || !publicKey) {
+    if (!secretKey) {
       return res.status(500).json({
         success: false,
-        message: 'PayChangu credentials are missing. Configure PAYCHANGU_SECRET_KEY and PAYCHANGU_PUBLIC_KEY.'
+        message: 'PayChangu credentials are missing. Configure PAYCHANGU_SECRET_KEY.'
       });
     }
 
@@ -102,72 +106,66 @@ paymentsRouter.post('/paychangu/initiate', async (req: Request, res: Response) =
     const currency = process.env.PAYCHANGU_CURRENCY || 'MWK';
 
     const payload = {
-      amount: Number(finalAmount.toFixed(2)),
+      amount: finalAmount.toFixed(2),
       currency,
       email: email || 'customer@royalhints.com',
-      phone: phone || '',
-      firstName: firstName || 'Royal',
-      lastName: lastName || 'Hints',
-      reference: finalReference,
-      callbackUrl: finalCallbackUrl,
-      returnUrl: finalReturnUrl,
-      metadata: {
+      first_name: firstName || 'Royal',
+      last_name: lastName || 'Hints',
+      callback_url: finalCallbackUrl,
+      return_url: finalReturnUrl,
+      tx_ref: finalReference,
+      customization: {
+        title: 'Royal Hints order',
+        description: 'Payment for Royal Hints products'
+      },
+      meta: {
         source: 'royalhints',
         platform: 'web',
+        phone: phone || '',
         ...(metadata || {})
       }
     };
 
-    const endpoints = [
-      `${apiBaseUrl}/api/v1/payments/initiate`,
-      `${apiBaseUrl}/api/v1/payment/initiate`,
-      `${apiBaseUrl}/api/v1/transactions/initiate`,
-      `${apiBaseUrl}/api/v1/transaction/initiate`
-    ];
+    const endpoint = `${apiBaseUrl}/payment`;
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${secretKey}`
+      },
+      body: JSON.stringify(payload)
+    });
 
-    let lastError: unknown = null;
-
-    for (const endpoint of endpoints) {
-      try {
-        const response = await fetch(endpoint, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${secretKey}`,
-            'X-Public-Key': publicKey
-          },
-          body: JSON.stringify(payload)
-        });
-
-        const responseText = await response.text();
-        const json = responseText ? JSON.parse(responseText) : {};
-
-        if (response.ok) {
-          const redirectUrl = resolvePayChanguPayload(json) || finalReturnUrl;
-          return res.json({
-            success: true,
-            data: {
-              provider: 'paychangu',
-              currency,
-              amount: finalAmount,
-              reference: finalReference,
-              redirectUrl,
-              callbackUrl: finalCallbackUrl,
-              raw: json
-            }
-          });
-        }
-
-        lastError = new Error(json?.message || `PayChangu request failed for ${endpoint}`);
-      } catch (error) {
-        lastError = error;
-      }
+    const responseText = await response.text();
+    let json: any = {};
+    try {
+      json = responseText ? JSON.parse(responseText) : {};
+    } catch {
+      json = { message: responseText };
     }
 
-    return res.status(502).json({
-      success: false,
-      message: 'PayChangu initialization failed. Using the configured gateway details, the provider did not return a payout URL.',
-      error: lastError instanceof Error ? lastError.message : String(lastError)
+    const redirectUrl = resolvePayChanguPayload(json);
+    if (!response.ok || String(json.status || '').toLowerCase() === 'failed' || !redirectUrl) {
+      return res.status(response.ok ? 502 : response.status).json({
+        success: false,
+        message: getProviderMessage(json) || 'PayChangu could not create a hosted checkout session.',
+        providerStatus: json.status || null,
+        providerResponse: json.data || null
+      });
+    }
+
+    return res.json({
+      success: true,
+      data: {
+        provider: 'paychangu',
+        currency,
+        amount: finalAmount,
+        reference: finalReference,
+        redirectUrl,
+        callbackUrl: finalCallbackUrl,
+        raw: json
+      }
     });
   } catch (error: any) {
     return res.status(500).json({

@@ -628,7 +628,7 @@ const Marketplace: React.FC<MarketplaceProps> = ({ posts, user, onAddReview, onN
 
                 <div>
                   <label className="text-[10px] uppercase font-black tracking-widest text-gray-400 block mb-1">
-                    Price ($USD)
+                    Price (MWK)
                   </label>
                   <input 
                     type="number" 

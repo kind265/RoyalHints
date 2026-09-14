@@ -196,7 +196,7 @@ const TrendingGrid: React.FC<TrendingGridProps> = ({
                       </div>
 
                       <span className="hidden sm:flex text-[10px] font-black uppercase tracking-widest text-[#1A1A1A] group-hover:text-[#2563EB] items-center gap-1 transition-colors">
-                        View Stock <ArrowRight className="h-3 w-3" />
+                        Shop all <ArrowRight className="h-3 w-3" />
                       </span>
                     </div>
                   </div>

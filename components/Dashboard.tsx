@@ -428,7 +428,7 @@ const Dashboard: React.FC<DashboardProps> = ({
               <div className="mb-6 sm:mb-8 pb-5 sm:pb-6 border-b border-gray-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
                 {/* Left: Admin Clearance Badge & Quick Tab Selector */}
                 <div className="flex items-center gap-3 flex-wrap">
-                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-500/10 to-blue-500/10 border border-blue-200/60 text-[#1A1A1A]">
+                  <div className="inline-flex items-center gap-2 rounded-xl border border-blue-100 bg-[#eff6ff] px-3 py-1.5 text-[#172033]">
                     <Award className="h-4 w-4 text-amber-500" />
                     <span className="text-[11px] font-black uppercase tracking-wider text-[#1A1A1A]">
                       Admin Intelligence Desk
@@ -456,7 +456,7 @@ const Dashboard: React.FC<DashboardProps> = ({
                     }}
                     className={`hidden lg:inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all ${
                       activeTab === 'analytics'
-                        ? 'bg-[#1A1A1A] text-white shadow-sm'
+                        ? 'bg-[#2563EB] text-white shadow-sm'
                         : 'bg-gray-50 hover:bg-gray-100 text-gray-700 border border-gray-200'
                     }`}
                   >
@@ -472,7 +472,7 @@ const Dashboard: React.FC<DashboardProps> = ({
                     }}
                     className={`hidden sm:inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all ${
                       activeTab === 'bespoke'
-                        ? 'bg-[#1A1A1A] text-white shadow-sm'
+                        ? 'bg-[#2563EB] text-white shadow-sm'
                         : 'bg-gray-50 hover:bg-gray-100 text-gray-700 border border-gray-200'
                     }`}
                   >
@@ -490,7 +490,7 @@ const Dashboard: React.FC<DashboardProps> = ({
                     }}
                     className={`hidden sm:inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all ${
                       activeTab === 'quotation'
-                        ? 'bg-[#1A1A1A] text-white shadow-sm'
+                        ? 'bg-[#2563EB] text-white shadow-sm'
                         : 'bg-gray-50 hover:bg-gray-100 text-gray-700 border border-gray-200'
                     }`}
                   >
@@ -542,16 +542,16 @@ const Dashboard: React.FC<DashboardProps> = ({
                         className="absolute right-0 top-full mt-2 w-[340px] sm:w-[420px] max-w-[90vw] bg-white rounded-2xl shadow-2xl border border-gray-200 z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-200"
                       >
                         {/* Popover Header */}
-                        <div className="p-4 bg-gradient-to-r from-gray-900 via-[#1A1A1A] to-blue-950 text-white flex items-center justify-between">
+                        <div className="flex items-center justify-between border-b border-blue-100 bg-[#eff6ff] p-4 text-[#172033]">
                           <div className="flex items-center gap-2">
                             <div className="h-7 w-7 rounded-lg bg-blue-500/20 text-[#60A5FA] flex items-center justify-center">
                               <Bell className="h-4 w-4" />
                             </div>
                             <div>
-                              <h4 className="font-black text-xs uppercase tracking-wider text-white">
+                              <h4 className="text-xs font-black uppercase tracking-wider text-[#172033]">
                                 Sourcing & Quotation Alerts
                               </h4>
-                              <p className="text-[10px] text-gray-300">
+                              <p className="text-[10px] text-gray-500">
                                 Real-time client submissions for Admin
                               </p>
                             </div>
@@ -805,7 +805,7 @@ const Dashboard: React.FC<DashboardProps> = ({
                   {isAdmin && (
                     <button
                       onClick={() => setActiveTab('analytics')}
-                      className="inline-flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-blue-600 to-[#1A1A1A] text-white rounded-xl text-xs font-black uppercase tracking-wider shadow-md hover:shadow-blue-500/20 hover:scale-[1.01] transition-all self-start sm:self-auto"
+                      className="inline-flex items-center gap-2 self-start rounded-xl bg-[#2563EB] px-4 py-2.5 text-xs font-black uppercase tracking-wider text-white shadow-md shadow-blue-500/20 transition-all hover:bg-[#1D4ED8] hover:scale-[1.01] sm:self-auto"
                     >
                       <BarChart3 className="h-4 w-4 text-white" />
                       View Admin Analytics Summary
@@ -955,7 +955,7 @@ const Dashboard: React.FC<DashboardProps> = ({
                   </div>
                 </div>
 
-                <button className="w-full sm:w-auto bg-[#1A1A1A] text-white px-8 sm:px-10 py-4 sm:py-5 rounded-xl font-black text-xs uppercase tracking-[0.25em] hover:bg-[#2563EB] transition-all shadow-lg hover:shadow-blue-500/20">
+                        <button className="w-full rounded-xl bg-[#2563EB] px-8 py-4 text-xs font-black uppercase tracking-[0.25em] text-white shadow-lg shadow-blue-500/20 transition-all hover:bg-[#1D4ED8] sm:w-auto sm:px-10 sm:py-5">
                   Update Registry Profile
                 </button>
               </div>
@@ -983,7 +983,7 @@ const Dashboard: React.FC<DashboardProps> = ({
                     </button>
                     <button 
                       onClick={() => onNavigate('Marketplace')}
-                      className="bg-[#1A1A1A] text-white px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider hover:bg-gray-800 transition-all"
+                      className="rounded-xl bg-[#2563EB] px-5 py-2.5 text-xs font-black uppercase tracking-wider text-white transition-all hover:bg-[#1D4ED8]"
                     >
                       Browse Catalog
                     </button>
@@ -1051,7 +1051,7 @@ const Dashboard: React.FC<DashboardProps> = ({
                           onClick={() => setVentureCategoryFilter(cat)}
                           className={`px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap transition-all ${
                             ventureCategoryFilter === cat
-                              ? 'bg-[#1A1A1A] text-white shadow-sm'
+                              ? 'bg-[#2563EB] text-white shadow-sm'
                               : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                           }`}
                         >
@@ -1205,7 +1205,7 @@ const Dashboard: React.FC<DashboardProps> = ({
                     </button>
                     <button 
                       onClick={() => onNavigate('Marketplace')}
-                      className="bg-[#1A1A1A] text-white px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider hover:bg-gray-800 transition-all"
+                      className="rounded-xl bg-[#2563EB] px-5 py-2.5 text-xs font-black uppercase tracking-wider text-white transition-all hover:bg-[#1D4ED8]"
                     >
                       Browse Marketplace
                     </button>
@@ -1446,11 +1446,11 @@ const Dashboard: React.FC<DashboardProps> = ({
                           </select>
                         </div>
 
-                        {/* Price ($USD) */}
+                        {/* Price (MWK) */}
                         <div className="space-y-2">
                           <div className="flex items-center justify-between">
                             <label className="text-[10px] uppercase tracking-[0.25em] font-black text-gray-400 ml-1">
-                              Price ($USD) *
+                              Price (MWK) *
                             </label>
                             <div className="flex items-center gap-1">
                               {[95, 250, 750, 1500].map(p => (
@@ -1460,7 +1460,7 @@ const Dashboard: React.FC<DashboardProps> = ({
                                   onClick={() => setPostData({ ...postData, price: p })}
                                   className="text-[9px] bg-gray-100 hover:bg-blue-100 hover:text-[#2563EB] px-1.5 py-0.5 rounded font-bold transition-colors"
                                 >
-                                  ${p}
+                                  MWK {p.toLocaleString()}
                                 </button>
                               ))}
                             </div>
@@ -1932,7 +1932,7 @@ const Dashboard: React.FC<DashboardProps> = ({
                 </div>
 
                 <div className="space-y-1">
-                  <label className="font-bold text-gray-700 uppercase tracking-wider text-[10px]">Price ($USD)</label>
+                  <label className="font-bold text-gray-700 uppercase tracking-wider text-[10px]">Price (MWK)</label>
                   <input
                     type="number"
                     min="1"

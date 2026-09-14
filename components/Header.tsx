@@ -257,8 +257,9 @@ const Header: React.FC<HeaderProps> = ({
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    setSearchCategory('All');
     if (onSelectCategory) {
-      onSelectCategory(searchCategory);
+      onSelectCategory('All');
     }
     if (currentPage !== 'Home') {
       onNavigate('Home');
@@ -272,18 +273,7 @@ const Header: React.FC<HeaderProps> = ({
   };
 
   const getPlaceholder = () => {
-    switch (searchCategory) {
-      case 'Books':
-        return 'Search Books (monographs, authors, specs)...';
-      case 'Spare Parts':
-        return 'Search Spare Parts (calipers, bearings, SKU)...';
-      case 'Fabric':
-        return 'Search Fabric (silk, linen, weaves)...';
-      case 'Fashion':
-        return 'Search Fashion (blazers, shoes, sizes)...';
-      default:
-        return 'Search across Books, Parts, Fabric, Fashion...';
-    }
+    return 'What can we help you find today?';
   };
 
   return (
@@ -347,7 +337,7 @@ const Header: React.FC<HeaderProps> = ({
             className="group flex w-full items-center rounded-full border border-blue-100 bg-white shadow-sm transition-all duration-300 hover:border-blue-200 focus-within:border-[#2563EB] focus-within:ring-4 focus-within:ring-[#2563EB]/20"
           >
             {/* Category Dropdown Selector Pill */}
-            <div className="relative">
+            <div className="relative hidden">
               <button
                 type="button"
                 onClick={() => setIsCategoryPickerOpen(!isCategoryPickerOpen)}
@@ -450,7 +440,7 @@ const Header: React.FC<HeaderProps> = ({
             <div className="absolute top-full left-0 right-0 mt-3 bg-white rounded-[16px] shadow-2xl border border-gray-100 p-3 z-50 overflow-hidden text-[#1A1A1A] animate-in fade-in slide-in-from-top-2 duration-200">
               
               {/* Category Quick Filter Chips */}
-              <div className="flex items-center gap-1.5 pb-2.5 mb-2 border-b border-gray-100 overflow-x-auto">
+              <div className="hidden">
                 <span className="text-[9px] font-black uppercase tracking-widest text-gray-400 pl-1 shrink-0">Filter:</span>
                 <button
                   type="button"
@@ -551,7 +541,7 @@ const Header: React.FC<HeaderProps> = ({
                 )}
               </div>
 
-              {/* View in Catalog Action Footer */}
+              {/* Shop all action footer */}
               {searchResults.length > 0 && (
                 <div className="pt-2.5 mt-2 border-t border-gray-100 flex items-center justify-between">
                   <span className="text-[10px] text-gray-400 font-medium pl-1">
@@ -562,7 +552,7 @@ const Header: React.FC<HeaderProps> = ({
                     onClick={handleSearchSubmit}
                     className="text-[10px] font-black uppercase tracking-wider text-[#2563EB] hover:text-[#1D4ED8] flex items-center gap-1 transition-colors px-2 py-1 rounded hover:bg-blue-50"
                   >
-                    View in Catalog <ArrowRight className="h-3 w-3" />
+                    Shop all <ArrowRight className="h-3 w-3" />
                   </button>
                 </div>
               )}
@@ -678,7 +668,7 @@ const Header: React.FC<HeaderProps> = ({
             </div>
 
             {/* 4 Categories Filter Tabs in Mobile */}
-            <div className="flex items-center gap-1.5 overflow-x-auto py-2.5 border-b border-gray-100">
+            <div className="hidden">
               <button
                 onClick={() => setSearchCategory('All')}
                 className={`px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider shrink-0 ${

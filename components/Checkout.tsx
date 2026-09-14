@@ -95,7 +95,7 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, user, onNavigate, onComp
       const json = await response.json();
 
       if (!response.ok || !json.success || !json.data?.redirectUrl) {
-        throw new Error(json.message || 'PayChangu payment could not be initialized.');
+        throw new Error(json.message || 'PayChangu could not create a hosted checkout session.');
       }
 
       window.location.href = json.data.redirectUrl;

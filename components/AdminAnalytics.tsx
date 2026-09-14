@@ -164,7 +164,7 @@ export const AdminAnalytics: React.FC<AdminAnalyticsProps> = ({
           </button>
           <button
             onClick={() => onNavigateTab('my-posts')}
-            className="flex items-center gap-1.5 px-4 py-2.5 bg-[#1A1A1A] hover:bg-[#2563EB] text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all shadow-sm"
+            className="flex items-center gap-1.5 rounded-xl bg-[#2563EB] px-4 py-2.5 text-xs font-black uppercase tracking-wider text-white shadow-sm transition-all hover:bg-[#1D4ED8]"
           >
             <Briefcase className="h-3.5 w-3.5" /> Manage Ventures
           </button>
@@ -175,7 +175,7 @@ export const AdminAnalytics: React.FC<AdminAnalyticsProps> = ({
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
         
         {/* Card 1: TOTAL ITEMS SOLD (Core Requirement) */}
-        <div className="p-5 sm:p-6 bg-gradient-to-br from-blue-50/70 via-white to-white rounded-2xl border border-blue-200/80 shadow-sm relative overflow-hidden group">
+        <div className="group relative overflow-hidden rounded-2xl border border-blue-100 bg-[#eff6ff] p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-lg sm:p-6">
           <div className="flex justify-between items-start mb-4">
             <div className="h-11 w-11 rounded-xl bg-[#2563EB] text-white flex items-center justify-center shadow-lg shadow-blue-500/20">
               <ShoppingBag className="h-5 w-5" />
@@ -208,7 +208,7 @@ export const AdminAnalytics: React.FC<AdminAnalyticsProps> = ({
         </div>
 
         {/* Card 2: ACTIVE BESPOKE SOURCING REQUESTS (Core Requirement) */}
-        <div className="p-5 sm:p-6 bg-gradient-to-br from-amber-50/70 via-white to-white rounded-2xl border border-amber-200/80 shadow-sm relative overflow-hidden group">
+        <div className="group relative overflow-hidden rounded-2xl border border-blue-100 bg-white p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-lg sm:p-6">
           <div className="flex justify-between items-start mb-4">
             
             <span className="inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-wider text-amber-700 bg-amber-100/70 px-2.5 py-1 rounded-full border border-amber-300/60">
@@ -241,10 +241,10 @@ export const AdminAnalytics: React.FC<AdminAnalyticsProps> = ({
         {/* Card 3: GROSS MERCHANDISE REVENUE */}
         <div className="p-5 sm:p-6 bg-white rounded-2xl border border-gray-200/80 shadow-sm">
           <div className="flex justify-between items-start mb-4">
-            <div className="h-11 w-11 rounded-xl bg-emerald-600 text-white flex items-center justify-center shadow-lg shadow-emerald-600/20">
+            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#2563EB] text-white shadow-lg shadow-blue-500/20">
               <DollarSign className="h-5 w-5" />
             </div>
-            <span className="text-[10px] font-black text-gray-400 uppercase tracking-wider bg-gray-50 px-2 py-1 rounded-md border border-gray-100">
+            <span className="rounded-md border border-blue-100 bg-[#eff6ff] px-2 py-1 text-[10px] font-black uppercase tracking-wider text-[#2563EB]">
               Gross Volume
             </span>
           </div>
@@ -271,7 +271,7 @@ export const AdminAnalytics: React.FC<AdminAnalyticsProps> = ({
         {/* Card 4: ACTIVE CATALOG & QUOTATIONS */}
         <div className="p-5 sm:p-6 bg-white rounded-2xl border border-gray-200/80 shadow-sm">
           <div className="flex justify-between items-start mb-4">
-            <div className="h-11 w-11 rounded-xl bg-[#1A1A1A] text-white flex items-center justify-center shadow-md">
+            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#2563EB] text-white shadow-md shadow-blue-500/20">
               <Layers className="h-5 w-5" />
             </div>
             <span className="text-[10px] font-black text-[#2563EB] uppercase tracking-wider bg-blue-50 px-2 py-1 rounded-md">
@@ -356,7 +356,7 @@ export const AdminAnalytics: React.FC<AdminAnalyticsProps> = ({
                 <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2">
                   <div>
                     <div className="flex items-center gap-2 mb-1">
-                      <span className="px-2 py-0.5 bg-[#1A1A1A] text-white text-[9px] font-black uppercase tracking-widest rounded-md">
+                      <span className="rounded-md bg-[#2563EB] px-2 py-0.5 text-[9px] font-black uppercase tracking-widest text-white">
                         {req.referenceNumber}
                       </span>
                       <span className="text-[10px] font-bold text-[#2563EB] bg-blue-100/70 px-2 py-0.5 rounded-md">

@@ -66,7 +66,7 @@ const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
             <h4 className="font-bold text-sm uppercase tracking-widest mb-8 text-[#2563EB]">Client Concierge</h4>
             <ul className="space-y-4 text-sm text-gray-400">
               <li><a href="#" className="hover:text-white transition-colors">Stock Registry Verification</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Returns & Authenticity</a></li>
+              <li><button onClick={() => onNavigate?.('Terms')} className="hover:text-white transition-colors">Returns & Authenticity</button></li>
               <li><button onClick={() => onNavigate?.('OrderTracking')} className="hover:text-white transition-colors">Order Tracking</button></li>
               <li><button onClick={() => onNavigate?.('Contact')} className="hover:text-white transition-colors">Support</button></li>
             </ul>
