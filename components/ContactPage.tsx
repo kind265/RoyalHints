@@ -47,9 +47,16 @@ const ContactPage: React.FC<ContactPageProps> = ({ onNavigate }) => {
         </form>
 
         <div className="bg-[#eff6ff] p-7 sm:p-9">
-          <p className="text-xs font-black uppercase tracking-[.24em] text-[#2563EB]">Quick answers</p>
+          <p className="text-xs font-black uppercase tracking-[.24em] text-[#2563EB]">Important information</p>
           <h2 className="mt-3 text-3xl font-black">Before you write.</h2>
-          <div className="mt-8 divide-y divide-blue-200">{['How quickly do you dispatch orders?', 'Can you source an item that is not listed?', 'What payment methods are available?', 'Where can I find my tracking details?'].map((question) => <details key={question} className="py-5"><summary className="cursor-pointer text-sm font-black">{question}</summary><p className="mt-3 text-sm leading-6 text-slate-600">Our team will confirm the latest details based on your item, location, and order status.</p></details>)}</div>
+          <div className="mt-8 divide-y divide-blue-200">
+            {[
+              ['Delivery times', 'Standard delivery takes between 2 to 5 business days. Express orders take a day or 2 within major cities, and up to 3 days in remote areas.'],
+              ['Finding unlisted items', 'We find items that are not listed on customer demand when the details are well presented.'],
+              ['Payment methods', 'Mobile money, Airtel Money, PayChangu, and bank transfer.'],
+              ['Tracking system', 'Every item comes with a sticker that can be used to track the geolocation of the item being transferred.']
+            ].map(([title, information]) => <details key={title} className="py-5"><summary className="cursor-pointer text-sm font-black">{title}</summary><p className="mt-3 text-sm leading-6 text-slate-600">{information}</p></details>)}
+          </div>
           <button onClick={() => onNavigate('OrderTracking')} className="mt-8 text-sm font-black text-[#2563EB] underline underline-offset-4">Track an existing order</button>
         </div>
       </div>
