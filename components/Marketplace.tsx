@@ -196,16 +196,6 @@ const Marketplace: React.FC<MarketplaceProps> = ({ posts, user, onAddReview, onN
             Browse certified royal ventures, boutique craftsmanship, and 48 hour new arrivals.
           </p>
         </div>
-
-        {isAdmin && (
-          <button
-            onClick={() => setIsCreateModalOpen(true)}
-            className="self-start sm:self-auto bg-[#2563EB] text-white px-5 py-2.5 sm:py-3 rounded-full font-black text-xs uppercase tracking-wider hover:bg-[#1D4ED8] transition-all shadow-md shadow-blue-500/25 flex items-center gap-2 shrink-0"
-          >
-            <Award className="h-4 w-4 text-amber-300" />
-            Admin: Post Venture
-          </button>
-        )}
       </div>
 
       {/* Discovery Toolbar */}
