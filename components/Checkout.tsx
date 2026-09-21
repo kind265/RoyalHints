@@ -418,7 +418,7 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, user, onNavigate, onComp
       </div>
 
       {/* Order Summary */}
-      <div className="w-full lg:w-[450px] bg-gray-50 border-l border-gray-100 px-6 md:px-12 py-12 md:py-24">
+      <div className="w-full lg:w-[450px] bg-gray-50 border-l border-gray-100 px-6 md:px-12 py-12 md:py-24 order-first lg:order-none">
         <div className="sticky top-24 space-y-12">
            <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-[#1A1A1A]">Purchase Summary</h3>
            
