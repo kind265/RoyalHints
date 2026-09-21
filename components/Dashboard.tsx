@@ -34,6 +34,8 @@ import {
   Edit3,
   ExternalLink,
   Filter,
+    Minus,
+    Plus,
   BarChart3,
   TrendingUp,
   BellRing,
@@ -58,6 +60,7 @@ interface DashboardProps {
   posts: BusinessPost[];
   cartItems?: Product[];
   onRemoveFromCart?: (id: string) => void;
+  onUpdateCartQuantity?: (id: string, sku: string, change: number) => void;
   shipments?: ShipmentTracking[];
   onConfirmDelivery?: (trackingNumber: string) => void;
   quotations?: QuotationRequest[];
@@ -106,6 +109,7 @@ const Dashboard: React.FC<DashboardProps> = ({
   posts, 
   cartItems = [], 
   onRemoveFromCart,
+  onUpdateCartQuantity,
   shipments = [],
   onConfirmDelivery,
   quotations = [],
@@ -414,7 +418,7 @@ const Dashboard: React.FC<DashboardProps> = ({
     return matchesCategory && matchesSearch;
   });
 
-  const cartTotal = cartItems.reduce((acc, item) => acc + item.price, 0);
+  const cartTotal = cartItems.reduce((acc, item) => acc + item.price * (item.quantity || 1), 0);
 
   return (
     <div className="min-h-screen bg-[#F8F9FA] pt-24 sm:pt-28 pb-24 px-3 sm:px-6 md:px-8 lg:px-12">
@@ -1629,11 +1633,12 @@ const Dashboard: React.FC<DashboardProps> = ({
                             
                             <div className="flex items-center justify-between mt-4 pt-3 border-t border-gray-200/60 sm:border-0 sm:pt-0">
                               <p className="text-lg sm:text-2xl font-black text-[#2563EB]">
-                                MWK {item.price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                MWK {(item.price * (item.quantity || 1)).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                               </p>
                               <div className="flex items-center border border-gray-200 rounded-full px-3 py-1 sm:px-4 sm:py-1.5 gap-4 bg-white shadow-sm">
-                                <span className="text-xs text-gray-400 uppercase font-bold">Qty</span>
-                                <span className="text-xs sm:text-sm font-black text-[#1A1A1A]">1</span>
+                                <button type="button" onClick={() => onUpdateCartQuantity?.(item.id, item.sku, -1)} aria-label={`Subtract one ${item.name}`} className="rounded-full p-1 text-gray-500 transition hover:bg-blue-50 hover:text-[#2563EB]"><Minus className="h-3.5 w-3.5" /></button>
+                                <span className="text-xs sm:text-sm font-black text-[#1A1A1A]">{item.quantity || 1}</span>
+                                <button type="button" onClick={() => onUpdateCartQuantity?.(item.id, item.sku, 1)} aria-label={`Add one ${item.name}`} className="rounded-full p-1 text-gray-500 transition hover:bg-blue-50 hover:text-[#2563EB]"><Plus className="h-3.5 w-3.5" /></button>
                               </div>
                             </div>
                           </div>

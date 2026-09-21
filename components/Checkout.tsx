@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Product, User } from '../types';
-import { ChevronLeft, Lock, ShieldCheck, CreditCard, Truck, CheckCircle2, ArrowRight, Zap, Landmark, X } from 'lucide-react';
+import { ChevronLeft, Lock, ShieldCheck, CreditCard, Truck, CheckCircle2, ArrowRight, Zap, Landmark, X, Minus, Plus } from 'lucide-react';
 
 interface CheckoutProps {
   cartItems: Product[];
@@ -9,6 +9,7 @@ interface CheckoutProps {
   onNavigate: (page: any, tab?: string) => void;
   onComplete: () => void;
   onRemoveFromCart?: (id: string) => void;
+  onUpdateCartQuantity?: (id: string, sku: string, change: number) => void;
   onOrderPlaced?: (orderData: { 
     orderId: string; 
     trackingNumber: string; 
@@ -18,7 +19,7 @@ interface CheckoutProps {
   }) => void;
 }
 
-const Checkout: React.FC<CheckoutProps> = ({ cartItems, user, onNavigate, onComplete, onRemoveFromCart, onOrderPlaced }) => {
+const Checkout: React.FC<CheckoutProps> = ({ cartItems, user, onNavigate, onComplete, onRemoveFromCart, onUpdateCartQuantity, onOrderPlaced }) => {
   const [shippingMethod, setShippingMethod] = useState('standard');
   const [paymentMethod, setPaymentMethod] = useState<'card' | 'paychangu'>('card');
   const [isPayChanguLoading, setIsPayChanguLoading] = useState(false);
@@ -37,7 +38,7 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, user, onNavigate, onComp
     postalCode: ''
   });
 
-  const subtotal = cartItems.reduce((acc, item) => acc + item.price, 0);
+  const subtotal = cartItems.reduce((acc, item) => acc + item.price * (item.quantity || 1), 0);
   const shippingCost = shippingMethod === 'standard' ? 0 : 25;
   const tax = subtotal * 0.08;
   const total = subtotal + shippingCost + tax;
@@ -87,7 +88,7 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, user, onNavigate, onComp
           metadata: {
             orderType: 'checkout',
             currency: 'MWK',
-            items: cartItems.map(item => ({ id: item.id, name: item.name, price: item.price }))
+            items: cartItems.map(item => ({ id: item.id, name: item.name, price: item.price, quantity: item.quantity || 1 }))
           }
         })
       });
@@ -437,7 +438,14 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, user, onNavigate, onComp
                       </button>
                     </div>
                     <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">{item.category}</p>
-                    <p className="text-sm font-black mt-2 text-[#2563EB]">{formatCurrency(item.price)}</p>
+                    <div className="mt-2 flex items-center justify-between gap-2">
+                      <p className="text-sm font-black text-[#2563EB]">{formatCurrency(item.price * (item.quantity || 1))}</p>
+                      <div className="flex items-center gap-1 rounded-lg border border-gray-200 bg-white p-1">
+                        <button type="button" onClick={() => onUpdateCartQuantity?.(item.id, item.sku, -1)} aria-label={`Subtract one ${item.name}`} className="rounded-md p-1 text-gray-500 transition hover:bg-blue-50 hover:text-[#2563EB]"><Minus className="h-3.5 w-3.5" /></button>
+                        <span className="min-w-5 text-center text-xs font-black">{item.quantity || 1}</span>
+                        <button type="button" onClick={() => onUpdateCartQuantity?.(item.id, item.sku, 1)} aria-label={`Add one ${item.name}`} className="rounded-md p-1 text-gray-500 transition hover:bg-blue-50 hover:text-[#2563EB]"><Plus className="h-3.5 w-3.5" /></button>
+                      </div>
+                    </div>
                  </div>
                </div>
              ))}

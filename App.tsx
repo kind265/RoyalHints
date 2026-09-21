@@ -263,20 +263,34 @@ const App: React.FC = () => {
     setCartItems(prev => {
       const itemWithVariant = variant ? {
         ...product,
+        quantity: 0,
         price: product.price + (variant.priceModifier || 0),
         name: `${product.name} (${variant.name})`,
         sku: variant.sku
-      } : product;
+      } : { ...product, quantity: 0 };
 
-      if (!prev.find(item => item.id === itemWithVariant.id && item.sku === itemWithVariant.sku)) {
-        return [...prev, itemWithVariant];
+      const existingItem = prev.find(item => item.id === itemWithVariant.id && item.sku === itemWithVariant.sku);
+      if (!existingItem) {
+        return [...prev, { ...itemWithVariant, quantity: Math.min(quantity, product.stockQuantity || quantity) }];
       }
-      return prev;
+
+      return prev.map(item => item.id === itemWithVariant.id && item.sku === itemWithVariant.sku
+        ? { ...item, quantity: Math.min((item.quantity || 1) + quantity, product.stockQuantity || (item.quantity || 1) + quantity) }
+        : item);
     });
   };
 
   const removeFromCart = (id: string) => {
     setCartItems(prev => prev.filter(item => item.id !== id));
+  };
+
+  const updateCartQuantity = (id: string, sku: string, change: number) => {
+    setCartItems(prev => prev.map(item => {
+      if (item.id !== id || item.sku !== sku) return item;
+      const maximum = item.stockQuantity || Number.MAX_SAFE_INTEGER;
+      const quantity = Math.max(1, Math.min(maximum, (item.quantity || 1) + change));
+      return { ...item, quantity };
+    }));
   };
 
   const moveToCart = (product: Product) => {
@@ -422,7 +436,7 @@ const App: React.FC = () => {
       items: orderData.items.map((it) => ({
         name: it.name,
         category: it.category,
-        quantity: 1,
+        quantity: it.quantity || 1,
         image: it.image,
         price: it.price
       })),
@@ -512,7 +526,7 @@ const App: React.FC = () => {
           user={user} 
           onLogout={handleLogout}
           currentPage={currentPage}
-          cartCount={cartItems.length}
+          cartCount={cartItems.reduce((total, item) => total + (item.quantity || 1), 0)}
           onSelectProduct={handleSelectProduct}
           onSelectCategory={handleSelectCategory}
           onAddToCart={addToCart}
@@ -618,6 +632,7 @@ const App: React.FC = () => {
                   posts={user && (user.role === 'admin' || user.isAdmin || user.email?.toLowerCase() === 'admin@royalhints.com') ? posts : posts.filter(p => user ? p.userId === user.id : true)}
                   cartItems={cartItems}
                   onRemoveFromCart={removeFromCart}
+                  onUpdateCartQuantity={updateCartQuantity}
                   shipments={shipments}
                   onConfirmDelivery={handleConfirmDelivery}
                   quotations={quotations}
@@ -653,6 +668,7 @@ const App: React.FC = () => {
                   onNavigate={navigateTo} 
                   onComplete={clearCart}
                   onRemoveFromCart={removeFromCart}
+                  onUpdateCartQuantity={updateCartQuantity}
                   onOrderPlaced={handleOrderPlaced}
                 />
               </div>

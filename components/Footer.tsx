@@ -112,7 +112,7 @@ const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
         </div>
 
         <div className="pt-12 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-6 text-[10px] uppercase tracking-widest text-gray-500 font-bold">
-          <p>© 2026 ROYAL HINTS INC. ALL RIGHTS RESERVED.</p>
+          <p>© 2026 ROYAL HINTS INC. ALL RIGHTS RESERVED. | Powered by Arkode Tech</p>
           <div className="flex items-center gap-6 sm:gap-8">
             <button onClick={() => onNavigate?.('Privacy')} className="hover:text-white transition-colors">Privacy Policy</button>
             <button onClick={() => onNavigate?.('Terms')} className="hover:text-white transition-colors">Terms and Conditions</button>
