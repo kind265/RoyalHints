@@ -130,6 +130,12 @@ const App: React.FC = () => {
     };
 
     syncWithBackend();
+
+    const refreshTimer = window.setInterval(() => {
+      syncWithBackend();
+    }, 5 * 60 * 1000);
+
+    return () => window.clearInterval(refreshTimer);
   }, []);
 
   useEffect(() => {
