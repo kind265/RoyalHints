@@ -1,5 +1,5 @@
 import { db, pool } from '../../src/db';
-import { products, businessPosts, shipments, quotations, bespokeRequests, users, userCarts, photoHistory, notificationReads } from '../../src/db/schema';
+import { products, businessPosts, shipments, quotations, bespokeRequests, users, userCarts, photoHistory, notificationReads, itemSubscribers } from '../../src/db/schema';
 import { eq, desc } from 'drizzle-orm';
 import { randomUUID, randomBytes, scryptSync, timingSafeEqual } from 'crypto';
 import { 
@@ -210,6 +210,11 @@ class PostgresStore {
       CREATE TABLE IF NOT EXISTS rh_notification_reads (
         user_id text PRIMARY KEY,
         notification_ids jsonb NOT NULL DEFAULT '[]'::jsonb,
+        updated_at timestamp DEFAULT now()
+      );
+      CREATE TABLE IF NOT EXISTS rh_item_subscribers (
+        email text PRIMARY KEY,
+        created_at timestamp DEFAULT now(),
         updated_at timestamp DEFAULT now()
       );
       CREATE TABLE IF NOT EXISTS rh_login_history (
@@ -858,6 +863,42 @@ class PostgresStore {
       set: { notificationIds, updatedAt: new Date() }
     });
     return notificationIds;
+  }
+
+  async subscribeToNewItems(email: string) {
+    await this.ensureSeeded();
+    await db.insert(itemSubscribers).values({ email }).onConflictDoUpdate({
+      target: itemSubscribers.email,
+      set: { updatedAt: new Date() }
+    });
+  }
+
+  async notifyItemSubscribers(post: BusinessPost) {
+    await this.ensureSeeded();
+    const rows = await db.select().from(itemSubscribers);
+    const apiKey = process.env.RESEND_API_KEY;
+    const from = process.env.NOTIFICATION_FROM_EMAIL;
+    if (!apiKey || !from || rows.length === 0) return;
+
+    const baseUrl = process.env.PUBLIC_BASE_URL || 'http://localhost:3000';
+    await Promise.all(rows.map(async ({ email }) => {
+      const response = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          from,
+          to: [email],
+          subject: `New Royal Hints item: ${post.title}`,
+          html: `<p>A new item has been posted on Royal Hints.</p><h2>${post.title}</h2><p>${post.description || ''}</p><p><a href="${baseUrl}/marketplace">View the new listing</a></p>`
+        })
+      });
+      if (!response.ok) {
+        console.error(`New item email failed for ${email}: ${await response.text()}`);
+      }
+    }));
   }
 
   async recordLogin(userId: string, email: string): Promise<string> {

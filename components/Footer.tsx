@@ -63,10 +63,10 @@ const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
 
           {/* Links Col 2 */}
           <div>
-            <h4 className="font-bold text-sm uppercase tracking-widest mb-8 text-[#2563EB]">Client Concierge</h4>
+            <h4 className="font-bold text-sm uppercase tracking-widest mb-8 text-[#2563EB]">Client Support</h4>
             <ul className="space-y-4 text-sm text-gray-400">
-              <li><a href="#" className="hover:text-white transition-colors">Stock Registry Verification</a></li>
-              <li><button onClick={() => onNavigate?.('Terms')} className="hover:text-white transition-colors">Returns & Authenticity</button></li>
+              <li><button onClick={() => onNavigate?.('Privacy')} className="hover:text-white transition-colors">Privacy Policy</button></li>
+              <li><button onClick={() => onNavigate?.('Terms')} className="hover:text-white transition-colors">Terms and Conditions</button></li>
               <li><button onClick={() => onNavigate?.('OrderTracking')} className="hover:text-white transition-colors">Order Tracking</button></li>
               <li><button onClick={() => onNavigate?.('Contact')} className="hover:text-white transition-colors">Support</button></li>
             </ul>
@@ -74,7 +74,7 @@ const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
 
           {/* Newsletter Col */}
           <div>
-            <h4 className="font-bold text-sm uppercase tracking-widest mb-8 text-[#2563EB]">Royal Gazette</h4>
+            <h4 className="font-bold text-sm uppercase tracking-widest mb-8 text-[#2563EB]">Royal Team</h4>
             <p className="text-gray-400 text-sm mb-6">Join the royal registry for verified arrivals and collector bulletins.</p>
             <form className="relative" onSubmit={handleSubmit} noValidate>
               <div className="relative">

@@ -21,6 +21,21 @@ export const apiClient = {
     }
   },
 
+  async subscribeToNewItems(email: string): Promise<boolean> {
+    try {
+      const res = await fetch(`${API_BASE}/subscriptions`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      });
+      const json = await res.json();
+      return Boolean(json.success);
+    } catch (err) {
+      console.error('New item subscription error:', err);
+      return false;
+    }
+  },
+
   // Products
   async getProducts(category?: string, search?: string): Promise<Product[]> {
     try {

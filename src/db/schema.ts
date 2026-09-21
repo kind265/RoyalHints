@@ -134,6 +134,12 @@ export const notificationReads = pgTable('rh_notification_reads', {
   updatedAt: timestamp('updated_at').defaultNow()
 });
 
+export const itemSubscribers = pgTable('rh_item_subscribers', {
+  email: text('email').primaryKey(),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow()
+});
+
 type ProductCartItem = {
   id: string;
   [key: string]: unknown;

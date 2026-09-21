@@ -59,6 +59,9 @@ postsRouter.post('/', async (req: Request, res: Response) => {
     };
 
     const created = await postgresStore.createPost(newPost);
+    postgresStore.notifyItemSubscribers(created).catch(error => {
+      console.error('New item subscriber notification error:', error);
+    });
     res.status(201).json({ success: true, message: 'Post published to PostgreSQL', data: created });
   } catch (error: any) {
     res.status(500).json({ success: false, message: error.message });

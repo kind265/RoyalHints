@@ -15,6 +15,7 @@ import PublicLookupPage from './components/PublicLookupPage';
 import FreshStock from './components/FreshStock';
 import QualitySection from './components/QualitySection';
 import LegalPage from './components/LegalPage';
+import NewItemNotifications from './components/NewItemNotifications';
 import { Bot, MessageCircle } from 'lucide-react';
 import { 
   User, 
@@ -670,6 +671,8 @@ const App: React.FC = () => {
         <a href="https://wa.me/265999323805" target="_blank" rel="noreferrer" aria-label="Chat on WhatsApp" title="Chat on WhatsApp" className="flex h-12 w-12 items-center justify-center rounded-full bg-[#25D366] text-white shadow-lg shadow-green-900/20 transition hover:scale-105 hover:bg-[#1ebe5d]"><MessageCircle className="h-6 w-6" /></a>
         <button type="button" aria-label="Open Royal Hints assistant" title="Open assistant" className="flex h-12 w-12 items-center justify-center rounded-full bg-[#2563EB] text-white shadow-lg shadow-blue-900/25 transition hover:scale-105 hover:bg-[#1d4ed8]"><Bot className="h-6 w-6" /></button>
       </div>
+
+      {currentPage === 'Home' && <NewItemNotifications />}
 
       {['Home', 'Marketplace', 'Dashboard', 'About', 'Contact', 'OrderTracking', 'CompletePayment', 'Terms', 'Privacy'].includes(currentPage) && <Footer onNavigate={navigateTo} />}
     </div>

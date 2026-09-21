@@ -9,6 +9,7 @@ import { analyticsRouter } from './routes/analytics';
 import { authRouter } from './routes/auth';
 import { persistenceRouter } from './routes/persistence';
 import { paymentsRouter } from './routes/payments';
+import { subscriptionsRouter } from './routes/subscriptions';
 
 export function createBackendApp(): Express {
   const app = express();
@@ -45,6 +46,7 @@ export function createBackendApp(): Express {
   app.use('/api/auth', authRouter);
   app.use('/api/persistence', persistenceRouter);
   app.use('/api/payments', paymentsRouter);
+  app.use('/api/subscriptions', subscriptionsRouter);
 
   // 404 for unhandled API routes
   app.use('/api', (req: Request, res: Response) => {
