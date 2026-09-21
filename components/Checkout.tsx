@@ -64,7 +64,7 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, user, onNavigate, onComp
     }
   }, []);
 
-  const handlePayChanguPayment = async () => {
+  const handleHostedPayment = async () => {
     const checkedAmount = Number((total || 0).toFixed(2));
     const firstName = addressData.firstName || 'Royal';
     const lastName = addressData.lastName || 'Hints';
@@ -88,6 +88,7 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, user, onNavigate, onComp
           metadata: {
             orderType: 'checkout',
             currency: 'MWK',
+            paymentMethod,
             items: cartItems.map(item => ({ id: item.id, name: item.name, price: item.price, quantity: item.quantity || 1 }))
           }
         })
@@ -96,13 +97,13 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, user, onNavigate, onComp
       const json = await response.json();
 
       if (!response.ok || !json.success || !json.data?.redirectUrl) {
-        throw new Error(json.message || 'PayChangu could not create a hosted checkout session.');
+        throw new Error(json.message || 'The card payment session could not be created.');
       }
 
       window.location.href = json.data.redirectUrl;
       return;
     } catch (error: any) {
-      window.alert(error?.message || 'PayChangu payment failed. Please try another payment option.');
+      window.alert(error?.message || 'Card payment could not be started. Please try again.');
     } finally {
       setIsPayChanguLoading(false);
     }
@@ -111,27 +112,7 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, user, onNavigate, onComp
   const handleCompletePurchase = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (paymentMethod === 'paychangu') {
-      await handlePayChanguPayment();
-      return;
-    }
-
-    const trk = `RH-TRK-${Math.floor(100000 + Math.random() * 900000)}`;
-    const ord = `ORD-${Math.floor(10000 + Math.random() * 90000)}`;
-    setGeneratedTracking(trk);
-    setGeneratedOrderId(ord);
-
-    if (onOrderPlaced) {
-      onOrderPlaced({
-        orderId: ord,
-        trackingNumber: trk,
-        items: [...cartItems],
-        shippingAddress: `${addressData.address}, ${addressData.city} ${addressData.postalCode}`,
-      });
-    }
-
-    setOrderConfirmed(true);
-    onComplete();
+    await handleHostedPayment();
   };
 
   if (gatewayStatus === 'cancelled') {
@@ -167,7 +148,7 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, user, onNavigate, onComp
           <CheckCircle2 className="h-10 w-10 sm:h-12 sm:w-12" />
         </div>
         <h1 className="text-3xl sm:text-5xl font-black text-[#1A1A1A] tracking-tighter mb-2 uppercase">Royal Order Confirmed</h1>
-  <p className="text-xs sm:text-sm font-bold text-gray-500 uppercase tracking-widest mb-6">{gatewayStatus === 'success' ? 'PayChangu Payment Verified • Account Order Linked' : 'Payment Verified • Account Order Linked'}</p>
+  <p className="text-xs sm:text-sm font-bold text-gray-500 uppercase tracking-widest mb-6">{gatewayStatus === 'success' ? 'Payment Verified • Order Processing' : 'Payment Verified • Order Processing'}</p>
         
         {/* Buyer Identity & Consignment Voucher */}
         <div className="bg-gradient-to-br from-gray-900 to-[#1A1A1A] text-white p-6 sm:p-8 rounded-2xl max-w-lg w-full mb-8 shadow-2xl border border-white/10 text-left font-mono text-xs space-y-4">
@@ -375,12 +356,8 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, user, onNavigate, onComp
                       <div className="h-5 w-8 bg-white/10 rounded-sm"></div>
                     </div>
                   </div>
-                  <div className="space-y-4 relative z-10">
-                    <input required placeholder="CARD NUMBER" className="w-full bg-white/5 border border-white/10 rounded-[8px] px-4 py-4 text-sm font-mono tracking-widest placeholder:text-gray-600 focus:outline-none focus:border-[#2563EB]" />
-                    <div className="grid grid-cols-2 gap-4">
-                      <input required placeholder="EXPIRY (MM/YY)" className="bg-white/5 border border-white/10 rounded-[8px] px-4 py-4 text-sm font-mono tracking-widest placeholder:text-gray-600 focus:outline-none focus:border-[#2563EB]" />
-                      <input required placeholder="CVC" className="bg-white/5 border border-white/10 rounded-[8px] px-4 py-4 text-sm font-mono tracking-widest placeholder:text-gray-600 focus:outline-none focus:border-[#2563EB]" />
-                    </div>
+                  <div className="relative z-10 rounded-xl border border-white/10 bg-white/5 p-4 text-sm leading-6 text-gray-300">
+                    You will be redirected to our secure PayChangu card checkout. Your card details are entered directly on the payment provider&apos;s secure page and are never stored by Royal Hints.
                   </div>
                 </div>
               ) : (
@@ -404,7 +381,7 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, user, onNavigate, onComp
               disabled={isPayChanguLoading}
               className="w-full bg-[#2563EB] text-white py-8 rounded-[12px] font-black text-sm uppercase tracking-[0.4em] hover:bg-[#1D4ED8] transition-all transform hover:-translate-y-2 shadow-2xl shadow-blue-500/30 flex items-center justify-center gap-4 group disabled:opacity-70 disabled:cursor-not-allowed"
             >
-              {isPayChanguLoading ? 'Redirecting to PayChangu...' : paymentMethod === 'paychangu' ? 'Pay with PayChangu' : 'Complete Order'} <ArrowRight className="h-5 w-5 group-hover:translate-x-2 transition-transform" />
+              {isPayChanguLoading ? 'Opening secure checkout...' : paymentMethod === 'paychangu' ? 'Pay with PayChangu' : 'Pay securely by card'} <ArrowRight className="h-5 w-5 group-hover:translate-x-2 transition-transform" />
             </button>
 
             <div className="flex justify-center items-center gap-8 pt-6">
