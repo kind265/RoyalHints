@@ -8,6 +8,7 @@ interface CheckoutProps {
   user?: User | null;
   onNavigate: (page: any, tab?: string) => void;
   onComplete: () => void;
+  onRemoveFromCart?: (id: string) => void;
   onOrderPlaced?: (orderData: { 
     orderId: string; 
     trackingNumber: string; 
@@ -17,7 +18,7 @@ interface CheckoutProps {
   }) => void;
 }
 
-const Checkout: React.FC<CheckoutProps> = ({ cartItems, user, onNavigate, onComplete, onOrderPlaced }) => {
+const Checkout: React.FC<CheckoutProps> = ({ cartItems, user, onNavigate, onComplete, onRemoveFromCart, onOrderPlaced }) => {
   const [shippingMethod, setShippingMethod] = useState('standard');
   const [paymentMethod, setPaymentMethod] = useState<'card' | 'paychangu'>('card');
   const [isPayChanguLoading, setIsPayChanguLoading] = useState(false);
@@ -424,12 +425,17 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, user, onNavigate, onComp
            
            <div className="space-y-6 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
              {cartItems.map((item) => (
-               <div key={item.id} className="flex gap-4 group">
+                 <div key={item.id} className="flex gap-4 group">
                  <div className="h-20 w-20 bg-white rounded-[8px] border border-gray-100 overflow-hidden shrink-0">
                    <img src={item.image} className="w-full h-full object-cover grayscale-[20%] group-hover:grayscale-0 transition-all" />
                  </div>
                  <div className="flex-1 flex flex-col justify-center">
-                    <p className="text-xs font-black uppercase tracking-widest mb-1">{item.name}</p>
+                    <div className="flex items-start justify-between gap-2">
+                      <p className="text-xs font-black uppercase tracking-widest mb-1">{item.name}</p>
+                      <button type="button" onClick={() => onRemoveFromCart?.(item.id)} aria-label={`Remove ${item.name} from cart`} title="Remove from cart" className="shrink-0 rounded-md p-1 text-gray-400 transition hover:bg-red-50 hover:text-red-500">
+                        <X className="h-4 w-4" />
+                      </button>
+                    </div>
                     <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">{item.category}</p>
                     <p className="text-sm font-black mt-2 text-[#2563EB]">{formatCurrency(item.price)}</p>
                  </div>

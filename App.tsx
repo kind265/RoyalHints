@@ -652,6 +652,7 @@ const App: React.FC = () => {
                   user={user}
                   onNavigate={navigateTo} 
                   onComplete={clearCart}
+                  onRemoveFromCart={removeFromCart}
                   onOrderPlaced={handleOrderPlaced}
                 />
               </div>
