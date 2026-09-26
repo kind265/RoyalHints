@@ -233,48 +233,21 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
                 <span className="text-xs text-gray-400 font-medium">(Verified Client Endorsements)</span>
               </div>
 
-              {/* Price & Stock Overview Card */}
-              <div className="bg-[#1A1A1A] text-white p-6 sm:p-8 rounded-[16px] relative overflow-hidden shadow-xl border border-white/5">
-                <div className="absolute top-0 right-0 w-48 h-48 bg-[#2563EB] opacity-15 blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
-                
-                <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 relative z-10">
-                  <div>
-                    <span className="text-[10px] font-black uppercase tracking-[0.25em] text-gray-400 block mb-1">
-                      Direct In-Stock Price
-                    </span>
-                    <div className="flex items-baseline gap-3">
-                      <span className="text-4xl sm:text-5xl font-black tracking-tighter text-white">
-                        MWK {currentPrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                      </span>
-                      {selectedVariant.priceModifier ? (
-                        <span className="text-xs font-bold text-[#2563EB] uppercase tracking-widest">
-                          (Includes Variant Spec +MWK {selectedVariant.priceModifier.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })})
-                        </span>
-                      ) : null}
-                    </div>
-                  </div>
-
-                  <div className="text-left sm:text-right">
-                    <span className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-black uppercase tracking-widest bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-                      <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                      {availableStock > 5 ? 'In Stock & Ready' : `Only ${availableStock} Left In Stock`}
-                    </span>
-                    <p className="text-[11px] text-gray-400 mt-1">{product.dispatchTime}</p>
-                  </div>
+              {/* Compact price and stock summary */}
+              <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3 border-y border-blue-100 py-4">
+                <div>
+                  <span className="block text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Price</span>
+                  <span className="mt-1 block text-2xl font-black text-[#172033] sm:text-3xl">
+                    MWK {currentPrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </span>
+                  {selectedVariant.priceModifier ? <span className="mt-1 block text-[10px] font-semibold text-slate-500">Includes +MWK {selectedVariant.priceModifier.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} variant adjustment</span> : null}
                 </div>
-
-                {/* Stock Level Progress Indicator */}
-                <div className="mt-6 pt-6 border-t border-white/10 relative z-10">
-                  <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">
-                    <span>Warehouse Inventory Level</span>
-                    <span className="text-[#2563EB] font-bold">{availableStock} Available Units</span>
-                  </div>
-                  <div className="w-full h-2 bg-white/10 rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-gradient-to-r from-blue-600 to-blue-400 rounded-full transition-all duration-500"
-                      style={{ width: `${Math.min(100, (availableStock / 30) * 100)}%` }}
-                    ></div>
-                  </div>
+                <div className="sm:text-right">
+                  <span className="inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1.5 text-[10px] font-black uppercase tracking-wider text-emerald-700">
+                    <span className="h-2 w-2 rounded-full bg-emerald-500" />
+                    {availableStock > 5 ? 'In stock' : `Only ${availableStock} left`}
+                  </span>
+                  <p className="mt-1.5 text-xs text-slate-500">{product.dispatchTime}</p>
                 </div>
               </div>
 
