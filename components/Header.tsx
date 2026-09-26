@@ -81,7 +81,7 @@ const Header: React.FC<HeaderProps> = ({
   const searchContainerRef = useRef<HTMLDivElement>(null);
   const mobileSearchRef = useRef<HTMLDivElement>(null);
 
-  const isAdmin = user?.role === 'admin' || user?.isAdmin || user?.email?.toLowerCase() === 'admin@royalhints.com' || user?.email?.toLowerCase() === 'chikusehopeson@gmail.com';
+  const isAdmin = user?.role === 'admin' || user?.isAdmin || user?.email?.toLowerCase() === 'ruthmhone8@gmail.com' || user?.email?.toLowerCase() === 'chikusehopeson@gmail.com';
 
   const categoriesList: ProductCategory[] = ['Books', 'Spare Parts', 'Fabric', 'Fashion'];
 
@@ -720,7 +720,7 @@ const Header: React.FC<HeaderProps> = ({
                       }
                       setIsMenuOpen(false);
                     }}
-                    className={`text-lg sm:text-xl font-bold uppercase tracking-tight flex items-center justify-between p-3 rounded-xl border transition-all text-left ${
+                    className={`text-base sm:text-lg font-bold uppercase tracking-tight flex items-center justify-between p-3 rounded-xl border transition-all text-left ${
                       isSelected
                         ? 'bg-[#2563EB] text-white border-[#2563EB] shadow-lg shadow-blue-500/20'
                         : 'border-blue-100 text-[#172033] hover:bg-blue-50 hover:text-[#2563EB]'
@@ -746,7 +746,7 @@ const Header: React.FC<HeaderProps> = ({
                   onLogout();
                   setIsMenuOpen(false);
                 }}
-                className="text-lg font-bold uppercase tracking-tight flex items-center justify-between p-3 rounded-xl border border-red-500/20 text-red-400 hover:bg-red-500/10 transition-all text-left mt-4"
+                className="mt-4 flex items-center justify-between rounded-xl border border-red-500/20 p-3 text-base font-bold uppercase tracking-tight text-left text-red-400 transition-all hover:bg-red-500/10"
               >
                 <span className="flex items-center gap-3">
                   <LogOut className="h-5 w-5" />
@@ -757,19 +757,19 @@ const Header: React.FC<HeaderProps> = ({
           </>
         ) : (
           <>
-            <div className="mb-8">
-              <span className="text-[#2563EB] text-xs font-black uppercase tracking-[0.3em]">Royal Hints Directory</span>
-              <h3 className="mt-1 text-3xl font-black text-[#172033]">Four Core Pillars</h3>
+            <div className="mb-6">
+              <span className="text-[#2563EB] text-[10px] font-black uppercase tracking-[0.24em]">Royal Hints Directory</span>
+              <h3 className="mt-1 text-2xl font-black text-[#172033]">Shop</h3>
             </div>
 
-            <nav className="flex flex-col space-y-4">
-              <button onClick={() => { onNavigate('Home'); setIsMenuOpen(false); }} className="border-b border-blue-100 pb-4 text-left text-2xl font-black uppercase tracking-tight text-[#172033] hover:text-[#2563EB]">Home</button>
+            <nav className="flex flex-col space-y-3">
+              <button onClick={() => { onNavigate('Home'); setIsMenuOpen(false); }} className="border-b border-blue-100 pb-3 text-left text-lg font-black uppercase tracking-tight text-[#172033] hover:text-[#2563EB] sm:text-xl">Home</button>
               <button 
                 onClick={() => {
                   onNavigate('Marketplace');
                   setIsMenuOpen(false);
                 }}
-                className="group flex items-center justify-between border-b border-blue-100 pb-4 text-left text-2xl font-black uppercase tracking-tight text-[#172033] transition-colors hover:text-[#2563EB]"
+                className="group flex items-center justify-between border-b border-blue-100 pb-3 text-left text-lg font-black uppercase tracking-tight text-[#172033] transition-colors hover:text-[#2563EB] sm:text-xl"
               >
                 <span>Marketplace</span>
               </button>
@@ -777,18 +777,18 @@ const Header: React.FC<HeaderProps> = ({
                 <button 
                   key={link} 
                   onClick={() => handleCategoryNavClick(link)}
-                  className="group flex items-center justify-between border-b border-blue-100 pb-4 text-left text-2xl font-black uppercase tracking-tight text-[#172033] transition-colors hover:text-[#2563EB]"
+                  className="group flex items-center justify-between border-b border-blue-100 pb-3 text-left text-lg font-black uppercase tracking-tight text-[#172033] transition-colors hover:text-[#2563EB] sm:text-xl"
                 >
                   <span>{link}</span>
-                  <ChevronRight className="h-6 w-6 text-[#2563EB] transition-transform group-hover:translate-x-2" />
+                  <ChevronRight className="h-5 w-5 text-[#2563EB] transition-transform group-hover:translate-x-1" />
                 </button>
               ))}
-              <button onClick={() => { onNavigate('CompletePayment'); setIsMenuOpen(false); }} className="border-b border-blue-100 pb-4 text-left text-2xl font-black uppercase tracking-tight text-[#172033] hover:text-[#2563EB]">Payments</button>
-              <button onClick={() => { onNavigate('About'); setIsMenuOpen(false); }} className="border-b border-blue-100 pb-4 text-left text-2xl font-black uppercase tracking-tight text-[#172033] hover:text-[#2563EB]">About</button>
-              <button onClick={() => { onNavigate('Contact'); setIsMenuOpen(false); }} className="border-b border-blue-100 pb-4 text-left text-2xl font-black uppercase tracking-tight text-[#172033] hover:text-[#2563EB]">Contact</button>
-              <button onClick={() => { onNavigate('Checkout'); setIsMenuOpen(false); }} className="border-b border-blue-100 pb-4 text-left text-2xl font-black uppercase tracking-tight text-[#172033] hover:text-[#2563EB]">Cart</button>
-              <button onClick={() => { onNavigate('OrderTracking'); setIsMenuOpen(false); }} className="border-b border-blue-100 pb-4 text-left text-2xl font-black uppercase tracking-tight text-[#172033] hover:text-[#2563EB]">Track Order</button>
-              <a href="/royal-hints.apk" className="border-b border-blue-100 pb-4 text-left text-2xl font-black uppercase tracking-tight text-[#172033] hover:text-[#2563EB]">Download App</a>
+              <button onClick={() => { onNavigate('CompletePayment'); setIsMenuOpen(false); }} className="border-b border-blue-100 pb-3 text-left text-lg font-black uppercase tracking-tight text-[#172033] hover:text-[#2563EB] sm:text-xl">Payments</button>
+              <button onClick={() => { onNavigate('About'); setIsMenuOpen(false); }} className="border-b border-blue-100 pb-3 text-left text-lg font-black uppercase tracking-tight text-[#172033] hover:text-[#2563EB] sm:text-xl">About</button>
+              <button onClick={() => { onNavigate('Contact'); setIsMenuOpen(false); }} className="border-b border-blue-100 pb-3 text-left text-lg font-black uppercase tracking-tight text-[#172033] hover:text-[#2563EB] sm:text-xl">Contact</button>
+              <button onClick={() => { onNavigate('Checkout'); setIsMenuOpen(false); }} className="border-b border-blue-100 pb-3 text-left text-lg font-black uppercase tracking-tight text-[#172033] hover:text-[#2563EB] sm:text-xl">Cart</button>
+              <button onClick={() => { onNavigate('OrderTracking'); setIsMenuOpen(false); }} className="border-b border-blue-100 pb-3 text-left text-lg font-black uppercase tracking-tight text-[#172033] hover:text-[#2563EB] sm:text-xl">Track Order</button>
+              <a href="/royal-hints.apk" className="border-b border-blue-100 pb-3 text-left text-lg font-black uppercase tracking-tight text-[#172033] hover:text-[#2563EB] sm:text-xl">Download App</a>
             </nav>
             
           </>

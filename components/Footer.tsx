@@ -35,10 +35,10 @@ const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
           {/* Brand Col */}
           <div className="space-y-8">
             <div className="flex items-center gap-3">
-              <span className="text-2xl font-bold tracking-tighter text-white">Royal Hints</span>
+              <span className="text-2xl font-bold tracking-tighter text-white">Royal Marketplace</span>
             </div>
             <p className="text-gray-400 text-sm leading-relaxed max-w-xs">
-              Curated luxury and industrial excellence across Books, Spare Parts, Fabric, and Sartorial Fashion.
+               Browse quality products at best prices.
             </p>
             <div className="flex gap-4">
               <button className="h-10 w-10 rounded-full border border-white/10 flex items-center justify-center hover:bg-[#2563EB] hover:border-[#2563EB] hover:text-white transition-all shadow-sm">
@@ -55,7 +55,7 @@ const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
 
           {/* Links Col 1 */}
           <div>
-            <h4 className="font-bold text-sm uppercase tracking-widest mb-8 text-[#2563EB]">The 4 Pillars</h4>
+            <h4 className="font-bold text-sm uppercase tracking-widest mb-8 text-[#2563EB]">Shop</h4>
             <ul className="space-y-4 text-sm text-gray-400">
               {['Books', 'Spare Parts', 'Fabric', 'Fashion'].map((category) => <li key={category}><button onClick={() => onNavigate?.('Home')} className="hover:text-white transition-colors">{category}</button></li>)}
             </ul>
@@ -63,18 +63,18 @@ const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
 
           {/* Links Col 2 */}
           <div>
-            <h4 className="font-bold text-sm uppercase tracking-widest mb-8 text-[#2563EB]">Client Support</h4>
+            <h4 className="font-bold text-sm uppercase tracking-widest mb-8 text-[#2563EB]">Customer Care</h4>
             <ul className="space-y-4 text-sm text-gray-400">
               <li><button onClick={() => onNavigate?.('Privacy')} className="hover:text-white transition-colors">Privacy Policy</button></li>
               <li><button onClick={() => onNavigate?.('Terms')} className="hover:text-white transition-colors">Terms and Conditions</button></li>
-              <li><button onClick={() => onNavigate?.('OrderTracking')} className="hover:text-white transition-colors">Order Tracking</button></li>
+              <li><button onClick={() => onNavigate?.('OrderTracking')} className="hover:text-white transition-colors">Track My Older</button></li>
               <li><button onClick={() => onNavigate?.('Contact')} className="hover:text-white transition-colors">Support</button></li>
             </ul>
           </div>
 
           {/* Newsletter Col */}
           <div>
-            <h4 className="font-bold text-sm uppercase tracking-widest mb-8 text-[#2563EB]">Royal Team</h4>
+            <h4 className="font-bold text-sm uppercase tracking-widest mb-8 text-[#2563EB]">Royal Ecosystem</h4>
             <p className="text-gray-400 text-sm mb-6">Join the royal registry for verified arrivals and collector bulletins.</p>
             <form className="relative" onSubmit={handleSubmit} noValidate>
               <div className="relative">
