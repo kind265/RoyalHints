@@ -88,7 +88,7 @@ const TrendingGrid: React.FC<TrendingGridProps> = ({
               Trending now
             </h2>
             <p className="text-gray-500 text-xs sm:text-sm font-light">
-              Select any product to inspect live warehouse counts, variant allocations, and dispatch times.
+              Select any product to purchase.
             </p>
           </div>
 

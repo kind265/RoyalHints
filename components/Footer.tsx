@@ -75,7 +75,7 @@ const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
           {/* Newsletter Col */}
           <div>
             <h4 className="font-bold text-sm uppercase tracking-widest mb-8 text-[#2563EB]">Royal Ecosystem</h4>
-            <p className="text-gray-400 text-sm mb-6">Join the royal registry for verified arrivals and collector bulletins.</p>
+            <p className="text-gray-400 text-sm mb-6">Join the royal registry for verified arrivals.</p>
             <form className="relative" onSubmit={handleSubmit} noValidate>
               <div className="relative">
                 <input 
