@@ -208,6 +208,39 @@ export const apiClient = {
     }
   },
 
+  async getPaidOrderReceipts(): Promise<ShipmentTracking[]> {
+    try {
+      const res = await fetch(`${API_BASE}/tracking/admin/receipts`);
+      const json = await res.json();
+      return json.success ? json.data : [];
+    } catch (err) {
+      console.error('Fetch order receipts error:', err);
+      return [];
+    }
+  },
+
+  async confirmDeliveryByQr(token: string): Promise<{ orderId: string; trackingNumber: string; status: string; deliveryConfirmedAt?: string } | null> {
+    try {
+      const res = await fetch(`${API_BASE}/tracking/scan/${encodeURIComponent(token)}`, { method: 'POST' });
+      const json = await res.json();
+      return json.success ? json.data : null;
+    } catch (err) {
+      console.error('QR delivery confirmation error:', err);
+      return null;
+    }
+  },
+
+  async completePayChanguCheckout(reference: string): Promise<ShipmentTracking | null> {
+    try {
+      const res = await fetch(`${API_BASE}/payments/paychangu/complete/${encodeURIComponent(reference)}`, { method: 'POST' });
+      const json = await res.json();
+      return json.success ? json.data : null;
+    } catch (err) {
+      console.error('PayChangu payment completion error:', err);
+      return null;
+    }
+  },
+
   // Quotations
   async getQuotations(): Promise<QuotationRequest[]> {
     try {

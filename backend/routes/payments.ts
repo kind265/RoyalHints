@@ -1,5 +1,6 @@
 import { Router, Request, Response } from 'express';
 import crypto from 'crypto';
+import { postgresStore } from '../db/store';
 
 export const paymentsRouter = Router();
 
@@ -51,6 +52,25 @@ const getProviderMessage = (payload: any) => {
   return payload.message || payload.error || payload.data?.message || '';
 };
 
+const verifyPaidCheckout = async (reference: string) => {
+  const pending = await postgresStore.getPendingCheckout(reference);
+  if (!pending) throw new Error('No pending order found for this payment reference.');
+  const secretKey = process.env.PAYCHANGU_SECRET_KEY;
+  const apiBaseUrl = (process.env.PAYCHANGU_API_BASE_URL || 'https://api.paychangu.com').replace(/\/$/, '');
+  const response = await fetch(`${apiBaseUrl}/verify-payment/${encodeURIComponent(reference)}`, {
+    headers: { Accept: 'application/json', Authorization: `Bearer ${secretKey}` }
+  });
+  const result = await response.json() as any;
+  const payment = result?.data;
+  if (!response.ok || String(payment?.status || '').toLowerCase() !== 'success') {
+    throw new Error(getProviderMessage(result) || 'PayChangu has not confirmed this payment as successful.');
+  }
+  if (String(payment.tx_ref || '') !== reference) throw new Error('PayChangu payment reference did not match the order.');
+  if (String(payment.currency || '').toUpperCase() !== pending.currency.toUpperCase()) throw new Error('PayChangu payment currency did not match the order currency.');
+  if (toNumber(payment.amount) < pending.amount) throw new Error('The verified payment amount is lower than the order total.');
+  return postgresStore.completePaidCheckout(reference);
+};
+
 const verifyPayChanguSignature = (req: Request, body: any) => {
   const secret = process.env.PAYCHANGU_WEBHOOK_SECRET;
   const signatureHeader = req.headers['x-paychangu-signature'] || req.headers['x-signature'] || req.headers['signature'];
@@ -66,16 +86,17 @@ const verifyPayChanguSignature = (req: Request, body: any) => {
 };
 
 const recordTransaction = (payload: any) => {
-  const reference = payload?.reference || payload?.tx_ref || payload?.transaction_ref || payload?.id || `paychangu-${Date.now()}`;
+  const details = payload?.data && typeof payload.data === 'object' ? payload.data : payload;
+  const reference = details?.tx_ref || payload?.tx_ref || details?.transaction_ref || payload?.transaction_ref || details?.reference || payload?.reference || details?.id || payload?.id || `paychangu-${Date.now()}`;
   const normalized = {
-    id: payload?.id || payload?.transactionId || payload?.reference || reference,
+    id: details?.id || payload?.id || details?.transaction_id || payload?.transaction_id || reference,
     provider: 'paychangu',
-    currency: payload?.currency || process.env.PAYCHANGU_CURRENCY || 'MWK',
-    amount: toNumber(payload?.amount ?? payload?.total_amount ?? payload?.totalAmount, 0),
+    currency: details?.currency || payload?.currency || process.env.PAYCHANGU_CURRENCY || 'MWK',
+    amount: toNumber(details?.amount ?? payload?.amount ?? payload?.total_amount ?? payload?.totalAmount, 0),
     reference,
-    status: normalizeStatus(payload?.status ?? payload?.payment_status ?? payload?.state),
-    customer: payload?.customer || payload?.email || payload?.payer || null,
-    metadata: payload?.metadata || {},
+    status: normalizeStatus(details?.status ?? payload?.status ?? payload?.payment_status ?? payload?.state),
+    customer: details?.customer || payload?.customer || payload?.email || payload?.payer || null,
+    metadata: details?.meta || payload?.meta || payload?.metadata || {},
     confirmedAt: new Date().toISOString(),
     raw: payload
   };
@@ -155,6 +176,12 @@ paymentsRouter.post('/paychangu/initiate', async (req: Request, res: Response) =
       });
     }
 
+    const checkoutOrder = metadata?.checkoutOrder;
+    if (!checkoutOrder || !checkoutOrder.destination || !Array.isArray(checkoutOrder.items) || checkoutOrder.items.length === 0) {
+      return res.status(400).json({ success: false, message: 'Order delivery and item details are required before payment.' });
+    }
+    await postgresStore.savePendingCheckout(finalReference, finalAmount, currency, checkoutOrder);
+
     return res.json({
       success: true,
       data: {
@@ -176,6 +203,17 @@ paymentsRouter.post('/paychangu/initiate', async (req: Request, res: Response) =
   }
 });
 
+paymentsRouter.post('/paychangu/complete/:reference', async (req: Request, res: Response) => {
+  try {
+    const reference = String(req.params.reference || '').trim();
+    if (!reference) return res.status(400).json({ success: false, message: 'Payment reference is required.' });
+    const shipment = await verifyPaidCheckout(reference);
+    return res.json({ success: true, message: 'Payment verified and order receipt created.', data: shipment });
+  } catch (error: any) {
+    return res.status(400).json({ success: false, message: error?.message || 'Payment verification failed.' });
+  }
+});
+
 paymentsRouter.post('/paychangu/verify', async (req: Request, res: Response) => {
   try {
     const payload = req.body ?? {};
@@ -189,15 +227,25 @@ paymentsRouter.post('/paychangu/verify', async (req: Request, res: Response) => 
     }
 
     const transaction = recordTransaction(payload);
+    let receipt: any = null;
+    if (transaction.status === 'success') {
+      try {
+        receipt = await verifyPaidCheckout(String(transaction.reference));
+      } catch (error) {
+        console.warn('PayChangu callback received before order finalization:', error);
+      }
+    }
     return res.json({
       success: true,
-      message: 'PayChangu webhook verified and recorded.',
+      message: 'PayChangu callback verified and recorded.',
       data: {
         provider: 'paychangu',
         currency: transaction.currency,
         status: transaction.status,
         reference: transaction.reference,
-        confirmed: transaction.status === 'success'
+        confirmed: transaction.status === 'success',
+        orderId: receipt?.orderId || null,
+        trackingNumber: receipt?.trackingNumber || null
       }
     });
   } catch (error: any) {
@@ -208,6 +256,25 @@ paymentsRouter.post('/paychangu/verify', async (req: Request, res: Response) => 
     });
   }
 });
+
+const handlePayChanguBrowserCallback = async (req: Request, res: Response) => {
+  const callbackData = { ...(req.body || {}), ...(req.query || {}) };
+  const transaction = recordTransaction(callbackData);
+  const baseUrl = getPublicBaseUrl().replace(/\/$/, '');
+  if (!transaction.reference || transaction.status === 'cancelled') {
+    return res.redirect(`${baseUrl}/checkout?payment=failed`);
+  }
+  try {
+    await verifyPaidCheckout(String(transaction.reference));
+    return res.redirect(`${baseUrl}/checkout?payment=return&tx_ref=${encodeURIComponent(String(transaction.reference))}`);
+  } catch (error) {
+    console.warn('PayChangu browser callback could not confirm payment:', error);
+    return res.redirect(`${baseUrl}/checkout?payment=return&tx_ref=${encodeURIComponent(String(transaction.reference))}`);
+  }
+};
+
+paymentsRouter.get('/paychangu/callback', handlePayChanguBrowserCallback);
+paymentsRouter.post('/paychangu/callback', handlePayChanguBrowserCallback);
 
 paymentsRouter.get('/paychangu/transactions/:reference', (req: Request, res: Response) => {
   const reference = String(req.params.reference || '');

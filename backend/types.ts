@@ -98,6 +98,9 @@ export interface ShipmentTracking {
   dispatchedDate?: string;
   orderDate?: string;
   paymentMethod?: string;
+  paymentReference?: string;
+  scanToken?: string;
+  paidAt?: string;
   deliveryConfirmedByCustomer?: boolean;
   deliveryConfirmedAt?: string;
   items: {

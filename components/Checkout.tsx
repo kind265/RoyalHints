@@ -1,7 +1,8 @@
 
 import React, { useState, useEffect } from 'react';
-import { Product, User } from '../types';
+import { Product, ShipmentTracking, User } from '../types';
 import { ChevronLeft, Lock, ShieldCheck, CreditCard, Truck, CheckCircle2, ArrowRight, Zap, Landmark, X, Minus, Plus } from 'lucide-react';
+import { apiClient } from '../backend/api-client';
 
 interface CheckoutProps {
   cartItems: Product[];
@@ -10,16 +11,10 @@ interface CheckoutProps {
   onComplete: () => void;
   onRemoveFromCart?: (id: string) => void;
   onUpdateCartQuantity?: (id: string, sku: string, change: number) => void;
-  onOrderPlaced?: (orderData: { 
-    orderId: string; 
-    trackingNumber: string; 
-    items: Product[]; 
-    shippingAddress: string;
-    buyerUser?: User;
-  }) => void;
+  onPaymentCompleted?: (shipment: ShipmentTracking) => void;
 }
 
-const Checkout: React.FC<CheckoutProps> = ({ cartItems, user, onNavigate, onComplete, onRemoveFromCart, onUpdateCartQuantity, onOrderPlaced }) => {
+const Checkout: React.FC<CheckoutProps> = ({ cartItems, user, onNavigate, onComplete, onRemoveFromCart, onUpdateCartQuantity, onPaymentCompleted }) => {
   const [shippingMethod, setShippingMethod] = useState('standard');
   const [paymentMethod, setPaymentMethod] = useState<'card' | 'paychangu'>('card');
   const [isPayChanguLoading, setIsPayChanguLoading] = useState(false);
@@ -28,6 +23,8 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, user, onNavigate, onComp
   const [orderConfirmed, setOrderConfirmed] = useState(false);
   const [generatedTracking, setGeneratedTracking] = useState('');
   const [generatedOrderId, setGeneratedOrderId] = useState('');
+  const [paidShipment, setPaidShipment] = useState<ShipmentTracking | null>(null);
+  const [isVerifyingPayment, setIsVerifyingPayment] = useState(false);
 
   const [addressData, setAddressData] = useState({
     email: '',
@@ -47,21 +44,40 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, user, onNavigate, onComp
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const status = params.get('status');
     const payment = params.get('payment');
-    const message = params.get('message');
-
-    if (status === 'success' || payment === 'success') {
-      setGatewayStatus('success');
-      setGatewayMessage(message || 'Your PayChangu payment was successful. Your order is now being processed in MWK.');
-      setOrderConfirmed(true);
-      return;
-    }
+    const status = params.get('status')?.toLowerCase();
+    const reference = params.get('tx_ref') || params.get('reference');
 
     if (status === 'cancelled' || status === 'failed' || payment === 'cancelled' || payment === 'failed') {
       setGatewayStatus('cancelled');
-      setGatewayMessage(message || 'Your PayChangu payment was cancelled or failed. You can try again or use card payment instead.');
+      setGatewayMessage('Payment was not completed. You can return to checkout and try again.');
+      return;
     }
+
+    if (!reference) {
+      if (payment === 'return' || status === 'success' || payment === 'success') {
+        setGatewayStatus('pending');
+        setGatewayMessage('Payment reference was not returned. Please contact support before trying to pay again.');
+      }
+      return;
+    }
+
+    setIsVerifyingPayment(true);
+    apiClient.completePayChanguCheckout(reference).then(shipment => {
+      if (!shipment) {
+        setGatewayStatus('pending');
+        setGatewayMessage('We could not verify this payment yet. Please contact support with your payment reference.');
+        return;
+      }
+      setPaidShipment(shipment);
+      setGeneratedTracking(shipment.trackingNumber);
+      setGeneratedOrderId(shipment.orderId);
+      setGatewayStatus('success');
+      setGatewayMessage('PayChangu confirmed your payment. Your order receipt and tracking ID are now ready.');
+      setOrderConfirmed(true);
+      onPaymentCompleted?.(shipment);
+      onComplete();
+    }).finally(() => setIsVerifyingPayment(false));
   }, []);
 
   const handleHostedPayment = async () => {
@@ -83,13 +99,29 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, user, onNavigate, onComp
           firstName,
           lastName,
           reference: `RH-${Date.now()}`,
-          callbackUrl: `${window.location.origin}/checkout?status=success&payment=success`,
-          returnUrl: `${window.location.origin}/checkout?status=success&payment=success`,
+          callbackUrl: `${window.location.origin}/api/payments/paychangu/callback`,
+          returnUrl: `${window.location.origin}/checkout?payment=return`,
           metadata: {
             orderType: 'checkout',
             currency: 'MWK',
             paymentMethod,
-            items: cartItems.map(item => ({ id: item.id, name: item.name, price: item.price, quantity: item.quantity || 1 }))
+            checkoutOrder: {
+              customer: {
+                email: addressData.email,
+                firstName: addressData.firstName,
+                lastName: addressData.lastName
+              },
+              destination: `${addressData.address}, ${addressData.city} ${addressData.postalCode}`,
+              items: cartItems.map(item => ({
+                id: item.id,
+                name: item.name,
+                category: item.category,
+                image: item.image,
+                sku: item.sku,
+                price: item.price,
+                quantity: item.quantity || 1
+              }))
+            }
           }
         })
       });
@@ -114,6 +146,10 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, user, onNavigate, onComp
 
     await handleHostedPayment();
   };
+
+  if (isVerifyingPayment) {
+    return <div className="flex min-h-[65vh] flex-col items-center justify-center px-6 text-center"><span className="h-10 w-10 animate-spin rounded-full border-4 border-blue-100 border-t-[#2563EB]" /><h1 className="mt-6 text-2xl font-black text-[#172033]">Verifying your payment</h1><p className="mt-2 max-w-md text-sm leading-6 text-slate-500">We are checking the transaction directly with PayChangu before creating your order ID.</p></div>;
+  }
 
   if (gatewayStatus === 'cancelled') {
     return (
@@ -141,7 +177,7 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, user, onNavigate, onComp
     );
   }
 
-  if (orderConfirmed || gatewayStatus === 'success') {
+  if (orderConfirmed && gatewayStatus === 'success' && paidShipment) {
     return (
       <div className="min-h-screen bg-white flex flex-col items-center justify-center px-4 sm:px-6 py-24 text-center animate-in fade-in zoom-in-95 duration-700">
         <div className="h-20 w-20 sm:h-24 sm:w-24 bg-gradient-to-tr from-[#2563EB] to-blue-400 text-white rounded-full flex items-center justify-center mb-6 shadow-2xl shadow-blue-500/30 ring-8 ring-blue-50">
@@ -153,8 +189,8 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, user, onNavigate, onComp
         {/* Buyer Identity & Consignment Voucher */}
         <div className="bg-gradient-to-br from-gray-900 to-[#1A1A1A] text-white p-6 sm:p-8 rounded-2xl max-w-lg w-full mb-8 shadow-2xl border border-white/10 text-left font-mono text-xs space-y-4">
           <div className="flex items-center justify-between pb-3 border-b border-white/10">
-              <span className="text-amber-400 font-black tracking-widest text-[11px] uppercase flex items-center gap-1.5">
-              <ShieldCheck className="h-4 w-4" /> Registered Buyer Account
+              <span className="text-blue-200 font-black tracking-widest text-[11px] uppercase flex items-center gap-1.5">
+              <ShieldCheck className="h-4 w-4" /> Paid order receipt
             </span>
             <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] font-bold">Active</span>
           </div>
@@ -175,13 +211,13 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, user, onNavigate, onComp
           </div>
 
           <p className="text-[11px] text-gray-300 font-sans leading-relaxed pt-2 border-t border-white/10">
-            {gatewayStatus === 'success' ? gatewayMessage : 'Your order has been received. Keep your order reference and tracking number for support.'}
+            {gatewayMessage}
           </p>
         </div>
 
         <div className="flex flex-col sm:flex-row gap-4 w-full max-w-md">
           <button 
-            onClick={() => onNavigate('Dashboard', 'tracking')}
+            onClick={() => onNavigate('OrderTracking')}
             className="flex-1 bg-[#2563EB] text-white px-6 py-4 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-[#1D4ED8] transition-all shadow-xl shadow-blue-500/20 flex items-center justify-center gap-2"
           >
             <Truck className="h-4 w-4" /> Track Your Order

@@ -134,10 +134,21 @@ class PostgresStore {
         dispatched_date text,
         order_date text,
         payment_method text,
+        payment_reference text UNIQUE,
+        scan_token text UNIQUE,
+        paid_at text,
         delivery_confirmed_by_customer boolean DEFAULT false,
         delivery_confirmed_at text,
         items jsonb DEFAULT '[]'::jsonb,
         checkpoints jsonb DEFAULT '[]'::jsonb,
+        created_at timestamp DEFAULT now()
+      );
+
+      CREATE TABLE IF NOT EXISTS rh_pending_checkout_orders (
+        payment_reference text PRIMARY KEY,
+        amount double precision NOT NULL,
+        currency text NOT NULL,
+        order_data jsonb NOT NULL,
         created_at timestamp DEFAULT now()
       );
 
@@ -282,6 +293,9 @@ class PostgresStore {
         ADD COLUMN IF NOT EXISTS dispatched_date text,
         ADD COLUMN IF NOT EXISTS order_date text,
         ADD COLUMN IF NOT EXISTS payment_method text,
+        ADD COLUMN IF NOT EXISTS payment_reference text,
+        ADD COLUMN IF NOT EXISTS scan_token text,
+        ADD COLUMN IF NOT EXISTS paid_at text,
         ADD COLUMN IF NOT EXISTS delivery_confirmed_by_customer boolean DEFAULT false,
         ADD COLUMN IF NOT EXISTS delivery_confirmed_at text,
         ADD COLUMN IF NOT EXISTS items jsonb DEFAULT '[]'::jsonb,
@@ -334,6 +348,11 @@ class PostgresStore {
         ADD COLUMN IF NOT EXISTS role text DEFAULT 'buyer',
         ADD COLUMN IF NOT EXISTS is_admin boolean DEFAULT false,
         ADD COLUMN IF NOT EXISTS created_at timestamp DEFAULT now();
+    `);
+
+    await pool.query(`
+      CREATE UNIQUE INDEX IF NOT EXISTS shipments_payment_reference_uq ON shipments(payment_reference);
+      CREATE UNIQUE INDEX IF NOT EXISTS shipments_scan_token_uq ON shipments(scan_token);
     `);
   }
 
@@ -607,6 +626,8 @@ class PostgresStore {
         dispatchedDate: r.dispatchedDate ?? undefined,
         orderDate: r.orderDate ?? undefined,
         paymentMethod: r.paymentMethod ?? undefined,
+        paymentReference: r.paymentReference ?? undefined,
+        paidAt: r.paidAt ?? undefined,
         deliveryConfirmedByCustomer: r.deliveryConfirmedByCustomer ?? false,
         deliveryConfirmedAt: r.deliveryConfirmedAt ?? undefined,
         items: (r.items as any[]) || [],
@@ -645,6 +666,9 @@ class PostgresStore {
         dispatchedDate: shipment.dispatchedDate,
         orderDate: shipment.orderDate,
         paymentMethod: shipment.paymentMethod,
+        paymentReference: shipment.paymentReference,
+        scanToken: shipment.scanToken,
+        paidAt: shipment.paidAt,
         deliveryConfirmedByCustomer: shipment.deliveryConfirmedByCustomer ?? false,
         deliveryConfirmedAt: shipment.deliveryConfirmedAt,
         items: shipment.items,
@@ -655,6 +679,167 @@ class PostgresStore {
       console.error('PostgreSQL createShipment error:', error);
       throw error;
     }
+  }
+
+  async savePendingCheckout(reference: string, amount: number, currency: string, orderData: Record<string, unknown>) {
+    await this.ensureSeeded();
+    await pool.query(
+      `INSERT INTO rh_pending_checkout_orders (payment_reference, amount, currency, order_data)
+       VALUES ($1, $2, $3, $4::jsonb)
+       ON CONFLICT (payment_reference) DO NOTHING`,
+      [reference, amount, currency, JSON.stringify(orderData)]
+    );
+  }
+
+  async getPendingCheckout(reference: string) {
+    await this.ensureSeeded();
+    const result = await pool.query(
+      `SELECT payment_reference, amount, currency, order_data
+       FROM rh_pending_checkout_orders WHERE payment_reference = $1`,
+      [reference]
+    );
+    const row = result.rows[0];
+    if (!row) return null;
+    return {
+      reference: row.payment_reference as string,
+      amount: Number(row.amount),
+      currency: row.currency as string,
+      orderData: row.order_data as Record<string, any>
+    };
+  }
+
+  async completePaidCheckout(reference: string): Promise<ShipmentTracking> {
+    await this.ensureSeeded();
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+      const existing = await client.query('SELECT * FROM shipments WHERE payment_reference = $1 FOR UPDATE', [reference]);
+      if (existing.rows[0]) {
+        const row = existing.rows[0];
+        await client.query('COMMIT');
+        return {
+          id: row.id,
+          trackingNumber: row.tracking_number,
+          orderId: row.order_id,
+          status: row.status,
+          destination: row.destination,
+          paymentMethod: row.payment_method,
+          paymentReference: row.payment_reference,
+          paidAt: row.paid_at,
+          items: row.items || [],
+          checkpoints: row.checkpoints || []
+        } as ShipmentTracking;
+      }
+
+      const pendingResult = await client.query(
+        `SELECT amount, currency, order_data FROM rh_pending_checkout_orders
+         WHERE payment_reference = $1 FOR UPDATE`,
+        [reference]
+      );
+      const pending = pendingResult.rows[0];
+      if (!pending) throw new Error('No pending checkout exists for this payment reference.');
+
+      const data = pending.order_data as Record<string, any>;
+      const destination = String(data.destination || '').trim();
+      const items = Array.isArray(data.items) ? data.items : [];
+      if (!destination || items.length === 0) throw new Error('Pending checkout is missing delivery or item details.');
+
+      const paidAt = new Date().toISOString();
+      const formattedDate = new Date(paidAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+      const shipment: ShipmentTracking = {
+        id: randomUUID(),
+        trackingNumber: `RH-TRK-${randomBytes(5).toString('hex').toUpperCase()}`,
+        orderId: `RH-${randomBytes(4).toString('hex').toUpperCase()}`,
+        status: 'Paid',
+        carrier: 'Royal Hints Logistics',
+        serviceType: 'Courier Delivery',
+        origin: 'Royal Hints Dispatch',
+        destination,
+        orderDate: formattedDate,
+        estimatedDelivery: 'Processing for dispatch',
+        paymentMethod: 'PayChangu',
+        paymentReference: reference,
+        paidAt,
+        scanToken: randomBytes(32).toString('hex'),
+        deliveryConfirmedByCustomer: false,
+        items,
+        checkpoints: [{
+          id: randomUUID(),
+          title: 'Payment Verified',
+          location: 'Royal Hints',
+          timestamp: `${formattedDate} • Paid`,
+          completed: true,
+          isCurrent: true
+        }]
+      };
+
+      await client.query(
+        `INSERT INTO shipments (id, tracking_number, order_id, carrier, service_type, status, origin,
+          destination, estimated_delivery, order_date, payment_method, payment_reference, scan_token,
+          paid_at, delivery_confirmed_by_customer, items, checkpoints)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,false,$15::jsonb,$16::jsonb)`,
+        [shipment.id, shipment.trackingNumber, shipment.orderId, shipment.carrier, shipment.serviceType,
+          shipment.status, shipment.origin, shipment.destination, shipment.estimatedDelivery,
+          shipment.orderDate, shipment.paymentMethod, shipment.paymentReference, shipment.scanToken,
+          shipment.paidAt, JSON.stringify(shipment.items), JSON.stringify(shipment.checkpoints)]
+      );
+      await client.query('DELETE FROM rh_pending_checkout_orders WHERE payment_reference = $1', [reference]);
+      await client.query('COMMIT');
+      return shipment;
+    } catch (error) {
+      await client.query('ROLLBACK');
+      throw error;
+    } finally {
+      client.release();
+    }
+  }
+
+  async getPaidOrderReceipts(): Promise<ShipmentTracking[]> {
+    await this.ensureSeeded();
+    const result = await pool.query(
+      `SELECT id, tracking_number, order_id, status, destination, order_date, payment_method,
+              payment_reference, scan_token, paid_at, items, checkpoints
+       FROM shipments WHERE scan_token IS NOT NULL ORDER BY created_at DESC`
+    );
+    return result.rows.map(row => ({
+      id: row.id,
+      trackingNumber: row.tracking_number,
+      orderId: row.order_id,
+      status: row.status,
+      destination: row.destination,
+      orderDate: row.order_date,
+      paymentMethod: row.payment_method,
+      paymentReference: row.payment_reference,
+      scanToken: row.scan_token,
+      paidAt: row.paid_at,
+      items: row.items || [],
+      checkpoints: row.checkpoints || []
+    } as ShipmentTracking));
+  }
+
+  async confirmDeliveryByScanToken(token: string): Promise<ShipmentTracking | null> {
+    await this.ensureSeeded();
+    const shipmentResult = await pool.query('SELECT tracking_number FROM shipments WHERE scan_token = $1', [token]);
+    const trackingNumber = shipmentResult.rows[0]?.tracking_number as string | undefined;
+    if (!trackingNumber) return null;
+    const existing = await this.getShipmentByTrackingNumber(trackingNumber);
+    if (!existing) return null;
+    if (existing.status === 'Delivered') return existing;
+    const formattedDate = new Date().toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+    return this.updateShipment(trackingNumber, {
+      status: 'Delivered',
+      deliveryConfirmedByCustomer: true,
+      deliveryConfirmedAt: new Date().toISOString(),
+      estimatedDelivery: `Delivered & Confirmed on ${formattedDate}`,
+      checkpoints: [...(existing.checkpoints || []), {
+        id: randomUUID(),
+        title: 'Delivery Confirmed by QR Scan',
+        location: existing.destination,
+        timestamp: `${formattedDate} • QR Scan`,
+        completed: true,
+        isCurrent: true
+      }]
+    });
   }
 
   async updateShipment(idOrTracking: string, updates: Partial<ShipmentTracking>): Promise<ShipmentTracking | null> {

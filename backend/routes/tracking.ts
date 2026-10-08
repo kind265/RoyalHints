@@ -3,6 +3,11 @@ import { postgresStore } from '../db/store';
 import { ShipmentTracking } from '../types';
 
 export const trackingRouter = Router();
+const getSessionUser = async (req: Request) => {
+  const cookie = req.headers.cookie?.split(';').map(value => value.trim()).find(value => value.startsWith('royal_hints_session='));
+  const token = cookie?.slice('royal_hints_session='.length);
+  return token ? postgresStore.getSession(token) : undefined;
+};
 
 // GET all shipments
 trackingRouter.get('/', async (req: Request, res: Response) => {
@@ -15,6 +20,42 @@ trackingRouter.get('/', async (req: Request, res: Response) => {
     });
   } catch (error: any) {
     res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+trackingRouter.get('/admin/receipts', async (req: Request, res: Response) => {
+  try {
+    const user = await getSessionUser(req);
+    if (!user || !(user.isAdmin || user.role === 'admin')) {
+      return res.status(403).json({ success: false, message: 'Administrator access is required.' });
+    }
+    const receipts = await postgresStore.getPaidOrderReceipts();
+    return res.json({ success: true, count: receipts.length, data: receipts });
+  } catch (error: any) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+trackingRouter.post('/scan/:token', async (req: Request, res: Response) => {
+  try {
+    const token = String(req.params.token || '');
+    if (!/^[a-f0-9]{64}$/i.test(token)) {
+      return res.status(400).json({ success: false, message: 'Invalid delivery QR code.' });
+    }
+    const shipment = await postgresStore.confirmDeliveryByScanToken(token);
+    if (!shipment) return res.status(404).json({ success: false, message: 'No paid order matches this delivery QR code.' });
+    return res.json({
+      success: true,
+      message: 'Delivery confirmed. This order is now marked as delivered.',
+      data: {
+        orderId: shipment.orderId,
+        trackingNumber: shipment.trackingNumber,
+        status: shipment.status,
+        deliveryConfirmedAt: shipment.deliveryConfirmedAt
+      }
+    });
+  } catch (error: any) {
+    return res.status(500).json({ success: false, message: error.message });
   }
 });
 

@@ -48,6 +48,7 @@ import OrderTracking from './OrderTracking';
 import ShopByQuotation from './ShopByQuotation';
 import NameWhatYouWant from './NameWhatYouWant';
 import AdminAnalytics from './AdminAnalytics';
+import OrderReceipts from './OrderReceipts';
 import { apiClient } from '../backend/api-client';
 
 interface DashboardProps {
@@ -739,6 +740,8 @@ const Dashboard: React.FC<DashboardProps> = ({
                 onConfirmDelivery={onConfirmDelivery}
               />
             )}
+
+            {activeTab === 'receipts' && isAdmin && <OrderReceipts />}
 
             {/* 2. SHOP BY QUOTATION */}
             {activeTab === 'quotation' && (

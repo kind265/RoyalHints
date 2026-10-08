@@ -28,7 +28,8 @@ import {
   PlusCircle,
   Award,
   BarChart3,
-  MessageCircle
+  MessageCircle,
+  QrCode
 } from 'lucide-react';
 import { User, Product, ProductCategory, ShipmentTracking, QuotationRequest, BusinessPost } from '../types';
 import { CATEGORIES } from '../constants';
@@ -113,6 +114,7 @@ const Header: React.FC<HeaderProps> = ({
       { id: 'analytics', icon: BarChart3, label: 'Analytics Summary' },
       { id: 'my-posts', icon: Briefcase, label: 'Venture Management' },
       { id: 'post', icon: PlusCircle, label: 'Post Inventory' },
+      { id: 'receipts', icon: QrCode, label: 'Order QR Receipts' },
     ] : []),
     { id: 'cart', icon: ShoppingCart, label: 'Shopping Bag', badge: cartCount > 0 ? `${cartCount}` : undefined },
     { id: 'marketplace-link', icon: Store, label: 'Marketplace' },

@@ -15,6 +15,7 @@ import PublicLookupPage from './components/PublicLookupPage';
 import FreshStock from './components/FreshStock';
 import QualitySection from './components/QualitySection';
 import LegalPage from './components/LegalPage';
+import DeliveryQrConfirmation from './components/DeliveryQrConfirmation';
 import NewItemNotifications from './components/NewItemNotifications';
 import { Bot, MessageCircle } from 'lucide-react';
 import { 
@@ -30,7 +31,7 @@ import {
 } from './types';
 import { apiClient } from './backend/api-client';
 
-type Page = 'Home' | 'Admin' | 'Dashboard' | 'Marketplace' | 'Checkout' | 'About' | 'Contact' | 'OrderTracking' | 'CompletePayment' | 'Terms' | 'Privacy';
+type Page = 'Home' | 'Admin' | 'Dashboard' | 'Marketplace' | 'Checkout' | 'About' | 'Contact' | 'OrderTracking' | 'CompletePayment' | 'Terms' | 'Privacy' | 'DeliveryConfirmation';
 
 const App: React.FC = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -40,6 +41,7 @@ const App: React.FC = () => {
       const path = window.location.pathname.toLowerCase();
       const search = window.location.search.toLowerCase();
       const hash = window.location.hash.toLowerCase();
+      if (path.startsWith('/delivery-confirmation/')) return 'DeliveryConfirmation';
       if (path.startsWith('/admin') || search.includes('admin') || hash.includes('admin')) {
         return 'Admin';
       }
@@ -63,6 +65,7 @@ const App: React.FC = () => {
   });
   const [dashboardTab, setDashboardTab] = useState<string>('account');
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [deliveryQrToken, setDeliveryQrToken] = useState(() => typeof window !== 'undefined' ? window.location.pathname.split('/').pop() || '' : '');
   const [selectedCategory, setSelectedCategory] = useState<ProductCategory | 'All'>('All');
   const [user, setUser] = useState<User | null>(() => {
     return null;
@@ -381,7 +384,10 @@ const App: React.FC = () => {
       const path = window.location.pathname.toLowerCase();
       const search = window.location.search.toLowerCase();
       const hash = window.location.hash.toLowerCase();
-      if (path.startsWith('/admin') || search.includes('admin') || hash.includes('admin')) {
+      if (path.startsWith('/delivery-confirmation/')) {
+        setDeliveryQrToken(path.split('/').pop() || '');
+        setCurrentPage('DeliveryConfirmation');
+      } else if (path.startsWith('/admin') || search.includes('admin') || hash.includes('admin')) {
         setCurrentPage('Admin');
       } else if (path.startsWith('/marketplace') || hash.includes('marketplace')) {
         setCurrentPage('Marketplace');
@@ -409,51 +415,6 @@ const App: React.FC = () => {
     window.addEventListener('popstate', handleLocationChange);
     return () => window.removeEventListener('popstate', handleLocationChange);
   }, []);
-
-  // Order Placement & Automated Shipment Creation in PostgreSQL + Buyer Auto-Activation
-  const handleOrderPlaced = async (orderData: { 
-    orderId: string; 
-    trackingNumber: string; 
-    items: Product[]; 
-    shippingAddress: string;
-    buyerUser?: User;
-  }) => {
-    const formattedDate = new Date().toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
-    const newShipment: ShipmentTracking = {
-      id: `ship-${Date.now()}`,
-      trackingNumber: orderData.trackingNumber,
-      orderId: orderData.orderId,
-      status: 'In Transit',
-      carrier: 'Royal Hints Logistics',
-      serviceType: 'Courier Delivery',
-      origin: 'Royal Hints Dispatch',
-      destination: orderData.shippingAddress,
-      dispatchedDate: formattedDate,
-      orderDate: formattedDate,
-      estimatedDelivery: 'Pending courier update',
-      paymentMethod: 'Verified Card / Wire Escrow',
-      deliveryConfirmedByCustomer: false,
-      items: orderData.items.map((it) => ({
-        name: it.name,
-        category: it.category,
-        quantity: it.quantity || 1,
-        image: it.image,
-        price: it.price
-      })),
-      checkpoints: [
-        {
-          id: `cp-1`,
-          title: 'Order Placed & Escrow Funded',
-          location: orderData.shippingAddress,
-          timestamp: `${formattedDate} • Confirmed`,
-          completed: true,
-          isCurrent: true
-        }
-      ]
-    };
-    setShipments([newShipment, ...shipments]);
-    await apiClient.createShipment(newShipment);
-  };
 
   // Delivery confirmation handler when customer presses "Confirm Product Received"
   const handleConfirmDelivery = async (trackingNumber: string) => {
@@ -669,7 +630,7 @@ const App: React.FC = () => {
                   onComplete={clearCart}
                   onRemoveFromCart={removeFromCart}
                   onUpdateCartQuantity={updateCartQuantity}
-                  onOrderPlaced={handleOrderPlaced}
+                  onPaymentCompleted={(shipment) => setShipments(prev => [shipment, ...prev.filter(item => item.paymentReference !== shipment.paymentReference)])}
                 />
               </div>
             )}
@@ -680,6 +641,7 @@ const App: React.FC = () => {
             {currentPage === 'CompletePayment' && <PublicLookupPage mode="payment" onNavigate={navigateTo} />}
             {currentPage === 'Terms' && <LegalPage type="terms" onNavigate={navigateTo} />}
             {currentPage === 'Privacy' && <LegalPage type="privacy" onNavigate={navigateTo} />}
+            {currentPage === 'DeliveryConfirmation' && <DeliveryQrConfirmation token={deliveryQrToken} />}
           </>
         )}
       </main>
