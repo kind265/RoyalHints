@@ -7,7 +7,7 @@ export const paymentsRouter = Router();
 const confirmedTransactions = new Map<string, any>();
 
 const getPublicBaseUrl = () => {
-  return process.env.PUBLIC_BASE_URL || process.env.RENDER_EXTERNAL_URL || process.env.APP_URL || 'http://localhost:3000';
+  return process.env.PUBLIC_BASE_URL || process.env.APP_URL || 'https://royalhints.com';
 };
 
 const toNumber = (value: unknown, fallback = 0) => {
@@ -122,8 +122,8 @@ paymentsRouter.post('/paychangu/initiate', async (req: Request, res: Response) =
     const finalAmount = normalizedAmount > 0 ? normalizedAmount : 1;
     const finalReference = reference || `RH-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
     const fallbackBaseUrl = getPublicBaseUrl();
-    const finalReturnUrl = returnUrl || process.env.PAYCHANGU_RETURN_URL || `${fallbackBaseUrl}/checkout?status=success`;
-    const finalCallbackUrl = callbackUrl || process.env.PAYCHANGU_CALLBACK_URL || finalReturnUrl;
+    const finalReturnUrl = returnUrl || process.env.PAYCHANGU_RETURN_URL || `${fallbackBaseUrl}/checkout?payment=return`;
+    const finalCallbackUrl = callbackUrl || process.env.PAYCHANGU_CALLBACK_URL || `${fallbackBaseUrl}/api/payments/paychangu/callback`;
     const currency = process.env.PAYCHANGU_CURRENCY || 'MWK';
 
     const payload = {

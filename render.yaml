@@ -28,10 +28,8 @@ services:
       - key: PAYCHANGU_CURRENCY
         value: MWK
       - key: PUBLIC_BASE_URL
-        sync: false
-      - key: RENDER_EXTERNAL_URL
-        sync: false
+        value: https://royalhints.com
       - key: PAYCHANGU_CALLBACK_URL
-        sync: false
+        value: https://royalhints.com/api/payments/paychangu/callback
       - key: PAYCHANGU_RETURN_URL
-        sync: false
+        value: https://royalhints.com/checkout?payment=return
