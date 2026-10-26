@@ -52,6 +52,7 @@ const ContactPage: React.FC<ContactPageProps> = ({ onNavigate }) => {
           <div className="mt-8 divide-y divide-blue-200">
             {[
               ['Delivery times', 'Standard delivery takes between 2 to 5 business days. Express orders take a day or 2 within major cities, and up to 3 days in remote areas.'],
+              ['Cost Estimate', 'Standard delivery estimates within Lilongwe are MWK 4,000–30,000, payable upon arrival directly to the courier.'],
               ['Finding unlisted items', 'We find items that are not listed on customer demand when the details are well presented.'],
               ['Payment methods', 'Mobile money, Airtel Money, PayChangu, and bank transfer.'],
               ['Tracking system', 'Every item comes with a sticker that can be used to track the geolocation of the item being transferred.']

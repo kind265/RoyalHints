@@ -392,7 +392,7 @@ const Marketplace: React.FC<MarketplaceProps> = ({ posts, user, onAddReview, onN
                             rating: 5.0,
                             sku: post.sku || `RH-MP-${post.id.slice(-4)}`,
                             inStock: true,
-                            stockQuantity: 1,
+                            stockQuantity: post.stockCount ?? 1,
                             stockStatus: 'In Stock',
                             warehouseLocation: post.location || '',
                             dispatchTime: post.dispatchTime || '',
@@ -791,4 +791,3 @@ const Marketplace: React.FC<MarketplaceProps> = ({ posts, user, onAddReview, onN
 };
 
 export default Marketplace;
-

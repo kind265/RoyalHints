@@ -37,8 +37,7 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, user, onNavigate, onComp
 
   const subtotal = cartItems.reduce((acc, item) => acc + item.price * (item.quantity || 1), 0);
   const shippingCost = shippingMethod === 'standard' ? 0 : 25;
-  const tax = subtotal * 0.08;
-  const total = subtotal + shippingCost + tax;
+  const total = subtotal + shippingCost;
 
   const formatCurrency = (value: number) => `MWK ${value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
@@ -273,6 +272,9 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, user, onNavigate, onComp
                   <input type="checkbox" defaultChecked className="rounded-sm border-gray-300 text-[#2563EB] focus:ring-[#2563EB]" />
                   Send order confirmation and delivery updates
                 </div>
+                <p className="text-xs leading-5 text-gray-500">
+                  Item payment is processed online. Delivery fees are paid directly to the courier upon delivery.
+                </p>
               </div>
             </section>
 
@@ -472,10 +474,6 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, user, onNavigate, onComp
               <div className="flex justify-between text-xs font-bold uppercase tracking-widest text-gray-400">
                 <span>Shipping Fee</span>
                 <span className="text-[#1A1A1A]">{shippingCost === 0 ? 'COMPLIMENTARY' : formatCurrency(shippingCost)}</span>
-              </div>
-              <div className="flex justify-between text-xs font-bold uppercase tracking-widest text-gray-400">
-                <span>Estimated Tax (8%)</span>
-                <span className="text-[#1A1A1A]">{formatCurrency(tax)}</span>
               </div>
               <div className="flex justify-between items-end pt-6 border-t border-gray-200">
                 <span className="text-sm font-black uppercase tracking-[0.3em]">Total</span>
