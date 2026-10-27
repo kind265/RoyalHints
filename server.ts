@@ -5,8 +5,10 @@ import { createServer as createViteServer } from 'vite';
 import { createBackendApp } from './backend/app';
 import { postgresStore } from './backend/db/store';
 
-dotenv.config({ path: path.resolve(process.cwd(), 'backend/.env') });
-dotenv.config();
+if (process.env.NODE_ENV !== 'production') {
+  dotenv.config({ path: path.resolve(process.cwd(), 'backend/.env') });
+  dotenv.config();
+}
 
 async function startServer() {
   const app = createBackendApp();

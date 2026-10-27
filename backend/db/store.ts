@@ -24,8 +24,17 @@ class PostgresStore {
   async ensureSeeded() {
     if (this.seeded) return;
     try {
-      if (!process.env.DATABASE_URL) {
-        throw new Error('DATABASE_URL is missing. Set the Render PostgreSQL URL in the environment before starting the app.');
+      const hasDatabaseUrl = Boolean(process.env.DATABASE_URL);
+      const hasHostConfiguration = Boolean(
+        process.env.SQL_HOST &&
+        process.env.SQL_DB_NAME &&
+        (process.env.SQL_USER || process.env.SQL_ADMIN_USER) &&
+        process.env.SQL_PASSWORD
+      );
+      if (!hasDatabaseUrl && !hasHostConfiguration) {
+        throw new Error(
+          'Database configuration is missing. Set DATABASE_URL or SQL_HOST, SQL_DB_NAME, SQL_USER (or SQL_ADMIN_USER), and SQL_PASSWORD in the hosting environment.'
+        );
       }
 
       await pool.connect();

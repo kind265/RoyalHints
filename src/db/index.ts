@@ -1,10 +1,13 @@
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { Pool } from 'pg';
 import * as dotenv from 'dotenv';
+import path from 'path';
 import * as schema from './schema';
 
-dotenv.config({ path: 'backend/.env' });
-dotenv.config();
+if (process.env.NODE_ENV !== 'production') {
+  dotenv.config({ path: path.resolve(process.cwd(), 'backend/.env') });
+  dotenv.config();
+}
 
 declare global {
   var _postgresPool: Pool | undefined;
@@ -28,7 +31,7 @@ export const createPool = () => {
         })
       : new Pool({
           host: process.env.SQL_HOST,
-          user: process.env.SQL_USER,
+          user: process.env.SQL_USER || process.env.SQL_ADMIN_USER,
           password: process.env.SQL_PASSWORD,
           database: process.env.SQL_DB_NAME,
           max: 10,
