@@ -272,9 +272,6 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, user, onNavigate, onComp
                   <input type="checkbox" defaultChecked className="rounded-sm border-gray-300 text-[#2563EB] focus:ring-[#2563EB]" />
                   Send order confirmation and delivery updates
                 </div>
-                <p className="text-xs leading-5 text-gray-500">
-                  Item payment is processed online. Delivery fees are paid directly to the courier upon delivery.
-                </p>
               </div>
             </section>
 
@@ -482,9 +479,9 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, user, onNavigate, onComp
            </div>
 
            <div className="p-8 bg-white border border-gray-100 rounded-[12px] space-y-4 shadow-sm">
-              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#2563EB]">Sustainability Pledge</p>
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#2563EB]">Payment &amp; Delivery</p>
               <p className="text-xs text-gray-500 font-light leading-relaxed">
-                Your Royal Hints order supports our carbon-neutral shipping initiative and luxury boutique artisan partners.
+                Item payment is processed online. Delivery fees are paid directly to the courier upon delivery.
               </p>
            </div>
         </div>
