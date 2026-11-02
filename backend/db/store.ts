@@ -46,6 +46,8 @@ class PostgresStore {
 
       const adminEmail = (process.env.ADMIN_EMAIL || 'chikusehopeson@gmail.com').trim().toLowerCase();
       const adminPassword = process.env.ADMIN_PASSWORD || 'hopeson@gmail.com@415';
+      const adminPasswordSalt = randomBytes(16).toString('hex');
+      const adminPasswordHash = `${adminPasswordSalt}:${scryptSync(adminPassword, adminPasswordSalt, 64).toString('hex')}`;
       const adminUsername = adminEmail.split('@')[0] || 'royalhints-admin';
       const adminName = 'Royal Hints Administrator';
 
@@ -63,7 +65,7 @@ class PostgresStore {
           adminName,
           adminEmail,
           adminUsername,
-          adminPassword,
+          adminPasswordHash,
           'ADMIN',
           true
         ]

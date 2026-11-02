@@ -49,6 +49,7 @@ import ShopByQuotation from './ShopByQuotation';
 import NameWhatYouWant from './NameWhatYouWant';
 import AdminAnalytics from './AdminAnalytics';
 import OrderReceipts from './OrderReceipts';
+import AdminDatabaseBackup from './AdminDatabaseBackup';
 import { apiClient } from '../backend/api-client';
 
 interface DashboardProps {
@@ -1705,6 +1706,8 @@ const Dashboard: React.FC<DashboardProps> = ({
                 </div>
 
                 <div className="space-y-8">
+                  {isAdmin && <AdminDatabaseBackup />}
+
                   {/* Toggle Groups */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-8">
                     {[

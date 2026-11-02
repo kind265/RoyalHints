@@ -10,6 +10,7 @@ import { authRouter } from './routes/auth';
 import { persistenceRouter } from './routes/persistence';
 import { paymentsRouter } from './routes/payments';
 import { subscriptionsRouter } from './routes/subscriptions';
+import { databaseBackupRouter } from './routes/database-backup';
 import { pool } from '../src/db';
 
 export function createBackendApp(): Express {
@@ -63,6 +64,7 @@ export function createBackendApp(): Express {
   app.use('/api/persistence', persistenceRouter);
   app.use('/api/payments', paymentsRouter);
   app.use('/api/subscriptions', subscriptionsRouter);
+  app.use('/api/admin/backup', databaseBackupRouter);
 
   // 404 for unhandled API routes
   app.use('/api', (req: Request, res: Response) => {

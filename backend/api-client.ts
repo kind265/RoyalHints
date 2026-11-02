@@ -10,6 +10,36 @@ import {
 const API_BASE = '/api';
 
 export const apiClient = {
+  async exportDatabaseBackup(): Promise<void> {
+    const response = await fetch(`${API_BASE}/admin/backup`);
+    if (!response.ok) {
+      const result = await response.json().catch(() => null);
+      throw new Error(result?.message || 'Could not download the database backup.');
+    }
+
+    const backupFile = URL.createObjectURL(await response.blob());
+    const link = document.createElement('a');
+    link.href = backupFile;
+    link.download = `royal-hints-backup-${new Date().toISOString().slice(0, 10)}.json`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.setTimeout(() => URL.revokeObjectURL(backupFile), 1000);
+  },
+
+  async restoreDatabaseBackup(backup: unknown): Promise<{ importedCounts: Record<string, number> }> {
+    const response = await fetch(`${API_BASE}/admin/backup/restore`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(backup)
+    });
+    const result = await response.json().catch(() => null);
+    if (!response.ok || !result?.success) {
+      throw new Error(result?.message || 'Could not restore the database backup.');
+    }
+    return { importedCounts: result.importedCounts };
+  },
+
   // Health
   async checkHealth() {
     try {
