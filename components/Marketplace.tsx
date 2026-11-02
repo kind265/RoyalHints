@@ -23,7 +23,8 @@ import {
   Inbox,
   ShieldCheck,
   Award,
-  ShoppingCart
+  ShoppingCart,
+  Loader2
 } from 'lucide-react';
 import { BusinessPost, Review, User as UserType, Product, ProductCategory } from '../types';
 
@@ -502,21 +503,34 @@ const Marketplace: React.FC<MarketplaceProps> = ({ posts, user, onAddReview, onN
             </div>
             
             <div className="max-w-md mx-auto space-y-3">
-              <h3 className="text-2xl sm:text-3xl font-black text-[#1A1A1A]">
-                {filter === 'New Arrivals' 
-                  ? 'No Active 48-Hour New Arrivals' 
-                  : `No Ventures in ${filter}`
-                }
-              </h3>
-              
-              <p className="text-gray-500 text-xs sm:text-sm leading-relaxed">
-                {filter === 'New Arrivals'
-                  ? 'Products only remain in New Arrivals for exactly 48 hours after being posted. There are currently no new postings within this 48-hour window.'
-                  : search 
-                    ? `No postings matching "${search}". Try adjusting your keywords.`
-                    : `No postings found in this category.`
-                }
-              </p>
+              {posts.length === 0 ? (
+                <>
+                  <h3 className="text-2xl sm:text-3xl font-black text-[#1A1A1A]">
+                    ITEMS ADDED
+                  </h3>
+                  <div role="status" aria-label="Loading items" className="flex justify-center text-[#2563EB]">
+                    <span className="sr-only">Loading items</span>
+                    <Loader2 className="h-7 w-7 animate-spin motion-reduce:animate-none" />
+                  </div>
+                </>
+              ) : (
+                <>
+                  <h3 className="text-2xl sm:text-3xl font-black text-[#1A1A1A]">
+                    {filter === 'New Arrivals'
+                      ? 'No Active 48-Hour New Arrivals'
+                      : `No Ventures in ${filter}`
+                    }
+                  </h3>
+                  <p className="text-gray-500 text-xs sm:text-sm leading-relaxed">
+                    {filter === 'New Arrivals'
+                      ? 'Products only remain in New Arrivals for exactly 48 hours after being posted. There are currently no new postings within this 48-hour window.'
+                      : search
+                        ? `No postings matching "${search}". Try adjusting your keywords.`
+                        : 'No postings found in this category.'
+                    }
+                  </p>
+                </>
+              )}
 
               <div className="pt-6 flex flex-wrap items-center justify-center gap-3">
                 {filter === 'New Arrivals' && (

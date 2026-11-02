@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ShoppingCart, Star, ArrowRight, Plus, Check, Box, PlusCircle, ShieldCheck } from 'lucide-react';
+import { ShoppingCart, Star, ArrowRight, Plus, Check, Box, Loader2, ShieldCheck } from 'lucide-react';
 import { Product, ProductCategory, BusinessPost } from '../types';
 
 interface TrendingGridProps {
@@ -206,27 +206,29 @@ const TrendingGrid: React.FC<TrendingGridProps> = ({
           </div>
         ) : (
           <div className="bg-white border border-gray-200/80 rounded-2xl p-10 sm:p-16 text-center shadow-sm max-w-2xl mx-auto">
-            <div className="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center mx-auto mb-5 text-[#2563EB]">
-              <Box className="w-8 h-8 opacity-80" />
-            </div>
-            <span className="text-[#2563EB] font-black text-[10px] uppercase tracking-[0.25em] block mb-1.5">
-              Registry Empty
-            </span>
-            <h3 className="text-xl sm:text-2xl font-black text-[#1A1A1A] tracking-tight mb-2">
-              No Stock Listed Currently
-            </h3>
-            <p className="text-gray-500 text-xs sm:text-sm max-w-md mx-auto mb-6 leading-relaxed">
-              Items added in the Marketplace or Inventory will automatically display in this field.
-            </p>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-              <button
-                onClick={() => onNavigate?.('Marketplace')}
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-[#2563EB] hover:bg-[#1D4ED8] text-white px-6 py-3 rounded-xl text-xs font-black uppercase tracking-wider transition-all shadow-md shadow-blue-500/20"
-              >
-                <PlusCircle className="h-4 w-4" /> Go to Marketplace
-              </button>
-              
-            </div>
+            {allInStockProducts.length === 0 ? (
+              <>
+                <h3 className="text-xl sm:text-2xl font-black text-[#1A1A1A] tracking-tight">
+                  ITEMS ADDED
+                </h3>
+                <div role="status" aria-label="Loading items" className="mt-5 flex justify-center text-[#2563EB]">
+                  <span className="sr-only">Loading items</span>
+                  <Loader2 className="h-7 w-7 animate-spin motion-reduce:animate-none" />
+                </div>
+              </>
+            ) : (
+              <>
+                <h3 className="text-xl sm:text-2xl font-black text-[#1A1A1A] tracking-tight">
+                  No products found in {selectedCategory}
+                </h3>
+                <button
+                  onClick={() => onCategoryChange?.('All')}
+                  className="mt-5 inline-flex items-center gap-2 rounded-xl bg-[#2563EB] px-5 py-3 text-xs font-black uppercase tracking-wider text-white transition-colors hover:bg-[#1D4ED8]"
+                >
+                  View all products
+                </button>
+              </>
+            )}
           </div>
         )}
 

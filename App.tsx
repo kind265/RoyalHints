@@ -101,6 +101,37 @@ const App: React.FC = () => {
     return [];
   });
 
+  useEffect(() => {
+    const KEEPALIVE_INTERVAL_MS = 30 * 60 * 1000;
+
+    const pingBackend = async () => {
+      try {
+        await apiClient.checkHealth();
+      } catch (error) {
+        console.warn('Keepalive ping failed:', error);
+      }
+    };
+
+    pingBackend();
+
+    const keepAliveTimer = window.setInterval(() => {
+      pingBackend();
+    }, KEEPALIVE_INTERVAL_MS);
+
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        pingBackend();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      window.clearInterval(keepAliveTimer);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, []);
+
   // Load from PostgreSQL Backend API on mount
   useEffect(() => {
     apiClient.getSession().then(savedUser => {
