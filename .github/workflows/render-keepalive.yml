@@ -1,0 +1,41 @@
+name: Render keepalive
+
+on:
+  schedule:
+    - cron: '*/10 * * * *'
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check that the Render app and database are responding
+        env:
+          RENDER_APP_URL: ${{ vars.RENDER_APP_URL }}
+        run: |
+          if [ -z "$RENDER_APP_URL" ]; then
+            echo "Set the RENDER_APP_URL repository variable to the deployed app URL."
+            exit 1
+          fi
+
+          response="$(curl --fail --silent --show-error --max-time 30 \
+            "${RENDER_APP_URL%/}/api/health")"
+
+          printf '%s' "$response" | node -e '
+            let body = "";
+            process.stdin.on("data", chunk => body += chunk);
+            process.stdin.on("end", () => {
+              try {
+                const health = JSON.parse(body);
+                if (health.status !== "online") {
+                  console.error("Health check returned:", health.status);
+                  process.exitCode = 1;
+                  return;
+                }
+                console.log(`Render app and database are ${health.status}.`);
+              } catch {
+                console.error("Health check returned invalid JSON.");
+                process.exitCode = 1;
+              }
+            });
+          '
