@@ -1,15 +1,15 @@
 import { Router, Request, Response } from 'express';
-import { postgresStore } from '../db/store';
+import { databaseStore } from '../db/store';
 
 export const analyticsRouter = Router();
 
 analyticsRouter.get('/', async (req: Request, res: Response) => {
   try {
-    const products = await postgresStore.getProducts();
-    const shipments = await postgresStore.getShipments();
-    const quotations = await postgresStore.getQuotations();
-    const bespokeRequests = await postgresStore.getBespokeRequests();
-    const posts = await postgresStore.getPosts();
+    const products = await databaseStore.getProducts();
+    const shipments = await databaseStore.getShipments();
+    const quotations = await databaseStore.getQuotations();
+    const bespokeRequests = await databaseStore.getBespokeRequests();
+    const posts = await databaseStore.getPosts();
 
     // Compute category breakdown
     const categoryCount: Record<string, number> = {};

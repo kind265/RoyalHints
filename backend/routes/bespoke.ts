@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { postgresStore } from '../db/store';
+import { databaseStore } from '../db/store';
 import { BespokeSourcingRequest } from '../types';
 
 export const bespokeRouter = Router();
@@ -8,7 +8,7 @@ export const bespokeRouter = Router();
 bespokeRouter.get('/', async (req: Request, res: Response) => {
   try {
     const { userId, status } = req.query;
-    let requests = await postgresStore.getBespokeRequests();
+    let requests = await databaseStore.getBespokeRequests();
 
     if (userId && typeof userId === 'string') {
       requests = requests.filter(r => r.userId === userId || r.userEmail.toLowerCase() === userId.toLowerCase());
@@ -60,10 +60,10 @@ bespokeRouter.post('/', async (req: Request, res: Response) => {
       submittedAt: body.submittedAt || Date.now()
     };
 
-    const created = await postgresStore.createBespokeRequest(newRequest);
+    const created = await databaseStore.createBespokeRequest(newRequest);
     res.status(201).json({
       success: true,
-      message: 'Bespoke sourcing dossier registered in PostgreSQL',
+      message: 'Bespoke sourcing dossier registered in MariaDB',
       data: created
     });
   } catch (error: any) {
@@ -75,14 +75,14 @@ bespokeRouter.post('/', async (req: Request, res: Response) => {
 bespokeRouter.put('/:id/respond', async (req: Request, res: Response) => {
   try {
     const { assignedSpecialist, networkLocationFound, directOfferPrice, adminMessage, status } = req.body;
-    const requests = await postgresStore.getBespokeRequests();
+    const requests = await databaseStore.getBespokeRequests();
     const reqItem = requests.find(r => r.id === req.params.id || r.referenceNumber === req.params.id);
 
     if (!reqItem) {
       return res.status(404).json({ success: false, message: 'Bespoke sourcing request not found' });
     }
 
-    const updated = await postgresStore.updateBespokeRequest(reqItem.id, {
+    const updated = await databaseStore.updateBespokeRequest(reqItem.id, {
       status: status || 'Located in Vault Network',
       adminResponse: {
         assignedSpecialist: assignedSpecialist || 'Royal Hints Principal Curator',
@@ -95,7 +95,7 @@ bespokeRouter.put('/:id/respond', async (req: Request, res: Response) => {
 
     res.json({
       success: true,
-      message: 'Admin sourcing response dispatched and saved in PostgreSQL',
+      message: 'Admin sourcing response dispatched and saved in MariaDB',
       data: updated
     });
   } catch (error: any) {

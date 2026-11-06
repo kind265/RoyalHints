@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { postgresStore } from '../db/store';
+import { databaseStore } from '../db/store';
 import { QuotationRequest } from '../types';
 
 export const quotationsRouter = Router();
@@ -8,7 +8,7 @@ export const quotationsRouter = Router();
 quotationsRouter.get('/', async (req: Request, res: Response) => {
   try {
     const { userId, status } = req.query;
-    let quotations = await postgresStore.getQuotations();
+    let quotations = await databaseStore.getQuotations();
 
     if (userId && typeof userId === 'string') {
       quotations = quotations.filter(q => q.userId === userId || q.userEmail.toLowerCase() === userId.toLowerCase());
@@ -59,10 +59,10 @@ quotationsRouter.post('/', async (req: Request, res: Response) => {
       submittedAt: body.submittedAt || Date.now()
     };
 
-    const created = await postgresStore.createQuotation(newQuotation);
+    const created = await databaseStore.createQuotation(newQuotation);
     res.status(201).json({
       success: true,
-      message: 'Quotation request received and queued in PostgreSQL',
+      message: 'Quotation request received and queued in MariaDB',
       data: created
     });
   } catch (error: any) {
@@ -74,7 +74,7 @@ quotationsRouter.post('/', async (req: Request, res: Response) => {
 quotationsRouter.put('/:id/respond', async (req: Request, res: Response) => {
   try {
     const { unitPrice, leadTimeDays, officialNotes, includesTaxShipping } = req.body;
-    const quotations = await postgresStore.getQuotations();
+    const quotations = await databaseStore.getQuotations();
     const quote = quotations.find(q => q.id === req.params.id || q.quoteNumber === req.params.id);
 
     if (!quote) {
@@ -84,7 +84,7 @@ quotationsRouter.put('/:id/respond', async (req: Request, res: Response) => {
     const numericUnitPrice = Number(unitPrice) || 0;
     const totalAmount = numericUnitPrice * (quote.estimatedQuantity || 1);
 
-    const updated = await postgresStore.updateQuotation(quote.id, {
+    const updated = await databaseStore.updateQuotation(quote.id, {
       status: 'Quote Ready',
       adminQuote: {
         unitPrice: numericUnitPrice,
@@ -98,7 +98,7 @@ quotationsRouter.put('/:id/respond', async (req: Request, res: Response) => {
 
     res.json({
       success: true,
-      message: 'Official quote updated in PostgreSQL and dispatched to client',
+      message: 'Official quote updated in MariaDB and dispatched to client',
       data: updated
     });
   } catch (error: any) {

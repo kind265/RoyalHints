@@ -132,7 +132,7 @@ const App: React.FC = () => {
     };
   }, []);
 
-  // Load from PostgreSQL Backend API on mount
+  // Load from MariaDB Backend API on mount
   useEffect(() => {
     apiClient.getSession().then(savedUser => {
       if (savedUser?.isAdmin || savedUser?.role === 'admin') {

@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { postgresStore } from '../db/store';
+import { databaseStore } from '../db/store';
 import { Product } from '../types';
 
 export const productsRouter = Router();
@@ -8,7 +8,7 @@ export const productsRouter = Router();
 productsRouter.get('/', async (req: Request, res: Response) => {
   try {
     const { category, search } = req.query;
-    let products = await postgresStore.getProducts();
+    let products = await databaseStore.getProducts();
 
     if (category && typeof category === 'string' && category !== 'All') {
       products = products.filter(p => p.category.toLowerCase() === category.toLowerCase());
@@ -36,7 +36,7 @@ productsRouter.get('/', async (req: Request, res: Response) => {
 // GET product by ID
 productsRouter.get('/:id', async (req: Request, res: Response) => {
   try {
-    const product = await postgresStore.getProductById(String(req.params.id));
+    const product = await databaseStore.getProductById(String(req.params.id));
     if (!product) {
       return res.status(404).json({ success: false, message: 'Product not found' });
     }
@@ -78,8 +78,8 @@ productsRouter.post('/', async (req: Request, res: Response) => {
       galleryImages: body.galleryImages || []
     };
 
-    const created = await postgresStore.createProduct(newProduct);
-    res.status(201).json({ success: true, message: 'Product created successfully in PostgreSQL', data: created });
+    const created = await databaseStore.createProduct(newProduct);
+    res.status(201).json({ success: true, message: 'Product created successfully in MariaDB', data: created });
   } catch (error: any) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -88,11 +88,11 @@ productsRouter.post('/', async (req: Request, res: Response) => {
 // PUT update product
 productsRouter.put('/:id', async (req: Request, res: Response) => {
   try {
-    const updated = await postgresStore.updateProduct(String(req.params.id), req.body);
+    const updated = await databaseStore.updateProduct(String(req.params.id), req.body);
     if (!updated) {
       return res.status(404).json({ success: false, message: 'Product not found for update' });
     }
-    res.json({ success: true, message: 'Product updated successfully in PostgreSQL', data: updated });
+    res.json({ success: true, message: 'Product updated successfully in MariaDB', data: updated });
   } catch (error: any) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -101,11 +101,11 @@ productsRouter.put('/:id', async (req: Request, res: Response) => {
 // DELETE product
 productsRouter.delete('/:id', async (req: Request, res: Response) => {
   try {
-    const deleted = await postgresStore.deleteProduct(String(req.params.id));
+    const deleted = await databaseStore.deleteProduct(String(req.params.id));
     if (!deleted) {
       return res.status(404).json({ success: false, message: 'Product not found for deletion' });
     }
-    res.json({ success: true, message: 'Product removed successfully from PostgreSQL' });
+    res.json({ success: true, message: 'Product removed successfully from MariaDB' });
   } catch (error: any) {
     res.status(500).json({ success: false, message: error.message });
   }

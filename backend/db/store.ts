@@ -1,6 +1,7 @@
 import { db, pool } from '../../src/db';
 import { products, businessPosts, shipments, quotations, bespokeRequests, users, userCarts, photoHistory, notificationReads, itemSubscribers } from '../../src/db/schema';
 import { eq, desc } from 'drizzle-orm';
+import { RowDataPacket } from 'mysql2';
 import { randomUUID, randomBytes, scryptSync, timingSafeEqual } from 'crypto';
 import { 
   Product, 
@@ -18,28 +19,39 @@ const INITIAL_QUOTATIONS: QuotationRequest[] = [];
 const INITIAL_BESPOKE: BespokeSourcingRequest[] = [];
 const INITIAL_USERS: User[] = [];
 
-class PostgresStore {
+const parseJsonColumn = <T>(value: unknown, fallback: T): T => {
+  if (value === null || value === undefined) return fallback;
+  if (typeof value !== 'string') return value as T;
+  try {
+    return JSON.parse(value) as T;
+  } catch {
+    return fallback;
+  }
+};
+
+class MariaDbStore {
   private seeded = false;
 
   async ensureSeeded() {
     if (this.seeded) return;
     try {
-      const hasDatabaseUrl = Boolean(process.env.DATABASE_URL);
+      const hasMariaDbUrl = Boolean(process.env.MARIADB_URL || process.env.MYSQL_URL);
       const hasHostConfiguration = Boolean(
-        process.env.SQL_HOST &&
-        process.env.SQL_DB_NAME &&
-        (process.env.SQL_USER || process.env.SQL_ADMIN_USER) &&
-        process.env.SQL_PASSWORD
+        process.env.MYSQL_HOST &&
+        process.env.MYSQL_DATABASE &&
+        process.env.MYSQL_USER &&
+        process.env.MYSQL_PASSWORD
       );
-      if (!hasDatabaseUrl && !hasHostConfiguration) {
+      if (!hasMariaDbUrl && !hasHostConfiguration) {
         throw new Error(
-          'Database configuration is missing. Set DATABASE_URL or SQL_HOST, SQL_DB_NAME, SQL_USER (or SQL_ADMIN_USER), and SQL_PASSWORD in the hosting environment.'
+          'MariaDB configuration is missing. Set MARIADB_URL or MYSQL_HOST, MYSQL_DATABASE, MYSQL_USER, and MYSQL_PASSWORD in the hosting environment.'
         );
       }
 
-      await pool.connect();
+      const connection = await pool.getConnection();
+      connection.release();
       await pool.query('SELECT 1');
-      console.log('database connected');
+      console.log('MariaDB connected');
 
       await this.ensureSchema();
       console.log('tables created');
@@ -53,13 +65,13 @@ class PostgresStore {
 
       await pool.query(
         `INSERT INTO users (id, name, email, username, password_hash, role, is_admin)
-         VALUES ($1, $2, $3, $4, $5, $6, $7)
-         ON CONFLICT (email) DO UPDATE SET
-           username = EXCLUDED.username,
-           password_hash = EXCLUDED.password_hash,
-           name = EXCLUDED.name,
-           role = EXCLUDED.role,
-           is_admin = EXCLUDED.is_admin`,
+         VALUES (?, ?, ?, ?, ?, ?, ?)
+         ON DUPLICATE KEY UPDATE
+           username = VALUES(username),
+           password_hash = VALUES(password_hash),
+           name = VALUES(name),
+           role = VALUES(role),
+           is_admin = VALUES(is_admin)`,
         [
           randomUUID(),
           adminName,
@@ -71,300 +83,109 @@ class PostgresStore {
         ]
       );
 
-      const adminRow = await pool.query(
-        `SELECT email, username, role, is_admin FROM users WHERE email = $1`,
+      const [adminRows] = await pool.query(
+        `SELECT email, username, role, is_admin FROM users WHERE email = ?`,
         [adminEmail]
       );
 
-      if (adminRow.rowCount === 0) {
+      if (!Array.isArray(adminRows) || adminRows.length === 0) {
         throw new Error('Admin user was not created after seeding.');
       }
 
       console.log('admin seeded');
       this.seeded = true;
     } catch (err) {
-      console.error('Failed to initialize PostgreSQL records:', err);
+      console.error('Failed to initialize MariaDB records:', err);
       throw err;
     }
   }
 
   private async ensureSchema() {
-    await pool.query(`
-      CREATE TABLE IF NOT EXISTS products (
-        id text PRIMARY KEY,
-        name text NOT NULL,
-        price double precision NOT NULL,
-        rating double precision NOT NULL DEFAULT 5.0,
-        category text NOT NULL,
-        image text NOT NULL,
-        is_new boolean DEFAULT true,
-        sku text NOT NULL,
-        in_stock boolean NOT NULL DEFAULT true,
-        stock_quantity integer NOT NULL DEFAULT 10,
-        stock_status text NOT NULL DEFAULT 'In Stock',
-        warehouse_location text NOT NULL DEFAULT 'Main Vault',
-        dispatch_time text NOT NULL DEFAULT 'Dispatches in 24 hours',
-        description text NOT NULL DEFAULT '',
-        highlights jsonb DEFAULT '[]'::jsonb,
-        specifications jsonb DEFAULT '{}'::jsonb,
-        variants jsonb DEFAULT '[]'::jsonb,
-        gallery_images jsonb DEFAULT '[]'::jsonb,
-        created_at timestamp DEFAULT now()
-      );
-
-      CREATE TABLE IF NOT EXISTS business_posts (
-        id text PRIMARY KEY,
-        user_id text NOT NULL,
-        user_name text NOT NULL,
-        title text NOT NULL,
-        description text DEFAULT '',
-        image text NOT NULL,
-        category text NOT NULL,
-        timestamp text NOT NULL,
-        price double precision,
-        stock_count integer,
-        sku text,
-        condition text,
-        location text,
-        dispatch_time text,
-        gallery_images jsonb DEFAULT '[]'::jsonb,
-        reviews jsonb DEFAULT '[]'::jsonb,
-        created_at timestamp DEFAULT now()
-      );
-
-      CREATE TABLE IF NOT EXISTS shipments (
-        id text PRIMARY KEY,
-        tracking_number text NOT NULL UNIQUE,
-        order_id text NOT NULL,
-        carrier text DEFAULT 'Royal Hints Courier',
-        service_type text DEFAULT 'Courier Delivery',
-        status text NOT NULL DEFAULT 'Order Placed',
-        origin text DEFAULT 'Royal Hints Dispatch',
-        destination text NOT NULL,
-        estimated_delivery text,
-        dispatched_date text,
-        order_date text,
-        payment_method text,
-        payment_reference text UNIQUE,
-        scan_token text UNIQUE,
-        paid_at text,
-        delivery_confirmed_by_customer boolean DEFAULT false,
-        delivery_confirmed_at text,
-        items jsonb DEFAULT '[]'::jsonb,
-        checkpoints jsonb DEFAULT '[]'::jsonb,
-        created_at timestamp DEFAULT now()
-      );
-
-      CREATE TABLE IF NOT EXISTS rh_pending_checkout_orders (
-        payment_reference text PRIMARY KEY,
-        amount double precision NOT NULL,
-        currency text NOT NULL,
-        order_data jsonb NOT NULL,
-        created_at timestamp DEFAULT now()
-      );
-
-      CREATE TABLE IF NOT EXISTS quotations (
-        id text PRIMARY KEY,
-        quote_number text NOT NULL UNIQUE,
-        user_id text NOT NULL,
-        user_name text NOT NULL,
-        user_email text NOT NULL,
-        title text NOT NULL,
-        category text NOT NULL,
-        estimated_quantity integer NOT NULL DEFAULT 1,
-        target_budget text NOT NULL,
-        urgency text NOT NULL,
-        specifications text DEFAULT '',
-        delivery_location text NOT NULL,
-        contact_number text NOT NULL,
-        status text NOT NULL DEFAULT 'Under Review',
-        submitted_at text NOT NULL,
-        admin_quote jsonb,
-        created_at timestamp DEFAULT now()
-      );
-
-      CREATE TABLE IF NOT EXISTS bespoke_requests (
-        id text PRIMARY KEY,
-        reference_number text NOT NULL UNIQUE,
-        user_id text NOT NULL,
-        user_name text NOT NULL,
-        user_email text NOT NULL,
-        item_name text NOT NULL,
-        category text NOT NULL,
-        maker_or_brand text,
-        condition_preference text NOT NULL,
-        budget_estimate text NOT NULL,
-        urgency text NOT NULL,
-        reference_link_or_image_url text,
-        detailed_requirements text DEFAULT '',
-        admin_recipient text NOT NULL,
-        status text NOT NULL DEFAULT 'Received by Admin',
-        submitted_at text NOT NULL,
-        admin_response jsonb,
-        created_at timestamp DEFAULT now()
-      );
-
-      CREATE TABLE IF NOT EXISTS users (
-        id text PRIMARY KEY,
-        name text NOT NULL,
-        email text NOT NULL UNIQUE,
-        username text,
-        password_hash text,
-        avatar text,
-        role text NOT NULL DEFAULT 'buyer',
-        is_admin boolean DEFAULT false,
-        created_at timestamp DEFAULT now()
-      );
-
-      CREATE TABLE IF NOT EXISTS rh_user_carts (
-        user_id text PRIMARY KEY,
-        items jsonb NOT NULL DEFAULT '[]'::jsonb,
-        updated_at timestamp DEFAULT now()
-      );
-      CREATE TABLE IF NOT EXISTS rh_photo_history (
-        id text PRIMARY KEY,
-        user_id text NOT NULL,
-        title text NOT NULL,
-        category text NOT NULL,
-        url text NOT NULL,
-        created_at timestamp DEFAULT now()
-      );
-      CREATE TABLE IF NOT EXISTS rh_notification_reads (
-        user_id text PRIMARY KEY,
-        notification_ids jsonb NOT NULL DEFAULT '[]'::jsonb,
-        updated_at timestamp DEFAULT now()
-      );
-      CREATE TABLE IF NOT EXISTS rh_item_subscribers (
-        email text PRIMARY KEY,
-        created_at timestamp DEFAULT now(),
-        updated_at timestamp DEFAULT now()
-      );
-      CREATE TABLE IF NOT EXISTS rh_login_history (
-        id text PRIMARY KEY,
-        user_id text NOT NULL,
-        email text NOT NULL,
-        logged_in_at timestamp DEFAULT now()
-      );
-      CREATE TABLE IF NOT EXISTS rh_user_sessions (
-        token text PRIMARY KEY,
-        user_id text NOT NULL,
-        email text NOT NULL,
-        expires_at timestamp NOT NULL
-      );
-    `);
-
-    await pool.query(`
-      ALTER TABLE IF EXISTS products
-        ADD COLUMN IF NOT EXISTS name text,
-        ADD COLUMN IF NOT EXISTS price double precision DEFAULT 0,
-        ADD COLUMN IF NOT EXISTS rating double precision DEFAULT 5.0,
-        ADD COLUMN IF NOT EXISTS category text,
-        ADD COLUMN IF NOT EXISTS image text,
-        ADD COLUMN IF NOT EXISTS is_new boolean DEFAULT true,
-        ADD COLUMN IF NOT EXISTS sku text,
-        ADD COLUMN IF NOT EXISTS in_stock boolean DEFAULT true,
-        ADD COLUMN IF NOT EXISTS stock_quantity integer DEFAULT 10,
-        ADD COLUMN IF NOT EXISTS stock_status text DEFAULT 'In Stock',
-        ADD COLUMN IF NOT EXISTS warehouse_location text DEFAULT 'Main Vault',
-        ADD COLUMN IF NOT EXISTS dispatch_time text DEFAULT 'Dispatches in 24 hours',
-        ADD COLUMN IF NOT EXISTS description text DEFAULT '',
-        ADD COLUMN IF NOT EXISTS highlights jsonb DEFAULT '[]'::jsonb,
-        ADD COLUMN IF NOT EXISTS specifications jsonb DEFAULT '{}'::jsonb,
-        ADD COLUMN IF NOT EXISTS variants jsonb DEFAULT '[]'::jsonb,
-        ADD COLUMN IF NOT EXISTS gallery_images jsonb DEFAULT '[]'::jsonb,
-        ADD COLUMN IF NOT EXISTS created_at timestamp DEFAULT now();
-
-      ALTER TABLE IF EXISTS business_posts
-        ADD COLUMN IF NOT EXISTS user_id text,
-        ADD COLUMN IF NOT EXISTS user_name text,
-        ADD COLUMN IF NOT EXISTS title text,
-        ADD COLUMN IF NOT EXISTS description text DEFAULT '',
-        ADD COLUMN IF NOT EXISTS image text,
-        ADD COLUMN IF NOT EXISTS category text,
-        ADD COLUMN IF NOT EXISTS timestamp text,
-        ADD COLUMN IF NOT EXISTS price double precision,
-        ADD COLUMN IF NOT EXISTS stock_count integer,
-        ADD COLUMN IF NOT EXISTS sku text,
-        ADD COLUMN IF NOT EXISTS condition text,
-        ADD COLUMN IF NOT EXISTS location text,
-        ADD COLUMN IF NOT EXISTS dispatch_time text,
-        ADD COLUMN IF NOT EXISTS gallery_images jsonb DEFAULT '[]'::jsonb,
-        ADD COLUMN IF NOT EXISTS reviews jsonb DEFAULT '[]'::jsonb,
-        ADD COLUMN IF NOT EXISTS created_at timestamp DEFAULT now();
-
-      ALTER TABLE IF EXISTS shipments
-        ADD COLUMN IF NOT EXISTS tracking_number text,
-        ADD COLUMN IF NOT EXISTS order_id text,
-        ADD COLUMN IF NOT EXISTS carrier text DEFAULT 'Royal Hints Courier',
-        ADD COLUMN IF NOT EXISTS service_type text DEFAULT 'Courier Delivery',
-        ADD COLUMN IF NOT EXISTS status text DEFAULT 'Order Placed',
-        ADD COLUMN IF NOT EXISTS origin text DEFAULT 'Royal Hints Dispatch',
-        ADD COLUMN IF NOT EXISTS destination text,
-        ADD COLUMN IF NOT EXISTS estimated_delivery text,
-        ADD COLUMN IF NOT EXISTS dispatched_date text,
-        ADD COLUMN IF NOT EXISTS order_date text,
-        ADD COLUMN IF NOT EXISTS payment_method text,
-        ADD COLUMN IF NOT EXISTS payment_reference text,
-        ADD COLUMN IF NOT EXISTS scan_token text,
-        ADD COLUMN IF NOT EXISTS paid_at text,
-        ADD COLUMN IF NOT EXISTS delivery_confirmed_by_customer boolean DEFAULT false,
-        ADD COLUMN IF NOT EXISTS delivery_confirmed_at text,
-        ADD COLUMN IF NOT EXISTS items jsonb DEFAULT '[]'::jsonb,
-        ADD COLUMN IF NOT EXISTS checkpoints jsonb DEFAULT '[]'::jsonb,
-        ADD COLUMN IF NOT EXISTS created_at timestamp DEFAULT now();
-
-      ALTER TABLE IF EXISTS quotations
-        ADD COLUMN IF NOT EXISTS quote_number text,
-        ADD COLUMN IF NOT EXISTS user_id text,
-        ADD COLUMN IF NOT EXISTS user_name text,
-        ADD COLUMN IF NOT EXISTS user_email text,
-        ADD COLUMN IF NOT EXISTS title text,
-        ADD COLUMN IF NOT EXISTS category text,
-        ADD COLUMN IF NOT EXISTS estimated_quantity integer DEFAULT 1,
-        ADD COLUMN IF NOT EXISTS target_budget text,
-        ADD COLUMN IF NOT EXISTS urgency text,
-        ADD COLUMN IF NOT EXISTS specifications text DEFAULT '',
-        ADD COLUMN IF NOT EXISTS delivery_location text,
-        ADD COLUMN IF NOT EXISTS contact_number text,
-        ADD COLUMN IF NOT EXISTS status text DEFAULT 'Under Review',
-        ADD COLUMN IF NOT EXISTS submitted_at text,
-        ADD COLUMN IF NOT EXISTS admin_quote jsonb,
-        ADD COLUMN IF NOT EXISTS created_at timestamp DEFAULT now();
-
-      ALTER TABLE IF EXISTS bespoke_requests
-        ADD COLUMN IF NOT EXISTS reference_number text,
-        ADD COLUMN IF NOT EXISTS user_id text,
-        ADD COLUMN IF NOT EXISTS user_name text,
-        ADD COLUMN IF NOT EXISTS user_email text,
-        ADD COLUMN IF NOT EXISTS item_name text,
-        ADD COLUMN IF NOT EXISTS category text,
-        ADD COLUMN IF NOT EXISTS maker_or_brand text,
-        ADD COLUMN IF NOT EXISTS condition_preference text,
-        ADD COLUMN IF NOT EXISTS budget_estimate text,
-        ADD COLUMN IF NOT EXISTS urgency text,
-        ADD COLUMN IF NOT EXISTS reference_link_or_image_url text,
-        ADD COLUMN IF NOT EXISTS detailed_requirements text DEFAULT '',
-        ADD COLUMN IF NOT EXISTS admin_recipient text,
-        ADD COLUMN IF NOT EXISTS status text DEFAULT 'Received by Admin',
-        ADD COLUMN IF NOT EXISTS submitted_at text,
-        ADD COLUMN IF NOT EXISTS admin_response jsonb,
-        ADD COLUMN IF NOT EXISTS created_at timestamp DEFAULT now();
-
-      ALTER TABLE IF EXISTS users
-        ADD COLUMN IF NOT EXISTS name text,
-        ADD COLUMN IF NOT EXISTS email text,
-        ADD COLUMN IF NOT EXISTS username text,
-        ADD COLUMN IF NOT EXISTS password_hash text,
-        ADD COLUMN IF NOT EXISTS avatar text,
-        ADD COLUMN IF NOT EXISTS role text DEFAULT 'buyer',
-        ADD COLUMN IF NOT EXISTS is_admin boolean DEFAULT false,
-        ADD COLUMN IF NOT EXISTS created_at timestamp DEFAULT now();
-    `);
-
-    await pool.query(`
-      CREATE UNIQUE INDEX IF NOT EXISTS shipments_payment_reference_uq ON shipments(payment_reference);
-      CREATE UNIQUE INDEX IF NOT EXISTS shipments_scan_token_uq ON shipments(scan_token);
-    `);
+    const statements = [
+      `CREATE TABLE IF NOT EXISTS products (
+        id VARCHAR(191) PRIMARY KEY, name VARCHAR(512) NOT NULL, price DOUBLE NOT NULL,
+        rating DOUBLE NOT NULL DEFAULT 5.0, category VARCHAR(128) NOT NULL, image LONGTEXT NOT NULL,
+        is_new BOOLEAN DEFAULT TRUE, sku VARCHAR(255) NOT NULL, in_stock BOOLEAN NOT NULL DEFAULT TRUE,
+        stock_quantity INT NOT NULL DEFAULT 10, stock_status VARCHAR(64) NOT NULL DEFAULT 'In Stock',
+        warehouse_location VARCHAR(512) NOT NULL DEFAULT 'Main Vault',
+        dispatch_time VARCHAR(512) NOT NULL DEFAULT 'Dispatches in 24 hours',
+        description LONGTEXT NOT NULL, highlights JSON, specifications JSON, variants JSON,
+        gallery_images JSON, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
+      `CREATE TABLE IF NOT EXISTS business_posts (
+        id VARCHAR(191) PRIMARY KEY, user_id VARCHAR(191) NOT NULL, user_name VARCHAR(512) NOT NULL,
+        title VARCHAR(512) NOT NULL, description LONGTEXT, image LONGTEXT NOT NULL,
+        category VARCHAR(128) NOT NULL, timestamp VARCHAR(64) NOT NULL, price DOUBLE,
+        stock_count INT, sku VARCHAR(255), \`condition\` VARCHAR(255), location VARCHAR(512),
+        dispatch_time VARCHAR(512), gallery_images JSON, reviews JSON,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
+      `CREATE TABLE IF NOT EXISTS shipments (
+        id VARCHAR(191) PRIMARY KEY, tracking_number VARCHAR(191) NOT NULL UNIQUE,
+        order_id VARCHAR(191) NOT NULL, carrier VARCHAR(255) DEFAULT 'Royal Hints Courier',
+        service_type VARCHAR(255) DEFAULT 'Courier Delivery', status VARCHAR(128) NOT NULL DEFAULT 'Order Placed',
+        origin VARCHAR(512) DEFAULT 'Royal Hints Dispatch', destination LONGTEXT NOT NULL,
+        estimated_delivery LONGTEXT, dispatched_date VARCHAR(255), order_date VARCHAR(255),
+        payment_method VARCHAR(255), payment_reference VARCHAR(191) UNIQUE, scan_token VARCHAR(191) UNIQUE,
+        paid_at VARCHAR(64), delivery_confirmed_by_customer BOOLEAN DEFAULT FALSE,
+        delivery_confirmed_at VARCHAR(64), items JSON, checkpoints JSON,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
+      `CREATE TABLE IF NOT EXISTS rh_pending_checkout_orders (
+        payment_reference VARCHAR(191) PRIMARY KEY, amount DOUBLE NOT NULL, currency VARCHAR(16) NOT NULL,
+        order_data JSON NOT NULL, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
+      `CREATE TABLE IF NOT EXISTS quotations (
+        id VARCHAR(191) PRIMARY KEY, quote_number VARCHAR(191) NOT NULL UNIQUE,
+        user_id VARCHAR(191) NOT NULL, user_name VARCHAR(512) NOT NULL, user_email VARCHAR(320) NOT NULL,
+        title VARCHAR(512) NOT NULL, category VARCHAR(128) NOT NULL,
+        estimated_quantity INT NOT NULL DEFAULT 1, target_budget VARCHAR(255) NOT NULL,
+        urgency VARCHAR(128) NOT NULL, specifications LONGTEXT, delivery_location LONGTEXT NOT NULL,
+        contact_number VARCHAR(128) NOT NULL, status VARCHAR(128) NOT NULL DEFAULT 'Under Review',
+        submitted_at VARCHAR(64) NOT NULL, admin_quote JSON, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
+      `CREATE TABLE IF NOT EXISTS bespoke_requests (
+        id VARCHAR(191) PRIMARY KEY, reference_number VARCHAR(191) NOT NULL UNIQUE,
+        user_id VARCHAR(191) NOT NULL, user_name VARCHAR(512) NOT NULL, user_email VARCHAR(320) NOT NULL,
+        item_name VARCHAR(512) NOT NULL, category VARCHAR(128) NOT NULL,
+        maker_or_brand VARCHAR(512), condition_preference VARCHAR(255) NOT NULL,
+        budget_estimate VARCHAR(255) NOT NULL, urgency VARCHAR(128) NOT NULL,
+        reference_link_or_image_url LONGTEXT, detailed_requirements LONGTEXT,
+        admin_recipient VARCHAR(320) NOT NULL, status VARCHAR(128) NOT NULL DEFAULT 'Received by Admin',
+        submitted_at VARCHAR(64) NOT NULL, admin_response JSON, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
+      `CREATE TABLE IF NOT EXISTS users (
+        id VARCHAR(191) PRIMARY KEY, name VARCHAR(512) NOT NULL, email VARCHAR(191) NOT NULL UNIQUE,
+        username VARCHAR(191), password_hash VARCHAR(255), avatar LONGTEXT,
+        role VARCHAR(64) NOT NULL DEFAULT 'buyer', is_admin BOOLEAN DEFAULT FALSE,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
+      `CREATE TABLE IF NOT EXISTS rh_user_carts (
+        user_id VARCHAR(191) PRIMARY KEY, items JSON NOT NULL, updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
+      `CREATE TABLE IF NOT EXISTS rh_photo_history (
+        id VARCHAR(191) PRIMARY KEY, user_id VARCHAR(191) NOT NULL, title VARCHAR(512) NOT NULL,
+        category VARCHAR(128) NOT NULL, url LONGTEXT NOT NULL, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
+      `CREATE TABLE IF NOT EXISTS rh_notification_reads (
+        user_id VARCHAR(191) PRIMARY KEY, notification_ids JSON NOT NULL,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
+      `CREATE TABLE IF NOT EXISTS rh_item_subscribers (
+        email VARCHAR(191) PRIMARY KEY, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
+      `CREATE TABLE IF NOT EXISTS rh_login_history (
+        id VARCHAR(191) PRIMARY KEY, user_id VARCHAR(191) NOT NULL, email VARCHAR(320) NOT NULL,
+        logged_in_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
+      `CREATE TABLE IF NOT EXISTS rh_user_sessions (
+        token VARCHAR(191) PRIMARY KEY, user_id VARCHAR(191) NOT NULL, email VARCHAR(320) NOT NULL,
+        expires_at TIMESTAMP NOT NULL, INDEX rh_user_sessions_email_idx (email),
+        INDEX rh_user_sessions_expiry_idx (expires_at)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`
+    ];
+    for (const statement of statements) await pool.query(statement);
   }
 
   // Products
@@ -393,7 +214,7 @@ class PostgresStore {
         galleryImages: (r.galleryImages as string[]) || []
       }));
     } catch (error) {
-      console.error('PostgreSQL getProducts error:', error);
+      console.error('MariaDB getProducts error:', error);
       return [];
     }
   }
@@ -425,7 +246,7 @@ class PostgresStore {
         galleryImages: (r.galleryImages as string[]) || []
       };
     } catch (error) {
-      console.error('PostgreSQL getProductById error:', error);
+      console.error('MariaDB getProductById error:', error);
       return undefined;
     }
   }
@@ -455,7 +276,7 @@ class PostgresStore {
       });
       return product;
     } catch (error) {
-      console.error('PostgreSQL createProduct error:', error);
+      console.error('MariaDB createProduct error:', error);
       throw error;
     }
   }
@@ -481,7 +302,7 @@ class PostgresStore {
       }).where(eq(products.id, id));
       return (await this.getProductById(id)) || null;
     } catch (error) {
-      console.error('PostgreSQL updateProduct error:', error);
+      console.error('MariaDB updateProduct error:', error);
       return null;
     }
   }
@@ -492,7 +313,7 @@ class PostgresStore {
       const res = await db.delete(products).where(eq(products.id, id));
       return true;
     } catch (error) {
-      console.error('PostgreSQL deleteProduct error:', error);
+      console.error('MariaDB deleteProduct error:', error);
       return false;
     }
   }
@@ -521,7 +342,7 @@ class PostgresStore {
         reviews: (r.reviews as any[]) || []
       }));
     } catch (error) {
-      console.error('PostgreSQL getPosts error:', error);
+      console.error('MariaDB getPosts error:', error);
       return [];
     }
   }
@@ -549,7 +370,7 @@ class PostgresStore {
       });
       return post;
     } catch (error) {
-      console.error('PostgreSQL createPost error:', error);
+      console.error('MariaDB createPost error:', error);
       throw error;
     }
   }
@@ -579,7 +400,7 @@ class PostgresStore {
         reviews: (r.reviews as any[]) || []
       };
     } catch (error) {
-      console.error('PostgreSQL getPostById error:', error);
+      console.error('MariaDB getPostById error:', error);
       return undefined;
     }
   }
@@ -603,7 +424,7 @@ class PostgresStore {
       }).where(eq(businessPosts.id, id));
       return (await this.getPostById(id)) || null;
     } catch (error) {
-      console.error('PostgreSQL updatePost error:', error);
+      console.error('MariaDB updatePost error:', error);
       return null;
     }
   }
@@ -614,7 +435,7 @@ class PostgresStore {
       await db.delete(businessPosts).where(eq(businessPosts.id, id));
       return true;
     } catch (error) {
-      console.error('PostgreSQL deletePost error:', error);
+      console.error('MariaDB deletePost error:', error);
       return false;
     }
   }
@@ -645,7 +466,7 @@ class PostgresStore {
         checkpoints: (r.checkpoints as any[]) || []
       }));
     } catch (error) {
-      console.error('PostgreSQL getShipments error:', error);
+      console.error('MariaDB getShipments error:', error);
       return [];
     }
   }
@@ -656,7 +477,7 @@ class PostgresStore {
       const all = await this.getShipments();
       return all.find(s => s.trackingNumber.toLowerCase() === trackingNum.toLowerCase() || s.orderId.toLowerCase() === trackingNum.toLowerCase());
     } catch (error) {
-      console.error('PostgreSQL getShipmentByTrackingNumber error:', error);
+      console.error('MariaDB getShipmentByTrackingNumber error:', error);
       return undefined;
     }
   }
@@ -687,7 +508,7 @@ class PostgresStore {
       });
       return shipment;
     } catch (error) {
-      console.error('PostgreSQL createShipment error:', error);
+      console.error('MariaDB createShipment error:', error);
       throw error;
     }
   }
@@ -696,38 +517,38 @@ class PostgresStore {
     await this.ensureSeeded();
     await pool.query(
       `INSERT INTO rh_pending_checkout_orders (payment_reference, amount, currency, order_data)
-       VALUES ($1, $2, $3, $4::jsonb)
-       ON CONFLICT (payment_reference) DO NOTHING`,
+       VALUES (?, ?, ?, ?)
+       ON DUPLICATE KEY UPDATE payment_reference = VALUES(payment_reference)`,
       [reference, amount, currency, JSON.stringify(orderData)]
     );
   }
 
   async getPendingCheckout(reference: string) {
     await this.ensureSeeded();
-    const result = await pool.query(
+    const [rows] = await pool.query<RowDataPacket[]>(
       `SELECT payment_reference, amount, currency, order_data
-       FROM rh_pending_checkout_orders WHERE payment_reference = $1`,
+       FROM rh_pending_checkout_orders WHERE payment_reference = ?`,
       [reference]
     );
-    const row = result.rows[0];
+    const row = rows[0];
     if (!row) return null;
     return {
-      reference: row.payment_reference as string,
+      reference: row.payment_reference,
       amount: Number(row.amount),
-      currency: row.currency as string,
-      orderData: row.order_data as Record<string, any>
+      currency: row.currency,
+      orderData: parseJsonColumn(row.order_data, {})
     };
   }
 
   async completePaidCheckout(reference: string): Promise<ShipmentTracking> {
     await this.ensureSeeded();
-    const client = await pool.connect();
+    const client = await pool.getConnection();
     try {
-      await client.query('BEGIN');
-      const existing = await client.query('SELECT * FROM shipments WHERE payment_reference = $1 FOR UPDATE', [reference]);
-      if (existing.rows[0]) {
-        const row = existing.rows[0];
-        await client.query('COMMIT');
+      await client.beginTransaction();
+      const [existingRows] = await client.query<RowDataPacket[]>('SELECT * FROM shipments WHERE payment_reference = ? FOR UPDATE', [reference]);
+      if (existingRows[0]) {
+        const row = existingRows[0];
+        await client.commit();
         return {
           id: row.id,
           trackingNumber: row.tracking_number,
@@ -737,20 +558,20 @@ class PostgresStore {
           paymentMethod: row.payment_method,
           paymentReference: row.payment_reference,
           paidAt: row.paid_at,
-          items: row.items || [],
-          checkpoints: row.checkpoints || []
+          items: parseJsonColumn(row.items, []),
+          checkpoints: parseJsonColumn(row.checkpoints, [])
         } as ShipmentTracking;
       }
 
-      const pendingResult = await client.query(
+      const [pendingRows] = await client.query<RowDataPacket[]>(
         `SELECT amount, currency, order_data FROM rh_pending_checkout_orders
-         WHERE payment_reference = $1 FOR UPDATE`,
+         WHERE payment_reference = ? FOR UPDATE`,
         [reference]
       );
-      const pending = pendingResult.rows[0];
+      const pending = pendingRows[0];
       if (!pending) throw new Error('No pending checkout exists for this payment reference.');
 
-      const data = pending.order_data as Record<string, any>;
+      const data = parseJsonColumn<Record<string, any>>(pending.order_data, {});
       const destination = String(data.destination || '').trim();
       const items = Array.isArray(data.items) ? data.items : [];
       if (!destination || items.length === 0) throw new Error('Pending checkout is missing delivery or item details.');
@@ -788,17 +609,17 @@ class PostgresStore {
         `INSERT INTO shipments (id, tracking_number, order_id, carrier, service_type, status, origin,
           destination, estimated_delivery, order_date, payment_method, payment_reference, scan_token,
           paid_at, delivery_confirmed_by_customer, items, checkpoints)
-         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,false,$15::jsonb,$16::jsonb)`,
+         VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,FALSE,?,?)`,
         [shipment.id, shipment.trackingNumber, shipment.orderId, shipment.carrier, shipment.serviceType,
           shipment.status, shipment.origin, shipment.destination, shipment.estimatedDelivery,
           shipment.orderDate, shipment.paymentMethod, shipment.paymentReference, shipment.scanToken,
           shipment.paidAt, JSON.stringify(shipment.items), JSON.stringify(shipment.checkpoints)]
       );
-      await client.query('DELETE FROM rh_pending_checkout_orders WHERE payment_reference = $1', [reference]);
-      await client.query('COMMIT');
+      await client.query('DELETE FROM rh_pending_checkout_orders WHERE payment_reference = ?', [reference]);
+      await client.commit();
       return shipment;
     } catch (error) {
-      await client.query('ROLLBACK');
+      await client.rollback();
       throw error;
     } finally {
       client.release();
@@ -807,12 +628,12 @@ class PostgresStore {
 
   async getPaidOrderReceipts(): Promise<ShipmentTracking[]> {
     await this.ensureSeeded();
-    const result = await pool.query(
+    const [rows] = await pool.query<RowDataPacket[]>(
       `SELECT id, tracking_number, order_id, status, destination, order_date, payment_method,
               payment_reference, scan_token, paid_at, items, checkpoints
        FROM shipments WHERE scan_token IS NOT NULL ORDER BY created_at DESC`
     );
-    return result.rows.map(row => ({
+    return rows.map(row => ({
       id: row.id,
       trackingNumber: row.tracking_number,
       orderId: row.order_id,
@@ -823,15 +644,15 @@ class PostgresStore {
       paymentReference: row.payment_reference,
       scanToken: row.scan_token,
       paidAt: row.paid_at,
-      items: row.items || [],
-      checkpoints: row.checkpoints || []
+      items: parseJsonColumn(row.items, []),
+      checkpoints: parseJsonColumn(row.checkpoints, [])
     } as ShipmentTracking));
   }
 
   async confirmDeliveryByScanToken(token: string): Promise<ShipmentTracking | null> {
     await this.ensureSeeded();
-    const shipmentResult = await pool.query('SELECT tracking_number FROM shipments WHERE scan_token = $1', [token]);
-    const trackingNumber = shipmentResult.rows[0]?.tracking_number as string | undefined;
+    const [shipmentRows] = await pool.query<RowDataPacket[]>('SELECT tracking_number FROM shipments WHERE scan_token = ?', [token]);
+    const trackingNumber = shipmentRows[0]?.tracking_number as string | undefined;
     if (!trackingNumber) return null;
     const existing = await this.getShipmentByTrackingNumber(trackingNumber);
     if (!existing) return null;
@@ -868,7 +689,7 @@ class PostgresStore {
 
       return (await this.getShipmentByTrackingNumber(existing.trackingNumber)) || null;
     } catch (error) {
-      console.error('PostgreSQL updateShipment error:', error);
+      console.error('MariaDB updateShipment error:', error);
       return null;
     }
   }
@@ -897,7 +718,7 @@ class PostgresStore {
         adminQuote: r.adminQuote as any
       }));
     } catch (error) {
-      console.error('PostgreSQL getQuotations error:', error);
+      console.error('MariaDB getQuotations error:', error);
       return [];
     }
   }
@@ -925,7 +746,7 @@ class PostgresStore {
       });
       return quote;
     } catch (error) {
-      console.error('PostgreSQL createQuotation error:', error);
+      console.error('MariaDB createQuotation error:', error);
       throw error;
     }
   }
@@ -940,7 +761,7 @@ class PostgresStore {
       const all = await this.getQuotations();
       return all.find(q => q.id === id) || null;
     } catch (error) {
-      console.error('PostgreSQL updateQuotation error:', error);
+      console.error('MariaDB updateQuotation error:', error);
       return null;
     }
   }
@@ -970,7 +791,7 @@ class PostgresStore {
         adminResponse: r.adminResponse as any
       }));
     } catch (error) {
-      console.error('PostgreSQL getBespokeRequests error:', error);
+      console.error('MariaDB getBespokeRequests error:', error);
       return [];
     }
   }
@@ -999,7 +820,7 @@ class PostgresStore {
       });
       return req;
     } catch (error) {
-      console.error('PostgreSQL createBespokeRequest error:', error);
+      console.error('MariaDB createBespokeRequest error:', error);
       throw error;
     }
   }
@@ -1014,7 +835,7 @@ class PostgresStore {
       const all = await this.getBespokeRequests();
       return all.find(b => b.id === id) || null;
     } catch (error) {
-      console.error('PostgreSQL updateBespokeRequest error:', error);
+      console.error('MariaDB updateBespokeRequest error:', error);
       return null;
     }
   }
@@ -1028,8 +849,7 @@ class PostgresStore {
   async saveCart(userId: string, items: Product[]): Promise<Product[]> {
     await this.ensureSeeded();
     const serializedItems = items as any;
-    await db.insert(userCarts).values({ userId, items: serializedItems }).onConflictDoUpdate({
-      target: userCarts.userId,
+    await db.insert(userCarts).values({ userId, items: serializedItems }).onDuplicateKeyUpdate({
       set: { items: serializedItems, updatedAt: new Date() }
     });
     return items;
@@ -1042,7 +862,8 @@ class PostgresStore {
 
   async addPhotoHistory(photo: { id: string; userId: string; title: string; category: string; url: string }) {
     await this.ensureSeeded();
-    const [created] = await db.insert(photoHistory).values(photo).returning();
+    await db.insert(photoHistory).values(photo);
+    const [created] = await db.select().from(photoHistory).where(eq(photoHistory.id, photo.id));
     return created;
   }
 
@@ -1054,8 +875,7 @@ class PostgresStore {
 
   async saveNotificationReads(userId: string, notificationIds: string[]) {
     await this.ensureSeeded();
-    await db.insert(notificationReads).values({ userId, notificationIds }).onConflictDoUpdate({
-      target: notificationReads.userId,
+    await db.insert(notificationReads).values({ userId, notificationIds }).onDuplicateKeyUpdate({
       set: { notificationIds, updatedAt: new Date() }
     });
     return notificationIds;
@@ -1063,8 +883,7 @@ class PostgresStore {
 
   async subscribeToNewItems(email: string) {
     await this.ensureSeeded();
-    await db.insert(itemSubscribers).values({ email }).onConflictDoUpdate({
-      target: itemSubscribers.email,
+    await db.insert(itemSubscribers).values({ email }).onDuplicateKeyUpdate({
       set: { updatedAt: new Date() }
     });
   }
@@ -1101,11 +920,11 @@ class PostgresStore {
     await this.ensureSeeded();
     const token = randomUUID();
     await pool.query(
-      `INSERT INTO rh_login_history (id, user_id, email) VALUES ($1, $2, $3)`,
+      `INSERT INTO rh_login_history (id, user_id, email) VALUES (?, ?, ?)`,
       [randomUUID(), userId, email.toLowerCase()]
     );
     await pool.query(
-      `INSERT INTO rh_user_sessions (token, user_id, email, expires_at) VALUES ($1, $2, $3, now() + interval '30 days')`,
+      `INSERT INTO rh_user_sessions (token, user_id, email, expires_at) VALUES (?, ?, ?, DATE_ADD(UTC_TIMESTAMP(), INTERVAL 30 DAY))`,
       [token, userId, email.toLowerCase()]
     );
     return token;
@@ -1117,20 +936,18 @@ class PostgresStore {
     const salt = randomBytes(16).toString('hex');
     const passwordHash = `${salt}:${scryptSync(password, salt, 64).toString('hex')}`;
     const id = randomUUID();
-    const result = await pool.query(
+    await pool.query(
       `INSERT INTO users (id, name, email, username, password_hash, role, is_admin)
-       VALUES ($1, $2, $3, $4, $5, 'NORMAL_USER', false)
-       RETURNING id, name, email, avatar, role, is_admin`,
+       VALUES (?, ?, ?, ?, ?, 'NORMAL_USER', FALSE)`,
       [id, name.trim(), normalizedEmail, normalizedEmail.split('@')[0], passwordHash]
     );
-    const row = result.rows[0];
-    return { id: row.id, name: row.name, email: row.email, avatar: row.avatar ?? undefined, role: 'buyer', isAdmin: false };
+    return { id, name: name.trim(), email: normalizedEmail, role: 'buyer', isAdmin: false };
   }
 
   async verifyPassword(email: string, password: string): Promise<boolean> {
     await this.ensureSeeded();
-    const result = await pool.query(`SELECT password_hash FROM users WHERE email = $1`, [email.trim().toLowerCase()]);
-    const stored = result.rows[0]?.password_hash as string | undefined;
+    const [rows] = await pool.query<RowDataPacket[]>(`SELECT password_hash FROM users WHERE email = ?`, [email.trim().toLowerCase()]);
+    const stored = rows[0]?.password_hash as string | undefined;
     if (!stored || !stored.includes(':')) return false;
     const [salt, hash] = stored.split(':');
     const derived = scryptSync(password, salt, 64);
@@ -1140,13 +957,13 @@ class PostgresStore {
 
   async getSession(token: string): Promise<User | undefined> {
     await this.ensureSeeded();
-    const result = await pool.query(
+    const [rows] = await pool.query<RowDataPacket[]>(
       `SELECT u.id, u.name, u.email, u.avatar, u.role, u.is_admin
        FROM rh_user_sessions s JOIN users u ON u.email = s.email
-       WHERE s.token = $1 AND s.expires_at > now()`,
+       WHERE s.token = ? AND s.expires_at > UTC_TIMESTAMP()`,
       [token]
     );
-    const row = result.rows[0];
+    const row = rows[0];
     if (!row) return undefined;
     return {
       id: row.id,
@@ -1172,7 +989,7 @@ class PostgresStore {
         isAdmin: r.isAdmin ?? false
       }));
     } catch (error) {
-      console.error('PostgreSQL getUsers error:', error);
+      console.error('MariaDB getUsers error:', error);
       return [];
     }
   }
@@ -1192,7 +1009,7 @@ class PostgresStore {
         isAdmin: r.isAdmin ?? false
       };
     } catch (error) {
-      console.error('PostgreSQL getUserByEmail error:', error);
+      console.error('MariaDB getUserByEmail error:', error);
       return undefined;
     }
   }
@@ -1208,7 +1025,9 @@ class PostgresStore {
       avatar: user.avatar,
       role: databaseRole,
       isAdmin: user.isAdmin || false
-    }).onConflictDoNothing();
+    }).onDuplicateKeyUpdate({
+      set: { email: createdUser.email }
+    });
     return createdUser;
   }
 
@@ -1219,4 +1038,4 @@ class PostgresStore {
   }
 }
 
-export const postgresStore = new PostgresStore();
+export const databaseStore = new MariaDbStore();

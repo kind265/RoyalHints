@@ -1,5 +1,5 @@
-import { drizzle } from 'drizzle-orm/node-postgres';
-import { Pool } from 'pg';
+import { drizzle } from 'drizzle-orm/mysql2';
+import { createPool as createMySqlPool, Pool } from 'mysql2/promise';
 import * as dotenv from 'dotenv';
 import path from 'path';
 import * as schema from './schema';
@@ -10,41 +10,54 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 declare global {
-  var _postgresPool: Pool | undefined;
+  var _mariaDbPool: Pool | undefined;
 }
 
-export const createPool = () => {
-  if (!global._postgresPool) {
-    const connectionString = process.env.DATABASE_URL;
-    const sslEnabled = process.env.DATABASE_SSL !== 'false' && (
-      process.env.DATABASE_SSL === 'true' ||
-      connectionString?.includes('sslmode=require') ||
-      connectionString?.includes('render.com')
-    );
+const getMariaDbOptions = () => {
+  const connectionString = process.env.MARIADB_URL || process.env.MYSQL_URL;
+  if (connectionString) {
+    const url = new URL(connectionString);
+    if (!['mysql:', 'mariadb:'].includes(url.protocol)) {
+      throw new Error('MARIADB_URL must use the mysql:// or mariadb:// protocol.');
+    }
 
-    global._postgresPool = connectionString
-      ? new Pool({
-          connectionString,
-          max: 10,
-          connectionTimeoutMillis: 15000,
-          ssl: sslEnabled ? { rejectUnauthorized: false } : undefined,
-        })
-      : new Pool({
-          host: process.env.SQL_HOST,
-          user: process.env.SQL_USER || process.env.SQL_ADMIN_USER,
-          password: process.env.SQL_PASSWORD,
-          database: process.env.SQL_DB_NAME,
-          max: 10,
-          connectionTimeoutMillis: 15000,
-        });
-
-    global._postgresPool.on('error', (err) => {
-      console.error('Unexpected error on idle SQL pool client:', err);
-    });
+    return {
+      host: url.hostname,
+      port: url.port ? Number(url.port) : 3306,
+      user: decodeURIComponent(url.username),
+      password: decodeURIComponent(url.password),
+      database: decodeURIComponent(url.pathname.replace(/^\//, '')),
+      ssl: process.env.MYSQL_SSL === 'true' ? {} : undefined,
+      connectionLimit: 10,
+      connectTimeout: 15000,
+      timezone: 'Z' as const
+    };
   }
-  return global._postgresPool;
+
+  const host = process.env.MYSQL_HOST;
+  const database = process.env.MYSQL_DATABASE;
+  const user = process.env.MYSQL_USER;
+  const password = process.env.MYSQL_PASSWORD;
+
+  return {
+    host: host || '127.0.0.1',
+    port: Number(process.env.MYSQL_PORT || 3306),
+    user: user || '__missing_mysql_user__',
+    password: password || '',
+    database: database || '__missing_mysql_database__',
+    ssl: process.env.MYSQL_SSL === 'true' ? {} : undefined,
+    connectionLimit: 10,
+    connectTimeout: 15000,
+    timezone: 'Z' as const
+  };
 };
 
-const pool = createPool();
-export { pool };
-export const db = drizzle(pool, { schema });
+export const createPool = () => {
+  if (!global._mariaDbPool) {
+    global._mariaDbPool = createMySqlPool(getMariaDbOptions());
+  }
+  return global._mariaDbPool;
+};
+
+export const pool = createPool();
+export const db = drizzle(pool, { schema, mode: 'default' });

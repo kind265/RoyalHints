@@ -3,7 +3,7 @@ import express from 'express';
 import dotenv from 'dotenv';
 import { createServer as createViteServer } from 'vite';
 import { createBackendApp } from './backend/app';
-import { postgresStore } from './backend/db/store';
+import { databaseStore } from './backend/db/store';
 
 if (process.env.NODE_ENV !== 'production') {
   dotenv.config({ path: path.resolve(process.cwd(), 'backend/.env') });
@@ -15,7 +15,7 @@ async function startServer() {
   const PORT = Number(process.env.PORT) || 3000;
 
   try {
-    await postgresStore.ensureSeeded();
+    await databaseStore.ensureSeeded();
   } catch (error) {
     console.error('Database initialization failed during startup:', error);
     process.exit(1);

@@ -12,6 +12,7 @@ import { paymentsRouter } from './routes/payments';
 import { subscriptionsRouter } from './routes/subscriptions';
 import { databaseBackupRouter } from './routes/database-backup';
 import { pool } from '../src/db';
+import { RowDataPacket } from 'mysql2';
 
 export function createBackendApp(): Express {
   const app = express();
@@ -30,23 +31,23 @@ export function createBackendApp(): Express {
   // Health Check
   app.get('/api/health', async (_req: Request, res: Response) => {
     try {
-      const ping = await pool.query('SELECT 1 AS ok');
-      const databaseHealthy = ping.rows?.[0]?.ok === 1;
+      const [rows] = await pool.query<RowDataPacket[]>('SELECT 1 AS ok');
+      const databaseHealthy = Number(rows[0]?.ok) === 1;
 
       res.json({
         status: databaseHealthy ? 'online' : 'degraded',
-        service: 'Royal Hints PostgreSQL Backend Engine',
+        service: 'Royal Hints MariaDB Backend Engine',
         version: '2.0.0',
-        database: databaseHealthy ? 'PostgreSQL (Cloud SQL) connected' : 'PostgreSQL unreachable',
+        database: databaseHealthy ? 'MariaDB connected' : 'MariaDB unreachable',
         timestamp: new Date().toISOString()
       });
     } catch (error) {
       console.error('Database health check failed:', error);
       res.status(503).json({
         status: 'offline',
-        service: 'Royal Hints PostgreSQL Backend Engine',
+        service: 'Royal Hints MariaDB Backend Engine',
         version: '2.0.0',
-        database: 'PostgreSQL unreachable',
+        database: 'MariaDB unreachable',
         timestamp: new Date().toISOString(),
         error: error instanceof Error ? error.message : 'Unknown database error'
       });

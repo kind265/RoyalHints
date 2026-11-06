@@ -1,144 +1,156 @@
-import { pgTable, text, integer, doublePrecision, boolean, jsonb, timestamp } from 'drizzle-orm/pg-core';
+import {
+  boolean,
+  double,
+  int,
+  json,
+  longtext,
+  mysqlTable,
+  text,
+  timestamp,
+  varchar
+} from 'drizzle-orm/mysql-core';
 
-export const products = pgTable('products', {
-  id: text('id').primaryKey(),
-  name: text('name').notNull(),
-  price: doublePrecision('price').notNull(),
-  rating: doublePrecision('rating').default(5.0).notNull(),
-  category: text('category').notNull(),
-  image: text('image').notNull(),
+export const products = mysqlTable('products', {
+  id: varchar('id', { length: 191 }).primaryKey(),
+  name: varchar('name', { length: 512 }).notNull(),
+  price: double('price').notNull(),
+  rating: double('rating').default(5).notNull(),
+  category: varchar('category', { length: 128 }).notNull(),
+  image: longtext('image').notNull(),
   isNew: boolean('is_new').default(true),
-  sku: text('sku').notNull(),
+  sku: varchar('sku', { length: 255 }).notNull(),
   inStock: boolean('in_stock').default(true).notNull(),
-  stockQuantity: integer('stock_quantity').default(10).notNull(),
-  stockStatus: text('stock_status').default('In Stock').notNull(),
-  warehouseLocation: text('warehouse_location').default('Main Vault').notNull(),
-  dispatchTime: text('dispatch_time').default('Dispatches in 24 hours').notNull(),
-  description: text('description').default('').notNull(),
-  highlights: jsonb('highlights').$type<string[]>().default([]),
-  specifications: jsonb('specifications').$type<Record<string, string>>().default({}),
-  variants: jsonb('variants').$type<any[]>().default([]),
-  galleryImages: jsonb('gallery_images').$type<string[]>().default([]),
+  stockQuantity: int('stock_quantity').default(10).notNull(),
+  stockStatus: varchar('stock_status', { length: 64 }).default('In Stock').notNull(),
+  warehouseLocation: varchar('warehouse_location', { length: 512 }).default('Main Vault').notNull(),
+  dispatchTime: varchar('dispatch_time', { length: 512 }).default('Dispatches in 24 hours').notNull(),
+  description: longtext('description').notNull(),
+  highlights: json('highlights').$type<string[]>().default([]),
+  specifications: json('specifications').$type<Record<string, string>>().default({}),
+  variants: json('variants').$type<any[]>().default([]),
+  galleryImages: json('gallery_images').$type<string[]>().default([]),
   createdAt: timestamp('created_at').defaultNow()
 });
 
-export const businessPosts = pgTable('business_posts', {
-  id: text('id').primaryKey(),
-  userId: text('user_id').notNull(),
-  userName: text('user_name').notNull(),
-  title: text('title').notNull(),
-  description: text('description').default(''),
-  image: text('image').notNull(),
-  category: text('category').notNull(),
-  timestamp: text('timestamp').notNull(),
-  price: doublePrecision('price'),
-  stockCount: integer('stock_count'),
-  sku: text('sku'),
-  condition: text('condition'),
-  location: text('location'),
-  dispatchTime: text('dispatch_time'),
-  galleryImages: jsonb('gallery_images').$type<string[]>().default([]),
-  reviews: jsonb('reviews').$type<any[]>().default([]),
+export const businessPosts = mysqlTable('business_posts', {
+  id: varchar('id', { length: 191 }).primaryKey(),
+  userId: varchar('user_id', { length: 191 }).notNull(),
+  userName: varchar('user_name', { length: 512 }).notNull(),
+  title: varchar('title', { length: 512 }).notNull(),
+  description: longtext('description'),
+  image: longtext('image').notNull(),
+  category: varchar('category', { length: 128 }).notNull(),
+  timestamp: varchar('timestamp', { length: 64 }).notNull(),
+  price: double('price'),
+  stockCount: int('stock_count'),
+  sku: varchar('sku', { length: 255 }),
+  condition: varchar('condition', { length: 255 }),
+  location: varchar('location', { length: 512 }),
+  dispatchTime: varchar('dispatch_time', { length: 512 }),
+  galleryImages: json('gallery_images').$type<string[]>().default([]),
+  reviews: json('reviews').$type<any[]>().default([]),
   createdAt: timestamp('created_at').defaultNow()
 });
 
-export const shipments = pgTable('shipments', {
-  id: text('id').primaryKey(),
-  trackingNumber: text('tracking_number').notNull().unique(),
-  orderId: text('order_id').notNull(),
-  carrier: text('carrier').default('Royal Hints Express Courier'),
-  serviceType: text('service_type').default('Armored Diplomatic Transit'),
-  status: text('status').default('Order Placed').notNull(),
-  origin: text('origin').default('Royal Hints Dispatch'),
-  destination: text('destination').notNull(),
-  estimatedDelivery: text('estimated_delivery'),
-  dispatchedDate: text('dispatched_date'),
-  orderDate: text('order_date'),
-  paymentMethod: text('payment_method'),
-  paymentReference: text('payment_reference').unique(),
-  scanToken: text('scan_token').unique(),
-  paidAt: text('paid_at'),
+export const shipments = mysqlTable('shipments', {
+  id: varchar('id', { length: 191 }).primaryKey(),
+  trackingNumber: varchar('tracking_number', { length: 191 }).notNull().unique(),
+  orderId: varchar('order_id', { length: 191 }).notNull(),
+  carrier: varchar('carrier', { length: 255 }).default('Royal Hints Courier'),
+  serviceType: varchar('service_type', { length: 255 }).default('Courier Delivery'),
+  status: varchar('status', { length: 128 }).default('Order Placed').notNull(),
+  origin: varchar('origin', { length: 512 }).default('Royal Hints Dispatch'),
+  destination: longtext('destination').notNull(),
+  estimatedDelivery: longtext('estimated_delivery'),
+  dispatchedDate: varchar('dispatched_date', { length: 255 }),
+  orderDate: varchar('order_date', { length: 255 }),
+  paymentMethod: varchar('payment_method', { length: 255 }),
+  paymentReference: varchar('payment_reference', { length: 191 }).unique(),
+  scanToken: varchar('scan_token', { length: 191 }).unique(),
+  paidAt: varchar('paid_at', { length: 64 }),
   deliveryConfirmedByCustomer: boolean('delivery_confirmed_by_customer').default(false),
-  deliveryConfirmedAt: text('delivery_confirmed_at'),
-  items: jsonb('items').$type<any[]>().default([]),
-  checkpoints: jsonb('checkpoints').$type<any[]>().default([]),
+  deliveryConfirmedAt: varchar('delivery_confirmed_at', { length: 64 }),
+  items: json('items').$type<any[]>().default([]),
+  checkpoints: json('checkpoints').$type<any[]>().default([]),
   createdAt: timestamp('created_at').defaultNow()
 });
 
-export const quotations = pgTable('quotations', {
-  id: text('id').primaryKey(),
-  quoteNumber: text('quote_number').notNull().unique(),
-  userId: text('user_id').notNull(),
-  userName: text('user_name').notNull(),
-  userEmail: text('user_email').notNull(),
-  title: text('title').notNull(),
-  category: text('category').notNull(),
-  estimatedQuantity: integer('estimated_quantity').default(1).notNull(),
-  targetBudget: text('target_budget').notNull(),
-  urgency: text('urgency').notNull(),
-  specifications: text('specifications').default(''),
-  deliveryLocation: text('delivery_location').notNull(),
-  contactNumber: text('contact_number').notNull(),
-  status: text('status').default('Under Review').notNull(),
-  submittedAt: text('submitted_at').notNull(),
-  adminQuote: jsonb('admin_quote').$type<any>(),
+export const quotations = mysqlTable('quotations', {
+  id: varchar('id', { length: 191 }).primaryKey(),
+  quoteNumber: varchar('quote_number', { length: 191 }).notNull().unique(),
+  userId: varchar('user_id', { length: 191 }).notNull(),
+  userName: varchar('user_name', { length: 512 }).notNull(),
+  userEmail: varchar('user_email', { length: 320 }).notNull(),
+  title: varchar('title', { length: 512 }).notNull(),
+  category: varchar('category', { length: 128 }).notNull(),
+  estimatedQuantity: int('estimated_quantity').default(1).notNull(),
+  targetBudget: varchar('target_budget', { length: 255 }).notNull(),
+  urgency: varchar('urgency', { length: 128 }).notNull(),
+  specifications: longtext('specifications'),
+  deliveryLocation: longtext('delivery_location').notNull(),
+  contactNumber: varchar('contact_number', { length: 128 }).notNull(),
+  status: varchar('status', { length: 128 }).default('Under Review').notNull(),
+  submittedAt: varchar('submitted_at', { length: 64 }).notNull(),
+  adminQuote: json('admin_quote').$type<any>(),
   createdAt: timestamp('created_at').defaultNow()
 });
 
-export const bespokeRequests = pgTable('bespoke_requests', {
-  id: text('id').primaryKey(),
-  referenceNumber: text('reference_number').notNull().unique(),
-  userId: text('user_id').notNull(),
-  userName: text('user_name').notNull(),
-  userEmail: text('user_email').notNull(),
-  itemName: text('item_name').notNull(),
-  category: text('category').notNull(),
-  makerOrBrand: text('maker_or_brand'),
-  conditionPreference: text('condition_preference').notNull(),
-  budgetEstimate: text('budget_estimate').notNull(),
-  urgency: text('urgency').notNull(),
-  referenceLinkOrImageUrl: text('reference_link_or_image_url'),
-  detailedRequirements: text('detailed_requirements').default(''),
-  adminRecipient: text('admin_recipient').notNull(),
-  status: text('status').default('Received by Admin').notNull(),
-  submittedAt: text('submitted_at').notNull(),
-  adminResponse: jsonb('admin_response').$type<any>(),
+export const bespokeRequests = mysqlTable('bespoke_requests', {
+  id: varchar('id', { length: 191 }).primaryKey(),
+  referenceNumber: varchar('reference_number', { length: 191 }).notNull().unique(),
+  userId: varchar('user_id', { length: 191 }).notNull(),
+  userName: varchar('user_name', { length: 512 }).notNull(),
+  userEmail: varchar('user_email', { length: 320 }).notNull(),
+  itemName: varchar('item_name', { length: 512 }).notNull(),
+  category: varchar('category', { length: 128 }).notNull(),
+  makerOrBrand: varchar('maker_or_brand', { length: 512 }),
+  conditionPreference: varchar('condition_preference', { length: 255 }).notNull(),
+  budgetEstimate: varchar('budget_estimate', { length: 255 }).notNull(),
+  urgency: varchar('urgency', { length: 128 }).notNull(),
+  referenceLinkOrImageUrl: longtext('reference_link_or_image_url'),
+  detailedRequirements: longtext('detailed_requirements'),
+  adminRecipient: varchar('admin_recipient', { length: 320 }).notNull(),
+  status: varchar('status', { length: 128 }).default('Received by Admin').notNull(),
+  submittedAt: varchar('submitted_at', { length: 64 }).notNull(),
+  adminResponse: json('admin_response').$type<any>(),
   createdAt: timestamp('created_at').defaultNow()
 });
 
-export const users = pgTable('users', {
-  id: text('id').primaryKey(),
-  name: text('name').notNull(),
-  email: text('email').notNull().unique(),
-  avatar: text('avatar'),
-  role: text('role').default('buyer').notNull(),
+export const users = mysqlTable('users', {
+  id: varchar('id', { length: 191 }).primaryKey(),
+  name: varchar('name', { length: 512 }).notNull(),
+  email: varchar('email', { length: 191 }).notNull().unique(),
+  username: varchar('username', { length: 191 }),
+  passwordHash: varchar('password_hash', { length: 255 }),
+  avatar: longtext('avatar'),
+  role: varchar('role', { length: 64 }).default('buyer').notNull(),
   isAdmin: boolean('is_admin').default(false),
   createdAt: timestamp('created_at').defaultNow()
 });
 
-export const userCarts = pgTable('rh_user_carts', {
-  userId: text('user_id').primaryKey(),
-  items: jsonb('items').$type<ProductCartItem[]>().default([]),
+export const userCarts = mysqlTable('rh_user_carts', {
+  userId: varchar('user_id', { length: 191 }).primaryKey(),
+  items: json('items').$type<ProductCartItem[]>().default([]).notNull(),
   updatedAt: timestamp('updated_at').defaultNow()
 });
 
-export const photoHistory = pgTable('rh_photo_history', {
-  id: text('id').primaryKey(),
-  userId: text('user_id').notNull(),
-  title: text('title').notNull(),
-  category: text('category').notNull(),
-  url: text('url').notNull(),
+export const photoHistory = mysqlTable('rh_photo_history', {
+  id: varchar('id', { length: 191 }).primaryKey(),
+  userId: varchar('user_id', { length: 191 }).notNull(),
+  title: varchar('title', { length: 512 }).notNull(),
+  category: varchar('category', { length: 128 }).notNull(),
+  url: longtext('url').notNull(),
   createdAt: timestamp('created_at').defaultNow()
 });
 
-export const notificationReads = pgTable('rh_notification_reads', {
-  userId: text('user_id').primaryKey(),
-  notificationIds: jsonb('notification_ids').$type<string[]>().default([]),
+export const notificationReads = mysqlTable('rh_notification_reads', {
+  userId: varchar('user_id', { length: 191 }).primaryKey(),
+  notificationIds: json('notification_ids').$type<string[]>().default([]).notNull(),
   updatedAt: timestamp('updated_at').defaultNow()
 });
 
-export const itemSubscribers = pgTable('rh_item_subscribers', {
-  email: text('email').primaryKey(),
+export const itemSubscribers = mysqlTable('rh_item_subscribers', {
+  email: varchar('email', { length: 191 }).primaryKey(),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow()
 });

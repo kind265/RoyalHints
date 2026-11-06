@@ -1,6 +1,6 @@
 import { Router, Request, Response } from 'express';
 import crypto from 'crypto';
-import { postgresStore } from '../db/store';
+import { databaseStore } from '../db/store';
 
 export const paymentsRouter = Router();
 
@@ -53,7 +53,7 @@ const getProviderMessage = (payload: any) => {
 };
 
 const verifyPaidCheckout = async (reference: string) => {
-  const pending = await postgresStore.getPendingCheckout(reference);
+  const pending = await databaseStore.getPendingCheckout(reference);
   if (!pending) throw new Error('No pending order found for this payment reference.');
   const secretKey = process.env.PAYCHANGU_SECRET_KEY;
   const apiBaseUrl = (process.env.PAYCHANGU_API_BASE_URL || 'https://api.paychangu.com').replace(/\/$/, '');
@@ -68,7 +68,7 @@ const verifyPaidCheckout = async (reference: string) => {
   if (String(payment.tx_ref || '') !== reference) throw new Error('PayChangu payment reference did not match the order.');
   if (String(payment.currency || '').toUpperCase() !== pending.currency.toUpperCase()) throw new Error('PayChangu payment currency did not match the order currency.');
   if (toNumber(payment.amount) < pending.amount) throw new Error('The verified payment amount is lower than the order total.');
-  return postgresStore.completePaidCheckout(reference);
+  return databaseStore.completePaidCheckout(reference);
 };
 
 const verifyPayChanguSignature = (req: Request, body: any) => {
@@ -180,7 +180,7 @@ paymentsRouter.post('/paychangu/initiate', async (req: Request, res: Response) =
     if (!checkoutOrder || !checkoutOrder.destination || !Array.isArray(checkoutOrder.items) || checkoutOrder.items.length === 0) {
       return res.status(400).json({ success: false, message: 'Order delivery and item details are required before payment.' });
     }
-    await postgresStore.savePendingCheckout(finalReference, finalAmount, currency, checkoutOrder);
+    await databaseStore.savePendingCheckout(finalReference, finalAmount, currency, checkoutOrder);
 
     return res.json({
       success: true,

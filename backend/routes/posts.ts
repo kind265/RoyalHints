@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { postgresStore } from '../db/store';
+import { databaseStore } from '../db/store';
 import { BusinessPost } from '../types';
 
 export const postsRouter = Router();
@@ -8,7 +8,7 @@ export const postsRouter = Router();
 postsRouter.get('/', async (req: Request, res: Response) => {
   try {
     const { category, userId } = req.query;
-    let posts = await postgresStore.getPosts();
+    let posts = await databaseStore.getPosts();
 
     if (category && typeof category === 'string') {
       posts = posts.filter(p => p.category.toLowerCase() === category.toLowerCase());
@@ -58,11 +58,11 @@ postsRouter.post('/', async (req: Request, res: Response) => {
       reviews: body.reviews || []
     };
 
-    const created = await postgresStore.createPost(newPost);
-    postgresStore.notifyItemSubscribers(created).catch(error => {
+    const created = await databaseStore.createPost(newPost);
+    databaseStore.notifyItemSubscribers(created).catch(error => {
       console.error('New item subscriber notification error:', error);
     });
-    res.status(201).json({ success: true, message: 'Post published to PostgreSQL', data: created });
+    res.status(201).json({ success: true, message: 'Post published to MariaDB', data: created });
   } catch (error: any) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -71,7 +71,7 @@ postsRouter.post('/', async (req: Request, res: Response) => {
 // GET single post by ID
 postsRouter.get('/:id', async (req: Request, res: Response) => {
   try {
-    const post = await postgresStore.getPostById(String(req.params.id));
+    const post = await databaseStore.getPostById(String(req.params.id));
     if (!post) {
       return res.status(404).json({ success: false, message: 'Post not found' });
     }
@@ -84,11 +84,11 @@ postsRouter.get('/:id', async (req: Request, res: Response) => {
 // PUT update post
 postsRouter.put('/:id', async (req: Request, res: Response) => {
   try {
-    const updated = await postgresStore.updatePost(String(req.params.id), req.body);
+    const updated = await databaseStore.updatePost(String(req.params.id), req.body);
     if (!updated) {
       return res.status(404).json({ success: false, message: 'Post not found for update' });
     }
-    res.json({ success: true, message: 'Post updated in PostgreSQL', data: updated });
+    res.json({ success: true, message: 'Post updated in MariaDB', data: updated });
   } catch (error: any) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -97,11 +97,11 @@ postsRouter.put('/:id', async (req: Request, res: Response) => {
 // DELETE post
 postsRouter.delete('/:id', async (req: Request, res: Response) => {
   try {
-    const deleted = await postgresStore.deletePost(String(req.params.id));
+    const deleted = await databaseStore.deletePost(String(req.params.id));
     if (!deleted) {
       return res.status(404).json({ success: false, message: 'Post not found for deletion' });
     }
-    res.json({ success: true, message: 'Post removed from PostgreSQL' });
+    res.json({ success: true, message: 'Post removed from MariaDB' });
   } catch (error: any) {
     res.status(500).json({ success: false, message: error.message });
   }
