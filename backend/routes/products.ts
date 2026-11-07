@@ -4,11 +4,21 @@ import { Product } from '../types';
 
 export const productsRouter = Router();
 
+let productCatalogCache: { products: Product[]; expiresAt: number } | null = null;
+const PRODUCT_CACHE_TTL_MS = 30_000;
+
 // GET all products or filter by category / search
 productsRouter.get('/', async (req: Request, res: Response) => {
   try {
     const { category, search } = req.query;
-    let products = await databaseStore.getProducts();
+    const now = Date.now();
+    if (!productCatalogCache || productCatalogCache.expiresAt <= now) {
+      productCatalogCache = {
+        products: await databaseStore.getProducts(),
+        expiresAt: now + PRODUCT_CACHE_TTL_MS
+      };
+    }
+    let products = productCatalogCache.products;
 
     if (category && typeof category === 'string' && category !== 'All') {
       products = products.filter(p => p.category.toLowerCase() === category.toLowerCase());
@@ -23,6 +33,7 @@ productsRouter.get('/', async (req: Request, res: Response) => {
       );
     }
 
+    res.set('Cache-Control', 'public, max-age=15, stale-while-revalidate=60');
     res.json({
       success: true,
       count: products.length,
@@ -32,6 +43,10 @@ productsRouter.get('/', async (req: Request, res: Response) => {
     res.status(500).json({ success: false, message: error.message });
   }
 });
+
+export const invalidateProductCatalogCache = () => {
+  productCatalogCache = null;
+};
 
 // GET product by ID
 productsRouter.get('/:id', async (req: Request, res: Response) => {
@@ -79,6 +94,7 @@ productsRouter.post('/', async (req: Request, res: Response) => {
     };
 
     const created = await databaseStore.createProduct(newProduct);
+    invalidateProductCatalogCache();
     res.status(201).json({ success: true, message: 'Product created successfully in MariaDB', data: created });
   } catch (error: any) {
     res.status(500).json({ success: false, message: error.message });
@@ -92,6 +108,7 @@ productsRouter.put('/:id', async (req: Request, res: Response) => {
     if (!updated) {
       return res.status(404).json({ success: false, message: 'Product not found for update' });
     }
+    invalidateProductCatalogCache();
     res.json({ success: true, message: 'Product updated successfully in MariaDB', data: updated });
   } catch (error: any) {
     res.status(500).json({ success: false, message: error.message });
@@ -105,6 +122,7 @@ productsRouter.delete('/:id', async (req: Request, res: Response) => {
     if (!deleted) {
       return res.status(404).json({ success: false, message: 'Product not found for deletion' });
     }
+    invalidateProductCatalogCache();
     res.json({ success: true, message: 'Product removed successfully from MariaDB' });
   } catch (error: any) {
     res.status(500).json({ success: false, message: error.message });

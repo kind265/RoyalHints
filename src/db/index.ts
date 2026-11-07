@@ -14,26 +14,6 @@ declare global {
 }
 
 const getMariaDbOptions = () => {
-  const connectionString = process.env.MARIADB_URL || process.env.MYSQL_URL;
-  if (connectionString) {
-    const url = new URL(connectionString);
-    if (!['mysql:', 'mariadb:'].includes(url.protocol)) {
-      throw new Error('MARIADB_URL must use the mysql:// or mariadb:// protocol.');
-    }
-
-    return {
-      host: url.hostname,
-      port: url.port ? Number(url.port) : 3306,
-      user: decodeURIComponent(url.username),
-      password: decodeURIComponent(url.password),
-      database: decodeURIComponent(url.pathname.replace(/^\//, '')),
-      ssl: process.env.MYSQL_SSL === 'true' ? {} : undefined,
-      connectionLimit: 10,
-      connectTimeout: 15000,
-      timezone: 'Z' as const
-    };
-  }
-
   const host = process.env.MYSQL_HOST;
   const database = process.env.MYSQL_DATABASE;
   const user = process.env.MYSQL_USER;

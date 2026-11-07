@@ -113,6 +113,7 @@ const TrendingGrid: React.FC<TrendingGridProps> = ({
                       alt={product.name} 
                       className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700"
                       loading="lazy"
+                      decoding="async"
                     />
 
                     {/* Stock tag on mobile / desktop */}

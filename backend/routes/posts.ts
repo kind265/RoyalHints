@@ -18,6 +18,7 @@ postsRouter.get('/', async (req: Request, res: Response) => {
       posts = posts.filter(p => p.userId === userId);
     }
 
+    res.set('Cache-Control', 'public, max-age=15, stale-while-revalidate=60');
     res.json({
       success: true,
       count: posts.length,

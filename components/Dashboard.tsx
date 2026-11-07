@@ -101,6 +101,41 @@ const DISPATCH_PRESETS = [
   'Priority Armored Express'
 ];
 
+const optimizeImageFile = async (file: File): Promise<string> => {
+  if (!file.type.startsWith('image/')) {
+    throw new Error('Choose a valid image file.');
+  }
+
+  if (typeof createImageBitmap !== 'function') {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => typeof reader.result === 'string'
+        ? resolve(reader.result)
+        : reject(new Error('Could not read the selected image.'));
+      reader.onerror = () => reject(new Error('Could not read the selected image.'));
+      reader.readAsDataURL(file);
+    });
+  }
+
+  const bitmap = await createImageBitmap(file);
+  try {
+    const maxDimension = 1280;
+    const scale = Math.min(1, maxDimension / Math.max(bitmap.width, bitmap.height));
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.max(1, Math.round(bitmap.width * scale));
+    canvas.height = Math.max(1, Math.round(bitmap.height * scale));
+    const context = canvas.getContext('2d');
+    if (!context) throw new Error('Image processing is unavailable in this browser.');
+
+    context.fillStyle = '#ffffff';
+    context.fillRect(0, 0, canvas.width, canvas.height);
+    context.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+    return canvas.toDataURL('image/jpeg', 0.82);
+  } finally {
+    bitmap.close();
+  }
+};
+
 const Dashboard: React.FC<DashboardProps> = ({ 
   user, 
   onLogout, 
@@ -283,33 +318,31 @@ const Dashboard: React.FC<DashboardProps> = ({
     twoFactor: false
   });
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>, isEditing = false) => {
-    const file = e.target.files?.[0];
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, isEditing = false) => {
+    const input = e.currentTarget;
+    const file = input.files?.[0];
     if (!file) return;
 
-    // Calculate readable file size
-    const sizeInKb = file.size / 1024;
-    const fileSizeFormatted = sizeInKb > 1024 
-      ? `${(sizeInKb / 1024).toFixed(2)} MB` 
-      : `${Math.round(sizeInKb)} KB`;
-
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const dataUrl = event.target?.result as string;
-      if (dataUrl) {
-        setPendingUpload({
-          file,
-          previewUrl: dataUrl,
-          fileName: file.name,
-          fileSizeFormatted,
-          category: isEditing ? (editingPost?.category || 'Custom') : postData.category,
-          isEditing
-        });
-      }
-    };
-    reader.readAsDataURL(file);
-    // Reset file input so selecting the same file again triggers change
-    e.target.value = '';
+    try {
+      const previewUrl = await optimizeImageFile(file);
+      const base64Start = previewUrl.indexOf(',') + 1;
+      const sizeInKb = Math.max(0, (previewUrl.length - base64Start) * 0.75 / 1024);
+      const fileSizeFormatted = sizeInKb > 1024
+        ? `${(sizeInKb / 1024).toFixed(2)} MB`
+        : `${Math.round(sizeInKb)} KB`;
+      setPendingUpload({
+        file,
+        previewUrl,
+        fileName: file.name,
+        fileSizeFormatted,
+        category: isEditing ? (editingPost?.category || 'Custom') : postData.category,
+        isEditing
+      });
+    } catch (error) {
+      console.error('Product image optimization failed:', error);
+      window.alert(error instanceof Error ? error.message : 'Could not process the selected image.');
+    }
+    input.value = '';
   };
 
   const handleConfirmPendingUpload = () => {
@@ -339,17 +372,17 @@ const Dashboard: React.FC<DashboardProps> = ({
     setPendingUpload(null);
   };
 
-  const handleSupportingFiles = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || []);
-    files.forEach(file => {
-      const reader = new FileReader();
-      reader.onload = event => {
-        const url = event.target?.result as string;
-        if (url) setSupportingImages(prev => [...prev, url]);
-      };
-      reader.readAsDataURL(file as Blob);
-    });
-    e.target.value = '';
+  const handleSupportingFiles = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const input = e.currentTarget;
+    const files = Array.from(input.files || []);
+    try {
+      const optimizedImages = await Promise.all(files.map(optimizeImageFile));
+      setSupportingImages(prev => [...prev, ...optimizedImages]);
+    } catch (error) {
+      console.error('Supporting image optimization failed:', error);
+      window.alert(error instanceof Error ? error.message : 'Could not process the selected images.');
+    }
+    input.value = '';
   };
 
   const handleSelectPhoto = (url: string) => {

@@ -35,16 +35,15 @@ class MariaDbStore {
   async ensureSeeded() {
     if (this.seeded) return;
     try {
-      const hasMariaDbUrl = Boolean(process.env.MARIADB_URL || process.env.MYSQL_URL);
       const hasHostConfiguration = Boolean(
         process.env.MYSQL_HOST &&
         process.env.MYSQL_DATABASE &&
         process.env.MYSQL_USER &&
         process.env.MYSQL_PASSWORD
       );
-      if (!hasMariaDbUrl && !hasHostConfiguration) {
+      if (!hasHostConfiguration) {
         throw new Error(
-          'MariaDB configuration is missing. Set MARIADB_URL or MYSQL_HOST, MYSQL_DATABASE, MYSQL_USER, and MYSQL_PASSWORD in the hosting environment.'
+          'MariaDB configuration is missing. Set MYSQL_HOST, MYSQL_DATABASE, MYSQL_USER, and MYSQL_PASSWORD in the hosting environment.'
         );
       }
 

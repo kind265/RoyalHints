@@ -144,30 +144,41 @@ const App: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    const syncWithBackend = async () => {
+    const syncCatalog = async () => {
       try {
-        const [fetchedPosts, fetchedProducts, fetchedShipments, fetchedQuotations, fetchedBespoke] = await Promise.all([
+        const [fetchedPosts, fetchedProducts] = await Promise.all([
           apiClient.getPosts(),
-          apiClient.getProducts(),
+          apiClient.getProducts()
+        ]);
+        if (Array.isArray(fetchedPosts)) setPosts(fetchedPosts);
+        if (Array.isArray(fetchedProducts)) setProducts(fetchedProducts);
+      } catch (err) {
+        console.warn('Catalog sync warning:', err);
+      }
+    };
+
+    const syncOtherData = async () => {
+      try {
+        const [fetchedShipments, fetchedQuotations, fetchedBespoke] = await Promise.all([
           apiClient.getShipments(),
           apiClient.getQuotations(),
           apiClient.getBespokeRequests()
         ]);
 
-        if (Array.isArray(fetchedPosts)) setPosts(fetchedPosts);
-        if (Array.isArray(fetchedProducts)) setProducts(fetchedProducts);
         if (Array.isArray(fetchedShipments)) setShipments(fetchedShipments);
         if (Array.isArray(fetchedQuotations)) setQuotations(fetchedQuotations);
         if (Array.isArray(fetchedBespoke)) setBespokeRequests(fetchedBespoke);
       } catch (err) {
-        console.warn('Backend sync warning (using cached state):', err);
+        console.warn('Account data sync warning:', err);
       }
     };
 
-    syncWithBackend();
+    syncCatalog();
+    syncOtherData();
 
     const refreshTimer = window.setInterval(() => {
-      syncWithBackend();
+      syncCatalog();
+      syncOtherData();
     }, 5 * 60 * 1000);
 
     return () => window.clearInterval(refreshTimer);

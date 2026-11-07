@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { databaseStore } from '../db/store';
 import { exportDatabaseBackup, restoreDatabaseBackup } from '../db/backup-service';
+import { invalidateProductCatalogCache } from './products';
 
 const getSessionUser = async (req: Request) => {
   const cookie = req.headers.cookie?.split(';').map(value => value.trim()).find(value => value.startsWith('royal_hints_session='));
@@ -37,6 +38,7 @@ databaseBackupRouter.post('/restore', async (req: Request, res: Response) => {
   if (!(await requireAdmin(req, res))) return;
   try {
     const importedCounts = await restoreDatabaseBackup(req.body);
+    invalidateProductCatalogCache();
     return res.json({
       success: true,
       message: 'Backup restored. Sign in again because existing sessions were cleared.',

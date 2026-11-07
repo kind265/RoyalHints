@@ -9,9 +9,9 @@ import { BACKUP_FORMAT, BACKUP_TABLES, BACKUP_VERSION } from '../backend/db/back
 const backupDirectory = path.resolve(process.cwd(), 'backup');
 
 const main = async () => {
-  const sourceUrl = process.env.POSTGRES_DATABASE_URL || process.env.DATABASE_URL;
+  const sourceUrl = process.env.POSTGRES_DATABASE_URL;
   if (!sourceUrl) {
-    throw new Error('Set POSTGRES_DATABASE_URL (or the existing DATABASE_URL) to the current PostgreSQL connection string.');
+    throw new Error('Set POSTGRES_DATABASE_URL to the PostgreSQL source connection string for this one-time migration.');
   }
 
   const source = new URL(sourceUrl);

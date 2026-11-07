@@ -1,5 +1,6 @@
 import express, { Express, Request, Response, NextFunction } from 'express';
 import cors from 'cors';
+import compression from 'compression';
 import { productsRouter } from './routes/products';
 import { postsRouter } from './routes/posts';
 import { trackingRouter } from './routes/tracking';
@@ -19,6 +20,7 @@ export function createBackendApp(): Express {
 
   // Core Middleware
   app.use(cors());
+  app.use(compression());
   app.use(express.json({ limit: '50mb' }));
   app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 

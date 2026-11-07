@@ -12,18 +12,19 @@
     "db:migrate:postgres": "tsx scripts/migrate-postgres-to-mariadb.ts"
   },
   "dependencies": {
+    "compression": "^1.8.2",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "drizzle-orm": "^0.45.2",
     "express": "^5.2.1",
     "lucide-react": "^0.563.0",
     "mysql2": "^3.14.4",
-    "pg": "^8.23.1",
     "qrcode": "^1.5.4",
     "react": "^19.2.4",
     "react-dom": "^19.2.4"
   },
   "devDependencies": {
+    "@types/compression": "^1.8.1",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
     "@types/node": "^22.14.0",
@@ -33,6 +34,7 @@
     "@vitejs/plugin-react": "^5.0.0",
     "drizzle-kit": "^0.18.1",
     "esbuild": "^0.28.2",
+    "pg": "^8.23.1",
     "tsx": "^4.23.12",
     "typescript": "~5.8.2",
     "vite": "^6.2.0"

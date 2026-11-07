@@ -14,6 +14,9 @@ export const apiClient = {
     const response = await fetch(`${API_BASE}/admin/backup`);
     if (!response.ok) {
       const result = await response.json().catch(() => null);
+      if (response.status === 404) {
+        throw new Error('The deployed backend does not include the backup endpoint yet. Redeploy the latest backend/server build, then try again.');
+      }
       throw new Error(result?.message || 'Could not download the database backup.');
     }
 
