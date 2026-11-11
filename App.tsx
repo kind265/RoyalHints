@@ -144,17 +144,9 @@ const App: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    const syncCatalog = async () => {
-      try {
-        const [fetchedPosts, fetchedProducts] = await Promise.all([
-          apiClient.getPosts(),
-          apiClient.getProducts()
-        ]);
-        if (Array.isArray(fetchedPosts)) setPosts(fetchedPosts);
-        if (Array.isArray(fetchedProducts)) setProducts(fetchedProducts);
-      } catch (err) {
-        console.warn('Catalog sync warning:', err);
-      }
+    const syncCatalog = () => {
+      apiClient.getPosts().then(setPosts);
+      apiClient.getProducts().then(setProducts);
     };
 
     const syncOtherData = async () => {

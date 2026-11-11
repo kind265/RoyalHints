@@ -4,11 +4,21 @@ import { BusinessPost } from '../types';
 
 export const postsRouter = Router();
 
+let postCatalogCache: { posts: BusinessPost[]; expiresAt: number } | null = null;
+const POST_CACHE_TTL_MS = 30_000;
+
 // GET all business posts
 postsRouter.get('/', async (req: Request, res: Response) => {
   try {
     const { category, userId } = req.query;
-    let posts = await databaseStore.getPosts();
+    const now = Date.now();
+    if (!postCatalogCache || postCatalogCache.expiresAt <= now) {
+      postCatalogCache = {
+        posts: await databaseStore.getPosts(),
+        expiresAt: now + POST_CACHE_TTL_MS
+      };
+    }
+    let posts = postCatalogCache.posts;
 
     if (category && typeof category === 'string') {
       posts = posts.filter(p => p.category.toLowerCase() === category.toLowerCase());
@@ -28,6 +38,10 @@ postsRouter.get('/', async (req: Request, res: Response) => {
     res.status(500).json({ success: false, message: error.message });
   }
 });
+
+const invalidatePostCatalogCache = () => {
+  postCatalogCache = null;
+};
 
 // POST a new venture listing / post
 postsRouter.post('/', async (req: Request, res: Response) => {
@@ -60,6 +74,7 @@ postsRouter.post('/', async (req: Request, res: Response) => {
     };
 
     const created = await databaseStore.createPost(newPost);
+    invalidatePostCatalogCache();
     databaseStore.notifyItemSubscribers(created).catch(error => {
       console.error('New item subscriber notification error:', error);
     });
@@ -89,6 +104,7 @@ postsRouter.put('/:id', async (req: Request, res: Response) => {
     if (!updated) {
       return res.status(404).json({ success: false, message: 'Post not found for update' });
     }
+    invalidatePostCatalogCache();
     res.json({ success: true, message: 'Post updated in MariaDB', data: updated });
   } catch (error: any) {
     res.status(500).json({ success: false, message: error.message });
@@ -102,6 +118,7 @@ postsRouter.delete('/:id', async (req: Request, res: Response) => {
     if (!deleted) {
       return res.status(404).json({ success: false, message: 'Post not found for deletion' });
     }
+    invalidatePostCatalogCache();
     res.json({ success: true, message: 'Post removed from MariaDB' });
   } catch (error: any) {
     res.status(500).json({ success: false, message: error.message });

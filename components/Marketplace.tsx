@@ -507,7 +507,7 @@ const Marketplace: React.FC<MarketplaceProps> = ({ posts, user, onAddReview, onN
               {posts.length === 0 ? (
                 <>
                   <h3 className="text-2xl sm:text-3xl font-black text-[#1A1A1A]">
-                    ITEMS ADDED
+                    ITEMS ADDED WILL BE DISPLAYED HERE
                   </h3>
                   <div role="status" aria-label="Loading items" className="flex justify-center text-[#2563EB]">
                     <span className="sr-only">Loading items</span>

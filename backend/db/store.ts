@@ -31,9 +31,23 @@ const parseJsonColumn = <T>(value: unknown, fallback: T): T => {
 
 class MariaDbStore {
   private seeded = false;
+  private initialization: Promise<void> | null = null;
 
   async ensureSeeded() {
     if (this.seeded) return;
+    if (!this.initialization) {
+      this.initialization = this.initialize();
+    }
+
+    try {
+      await this.initialization;
+    } catch (error) {
+      this.initialization = null;
+      throw error;
+    }
+  }
+
+  private async initialize() {
     try {
       const hasHostConfiguration = Boolean(
         process.env.MYSQL_HOST &&

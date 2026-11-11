@@ -106,35 +106,76 @@ const optimizeImageFile = async (file: File): Promise<string> => {
     throw new Error('Choose a valid image file.');
   }
 
-  if (typeof createImageBitmap !== 'function') {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => typeof reader.result === 'string'
-        ? resolve(reader.result)
-        : reject(new Error('Could not read the selected image.'));
-      reader.onerror = () => reject(new Error('Could not read the selected image.'));
-      reader.readAsDataURL(file);
-    });
+  let source: CanvasImageSource;
+  let sourceWidth: number;
+  let sourceHeight: number;
+  let releaseSource: () => void = () => {};
+
+  if (typeof createImageBitmap === 'function') {
+    try {
+      const bitmap = await createImageBitmap(file);
+      source = bitmap;
+      sourceWidth = bitmap.width;
+      sourceHeight = bitmap.height;
+      releaseSource = () => bitmap.close();
+    } catch {
+      const image = await loadImageElement(file);
+      source = image;
+      sourceWidth = image.naturalWidth;
+      sourceHeight = image.naturalHeight;
+      releaseSource = () => URL.revokeObjectURL(image.src);
+    }
+  } else {
+    const image = await loadImageElement(file);
+    source = image;
+    sourceWidth = image.naturalWidth;
+    sourceHeight = image.naturalHeight;
+    releaseSource = () => URL.revokeObjectURL(image.src);
   }
 
-  const bitmap = await createImageBitmap(file);
   try {
-    const maxDimension = 1280;
-    const scale = Math.min(1, maxDimension / Math.max(bitmap.width, bitmap.height));
-    const canvas = document.createElement('canvas');
-    canvas.width = Math.max(1, Math.round(bitmap.width * scale));
-    canvas.height = Math.max(1, Math.round(bitmap.height * scale));
-    const context = canvas.getContext('2d');
-    if (!context) throw new Error('Image processing is unavailable in this browser.');
+    const targetBytes = 250 * 1024;
+    let maxDimension = 1200;
+    let quality = 0.8;
+    let compressedImage = '';
 
-    context.fillStyle = '#ffffff';
-    context.fillRect(0, 0, canvas.width, canvas.height);
-    context.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
-    return canvas.toDataURL('image/jpeg', 0.82);
+    for (let attempt = 0; attempt < 6; attempt += 1) {
+      const scale = Math.min(1, maxDimension / Math.max(sourceWidth, sourceHeight));
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.max(1, Math.round(sourceWidth * scale));
+      canvas.height = Math.max(1, Math.round(sourceHeight * scale));
+      const context = canvas.getContext('2d');
+      if (!context) throw new Error('Image processing is unavailable in this browser.');
+
+      context.fillStyle = '#ffffff';
+      context.fillRect(0, 0, canvas.width, canvas.height);
+      context.drawImage(source, 0, 0, canvas.width, canvas.height);
+      compressedImage = canvas.toDataURL('image/jpeg', quality);
+
+      const base64Start = compressedImage.indexOf(',') + 1;
+      const outputBytes = Math.floor((compressedImage.length - base64Start) * 0.75);
+      if (outputBytes <= targetBytes) break;
+
+      quality = Math.max(0.5, quality - 0.07);
+      maxDimension = Math.max(800, Math.round(maxDimension * 0.9));
+    }
+
+    return compressedImage;
   } finally {
-    bitmap.close();
+    releaseSource();
   }
 };
+
+const loadImageElement = (file: File): Promise<HTMLImageElement> => new Promise((resolve, reject) => {
+  const image = new Image();
+  const objectUrl = URL.createObjectURL(file);
+  image.onload = () => resolve(image);
+  image.onerror = () => {
+    URL.revokeObjectURL(objectUrl);
+    reject(new Error('Could not decode the selected image.'));
+  };
+  image.src = objectUrl;
+});
 
 const Dashboard: React.FC<DashboardProps> = ({ 
   user, 
