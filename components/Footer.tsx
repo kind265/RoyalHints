@@ -57,7 +57,7 @@ const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
           <div>
             <h4 className="font-bold text-sm uppercase tracking-widest mb-8 text-[#2563EB]">Shop</h4>
             <ul className="space-y-4 text-sm text-gray-400">
-              {['Books', 'Spare Parts', 'Fabric', 'Fashion'].map((category) => <li key={category}><button onClick={() => onNavigate?.('Home')} className="hover:text-white transition-colors">{category}</button></li>)}
+              {['Books', 'Spare Parts', 'Fashion', 'Homeware'].map((category) => <li key={category}><button onClick={() => onNavigate?.('Home')} className="hover:text-white transition-colors">{category}</button></li>)}
             </ul>
           </div>
 

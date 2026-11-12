@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { BookOpen, Wrench, Scissors, Zap, Check, ArrowRight } from 'lucide-react';
+import { BookOpen, Wrench, Scissors, Zap, Check, ArrowRight, House } from 'lucide-react';
 import { ProductCategory, Product } from '../types';
 
 interface TheEditProps {
@@ -23,10 +23,10 @@ const TheEdit: React.FC<TheEditProps> = ({ onSelectCategory, onSelectProduct }) 
       icon: Wrench
     },
     {
-      title: 'Fabric',
-      category: 'Fabric' as ProductCategory,
-      desc: 'Grade-6A Mulberry silk and heavyweight Belgian linens.',
-      icon: Scissors
+      title: 'Homeware',
+      category: 'Homeware' as ProductCategory,
+      desc: 'Thoughtful home essentials selected for quality and lasting use.',
+      icon: House
     },
     {
       title: 'Fashion',
@@ -69,7 +69,7 @@ const TheEdit: React.FC<TheEditProps> = ({ onSelectCategory, onSelectProduct }) 
               </span>
               <h2 className="text-[#1A1A1A] text-4xl sm:text-5xl md:text-6xl font-black tracking-tighter leading-[1.05]">
                 Books. Parts. <br />
-                Fabric. Fashion. <br />
+                Fashion. Homeware. <br />
                 <span className="text-[#2563EB]">Direct From Stock.</span>
               </h2>
             </div>
@@ -125,4 +125,3 @@ const TheEdit: React.FC<TheEditProps> = ({ onSelectCategory, onSelectProduct }) 
 };
 
 export default TheEdit;
-

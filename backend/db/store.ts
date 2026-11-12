@@ -5,6 +5,7 @@ import { RowDataPacket } from 'mysql2';
 import { randomUUID, randomBytes, scryptSync, timingSafeEqual } from 'crypto';
 import { 
   Product, 
+  ProductCategory,
   BusinessPost, 
   ShipmentTracking, 
   QuotationRequest, 
@@ -18,6 +19,9 @@ const INITIAL_SHIPMENTS: ShipmentTracking[] = [];
 const INITIAL_QUOTATIONS: QuotationRequest[] = [];
 const INITIAL_BESPOKE: BespokeSourcingRequest[] = [];
 const INITIAL_USERS: User[] = [];
+
+const normalizeCatalogCategory = (category: string): ProductCategory =>
+  category === 'Fabric' ? 'Homeware' : category as ProductCategory;
 
 const parseJsonColumn = <T>(value: unknown, fallback: T): T => {
   if (value === null || value === undefined) return fallback;
@@ -211,7 +215,7 @@ class MariaDbStore {
         name: r.name,
         price: r.price,
         rating: r.rating,
-        category: r.category as any,
+        category: normalizeCatalogCategory(r.category),
         image: r.image,
         isNew: r.isNew ?? true,
         sku: r.sku,
@@ -243,7 +247,7 @@ class MariaDbStore {
         name: r.name,
         price: r.price,
         rating: r.rating,
-        category: r.category as any,
+        category: normalizeCatalogCategory(r.category),
         image: r.image,
         isNew: r.isNew ?? true,
         sku: r.sku,
@@ -343,7 +347,7 @@ class MariaDbStore {
         title: r.title,
         description: r.description || '',
         image: r.image,
-        category: r.category,
+        category: normalizeCatalogCategory(r.category),
         timestamp: Number(r.timestamp) || Date.now(),
         price: r.price ?? undefined,
         stockCount: r.stockCount ?? undefined,
@@ -401,7 +405,7 @@ class MariaDbStore {
         title: r.title,
         description: r.description || '',
         image: r.image,
-        category: r.category,
+        category: normalizeCatalogCategory(r.category),
         timestamp: Number(r.timestamp) || Date.now(),
         price: r.price ?? undefined,
         stockCount: r.stockCount ?? undefined,

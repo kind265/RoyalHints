@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrowRight, BookOpen, Layers, Scissors, Wrench } from 'lucide-react';
+import { ArrowRight, BookOpen, House, Scissors, Wrench } from 'lucide-react';
 import { ProductCategory } from '../types';
 
 interface HomeSectionsProps {
@@ -11,8 +11,8 @@ const HomeSections: React.FC<HomeSectionsProps> = ({ onNavigate, onSelectCategor
   const categories = [
     ['Books', 'Knowledge, stories, and useful reads.', BookOpen],
     ['Spare Parts', 'Practical components for the work ahead.', Wrench],
-    ['Fabric', 'Materials for making something lasting.', Layers],
-    ['Fashion', 'Considered pieces for everyday expression.', Scissors]
+    ['Fashion', 'Considered pieces for everyday expression.', Scissors],
+    ['Homeware', 'Thoughtful essentials for your home.', House]
   ] as const;
   return (
     <section className="relative overflow-hidden border-b border-blue-100 bg-[#eff6ff] px-4 py-12 sm:px-10 sm:py-20 lg:px-24">
@@ -42,7 +42,7 @@ const HomeSections: React.FC<HomeSectionsProps> = ({ onNavigate, onSelectCategor
 
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
-                  <p className="text-[8px] font-black uppercase tracking-[.18em] text-[#2563EB] sm:text-[9px] sm:tracking-[.2em]">{title === 'Books' ? 'Essential picks' : title === 'Fashion' ? 'Best value' : title === 'Fabric' ? 'Premium materials' : 'Practical choice'}</p>
+                  <p className="text-[8px] font-black uppercase tracking-[.18em] text-[#2563EB] sm:text-[9px] sm:tracking-[.2em]">{title === 'Books' ? 'Essential picks' : title === 'Fashion' ? 'Best value' : title === 'Homeware' ? 'Home essentials' : 'Practical choice'}</p>
                   <h3 className="mt-1 text-base font-black text-[#172033] sm:text-lg">{title}</h3>
                   <p className="mt-1 hidden max-w-[180px] text-[11px] leading-5 text-slate-500 sm:block">{description}</p>
                 </div>

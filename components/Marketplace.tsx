@@ -66,9 +66,9 @@ const Marketplace: React.FC<MarketplaceProps> = ({ posts, user, onAddReview, onN
     'All', 
     'New Arrivals',
     'Books', 
-    'Spare Parts', 
-    'Fabric', 
-    'Fashion'
+    'Spare Parts',
+    'Fashion',
+    'Homeware'
   ];
 
   // Helper to check if a post was created within the last 48 hours
@@ -625,7 +625,7 @@ const Marketplace: React.FC<MarketplaceProps> = ({ posts, user, onAddReview, onN
                   >
                     <option value="Books">Books</option>
                     <option value="Spare Parts">Spare Parts</option>
-                    <option value="Fabric">Fabric</option>
+                    <option value="Homeware">Homeware</option>
                     <option value="Fashion">Fashion</option>
                     <option value="Industrial & Bespoke">Industrial & Bespoke</option>
                   </select>

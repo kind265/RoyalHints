@@ -10,7 +10,7 @@ export const COLORS = {
   softGrey: '#F8F9FA',
 };
 
-export const CATEGORIES = ['Books', 'Spare Parts', 'Fabric', 'Fashion'] as const;
+export const CATEGORIES = ['Books', 'Spare Parts', 'Fashion', 'Homeware'] as const;
 
 export const PRODUCTS: Product[] = [];
 
@@ -60,21 +60,21 @@ export const GALLERY_PHOTO_PRESETS = [
     url: 'https://images.unsplash.com/photo-1504917599217-d4dc5ebe6122?auto=format&fit=crop&q=80&w=800'
   },
   {
-    id: 'ph-fb-1',
-    title: 'Grade 6A Mulberry Silk Yardage',
-    category: 'Fabric',
+    id: 'ph-hw-1',
+    title: 'Decorative Homeware Collection',
+    category: 'Homeware',
     url: 'https://images.unsplash.com/photo-1607083206869-4c7672e72a8a?auto=format&fit=crop&q=80&w=800'
   },
   {
-    id: 'ph-fb-2',
-    title: 'Artisanal Cashmere & Wool Tweed',
-    category: 'Fabric',
+    id: 'ph-hw-2',
+    title: 'Artisanal Home Decor',
+    category: 'Homeware',
     url: 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?auto=format&fit=crop&q=80&w=800'
   },
   {
-    id: 'ph-fb-3',
-    title: 'Heavyweight Egyptian Linen Bolt',
-    category: 'Fabric',
+    id: 'ph-hw-3',
+    title: 'Handcrafted Homeware',
+    category: 'Homeware',
     url: 'https://images.unsplash.com/photo-1528459801416-a9e53bbf4e17?auto=format&fit=crop&q=80&w=800'
   },
   {
@@ -104,4 +104,3 @@ export const GALLERY_PHOTO_PRESETS = [
 ];
 
 export const INITIAL_MARKETPLACE_POSTS: BusinessPost[] = [];
-

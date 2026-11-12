@@ -33,8 +33,8 @@ interface ShopByQuotationProps {
 const QUOTATION_CATEGORIES: (ProductCategory | 'Industrial & Bespoke')[] = [
   'Books',
   'Spare Parts',
-  'Fabric',
-  'Fashion'
+  'Fashion',
+  'Homeware'
 ];
 
 export const ShopByQuotation: React.FC<ShopByQuotationProps> = ({
@@ -97,7 +97,7 @@ export const ShopByQuotation: React.FC<ShopByQuotationProps> = ({
     switch (cat) {
       case 'Books': return <BookOpen className="h-4 w-4" />;
       case 'Spare Parts': return <Wrench className="h-4 w-4" />;
-      case 'Fabric': return <Layers className="h-4 w-4" />;
+      case 'Homeware': return <Layers className="h-4 w-4" />;
       case 'Fashion': return <Shirt className="h-4 w-4" />;
       default: return <Zap className="h-4 w-4" />;
     }
@@ -147,7 +147,7 @@ export const ShopByQuotation: React.FC<ShopByQuotationProps> = ({
           </div>
           <h2 className="text-2xl sm:text-4xl font-black tracking-tight text-[#1A1A1A]">Shop by Quotation</h2>
           <p className="text-gray-400 font-light text-xs sm:text-base mt-1">
-            Request official price quotations, bulk production runs, technical fabric mill orders, and custom spare part batches.
+            Request official price quotations, bulk orders, homeware collections, and custom spare part batches.
           </p>
         </div>
 

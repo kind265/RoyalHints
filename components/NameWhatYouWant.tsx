@@ -38,8 +38,8 @@ interface NameWhatYouWantProps {
 const SOURCING_CATEGORIES = [
   'Books',
   'Spare Parts',
-  'Fabric',
   'Fashion',
+  'Homeware',
   'Other Collection'
 ];
 
@@ -151,7 +151,7 @@ export const NameWhatYouWant: React.FC<NameWhatYouWantProps> = ({
           </div>
           <h2 className="text-2xl sm:text-4xl font-black tracking-tight text-[#1A1A1A]">Name What You Want</h2>
           <p className="text-gray-400 font-light text-xs sm:text-base mt-1">
-            Tell our Marketing Desk exactly what item, custom part, or fabric you desire.
+            Tell our Marketing Desk exactly what item, custom part, or homeware you need.
           </p>
         </div>
 

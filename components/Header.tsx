@@ -84,7 +84,7 @@ const Header: React.FC<HeaderProps> = ({
 
   const isAdmin = user?.role === 'admin' || user?.isAdmin || user?.email?.toLowerCase() === 'ruthmhone8@gmail.com' || user?.email?.toLowerCase() === 'chikusehopeson@gmail.com';
 
-  const categoriesList: ProductCategory[] = ['Books', 'Spare Parts', 'Fabric', 'Fashion'];
+  const categoriesList: ProductCategory[] = ['Books', 'Spare Parts', 'Fashion', 'Homeware'];
 
   const dashboardNavLinks = [
     { id: 'account', icon: UserIcon, label: 'My Profile' },
@@ -128,7 +128,7 @@ const Header: React.FC<HeaderProps> = ({
         return <BookOpen className={className} />;
       case 'Spare Parts':
         return <Wrench className={className} />;
-      case 'Fabric':
+      case 'Homeware':
         return <Layers className={className} />;
       case 'Fashion':
         return <Shirt className={className} />;

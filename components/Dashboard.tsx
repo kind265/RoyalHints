@@ -78,8 +78,8 @@ interface DashboardProps {
 const BUSINESS_CATEGORIES = [
   'Books',
   'Spare Parts',
-  'Fabric',
   'Fashion',
+  'Homeware',
   'Other Collections'
 ];
 
@@ -959,7 +959,7 @@ const Dashboard: React.FC<DashboardProps> = ({
                       <textarea 
                         className="w-full p-4 sm:p-5 bg-white rounded-xl text-[#1A1A1A] border border-gray-200 focus:border-[#2563EB] focus:outline-none font-medium text-xs sm:text-sm h-28 sm:h-32 resize-none leading-relaxed" 
                         placeholder="Define your place in the Royal Hints world..."
-                        defaultValue="Collector of rare architectural folios and older luxury fabrics. Valued member of the Royal Hints Guild."
+                        defaultValue="Collector of rare architectural folios and considered homeware. Valued member of the Royal Hints Guild."
                       />
                     </div>
                   </div>
@@ -1859,7 +1859,7 @@ const Dashboard: React.FC<DashboardProps> = ({
             {/* Category tabs & Upload shortcut */}
             <div className="flex flex-wrap items-center justify-between gap-2 shrink-0">
               <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-1">
-                {['All', 'Books', 'Spare Parts', 'Fabric', 'Fashion', 'Industrial & older'].map((tab) => (
+                {['All', 'Books', 'Spare Parts', 'Fashion', 'Homeware', 'Industrial & older'].map((tab) => (
                   <button
                     key={tab}
                     onClick={() => setPhotoModalTab(tab)}

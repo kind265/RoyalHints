@@ -525,7 +525,7 @@ export const AdminAnalytics: React.FC<AdminAnalyticsProps> = ({
               <option value="All">All Categories</option>
               <option value="Books">Books</option>
               <option value="Spare Parts">Spare Parts</option>
-              <option value="Fabric">Fabric</option>
+              <option value="Homeware">Homeware</option>
               <option value="Fashion">Fashion</option>
             </select>
           </div>
