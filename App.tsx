@@ -1,22 +1,22 @@
-import React, { useState, useEffect } from 'react';
+import React, { lazy, Suspense, useState, useEffect } from 'react';
 import Header from './components/Header';
 import Hero from './components/Hero';
 import TrendingGrid from './components/TrendingGrid';
 import HomeSections from './components/HomeSections';
-import Footer from './components/Footer';
-import AdminLogin from './components/AdminLogin';
-import Dashboard from './components/Dashboard';
-import Marketplace from './components/Marketplace';
-import Checkout from './components/Checkout';
-import ProductDetail from './components/ProductDetail';
-import AboutPage from './components/AboutPage';
-import ContactPage from './components/ContactPage';
-import PublicLookupPage from './components/PublicLookupPage';
 import FreshStock from './components/FreshStock';
 import QualitySection from './components/QualitySection';
-import LegalPage from './components/LegalPage';
-import DeliveryQrConfirmation from './components/DeliveryQrConfirmation';
-import NewItemNotifications from './components/NewItemNotifications';
+const Footer = lazy(() => import('./components/Footer'));
+const AdminLogin = lazy(() => import('./components/AdminLogin'));
+const Dashboard = lazy(() => import('./components/Dashboard'));
+const Marketplace = lazy(() => import('./components/Marketplace'));
+const Checkout = lazy(() => import('./components/Checkout'));
+const ProductDetail = lazy(() => import('./components/ProductDetail'));
+const AboutPage = lazy(() => import('./components/AboutPage'));
+const ContactPage = lazy(() => import('./components/ContactPage'));
+const PublicLookupPage = lazy(() => import('./components/PublicLookupPage'));
+const LegalPage = lazy(() => import('./components/LegalPage'));
+const DeliveryQrConfirmation = lazy(() => import('./components/DeliveryQrConfirmation'));
+const NewItemNotifications = lazy(() => import('./components/NewItemNotifications'));
 import { Bot, MessageCircle } from 'lucide-react';
 import { 
   User, 
@@ -113,8 +113,6 @@ const App: React.FC = () => {
       }
     };
 
-    pingBackend();
-
     const keepAliveTimer = window.setInterval(() => {
       pingBackend();
     }, KEEPALIVE_INTERVAL_MS);
@@ -167,6 +165,19 @@ const App: React.FC = () => {
       setCatalogUnavailable(results.some(result => result.status === 'rejected'));
     };
 
+    syncCatalog();
+
+    const refreshTimer = window.setInterval(() => {
+      syncCatalog();
+    }, 5 * 60 * 1000);
+
+    return () => window.clearInterval(refreshTimer);
+  }, []);
+
+  useEffect(() => {
+    if (!user || currentPage !== 'Dashboard') return;
+
+    let active = true;
     const syncOtherData = async () => {
       try {
         const [fetchedShipments, fetchedQuotations, fetchedBespoke] = await Promise.all([
@@ -175,6 +186,7 @@ const App: React.FC = () => {
           apiClient.getBespokeRequests()
         ]);
 
+        if (!active) return;
         if (Array.isArray(fetchedShipments)) setShipments(fetchedShipments);
         if (Array.isArray(fetchedQuotations)) setQuotations(fetchedQuotations);
         if (Array.isArray(fetchedBespoke)) setBespokeRequests(fetchedBespoke);
@@ -183,16 +195,13 @@ const App: React.FC = () => {
       }
     };
 
-    syncCatalog();
     syncOtherData();
-
-    const refreshTimer = window.setInterval(() => {
-      syncCatalog();
-      syncOtherData();
-    }, 5 * 60 * 1000);
-
-    return () => window.clearInterval(refreshTimer);
-  }, []);
+    const refreshTimer = window.setInterval(syncOtherData, 5 * 60 * 1000);
+    return () => {
+      active = false;
+      window.clearInterval(refreshTimer);
+    };
+  }, [user, currentPage]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -560,6 +569,7 @@ const App: React.FC = () => {
       )}
       
       <main className={currentPage === 'Checkout' ? 'pt-0' : 'pt-20 sm:pt-24'}>
+        <Suspense fallback={<div className="min-h-[40vh]" aria-label="Loading page" />}>
         {selectedProduct ? (
           <div className="animate-in fade-in duration-500">
             <ProductDetail
@@ -706,6 +716,7 @@ const App: React.FC = () => {
             {currentPage === 'DeliveryConfirmation' && <DeliveryQrConfirmation token={deliveryQrToken} />}
           </>
         )}
+        </Suspense>
       </main>
 
       <div className="fixed right-4 top-1/2 z-[60] flex -translate-y-1/2 flex-col gap-3">
@@ -713,9 +724,17 @@ const App: React.FC = () => {
         <button type="button" aria-label="Open Royal Hints assistant" title="Open assistant" className="flex h-12 w-12 items-center justify-center rounded-full bg-[#2563EB] text-white shadow-lg shadow-blue-900/25 transition hover:scale-105 hover:bg-[#1d4ed8]"><Bot className="h-6 w-6" /></button>
       </div>
 
-      {currentPage === 'Home' && <NewItemNotifications />}
+      {currentPage === 'Home' && (
+        <Suspense fallback={null}>
+          <NewItemNotifications />
+        </Suspense>
+      )}
 
-      {['Home', 'Marketplace', 'Dashboard', 'About', 'Contact', 'OrderTracking', 'CompletePayment', 'Terms', 'Privacy'].includes(currentPage) && <Footer onNavigate={navigateTo} />}
+      {['Home', 'Marketplace', 'Dashboard', 'About', 'Contact', 'OrderTracking', 'CompletePayment', 'Terms', 'Privacy'].includes(currentPage) && (
+        <Suspense fallback={null}>
+          <Footer onNavigate={navigateTo} />
+        </Suspense>
+      )}
     </div>
   );
 };

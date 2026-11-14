@@ -5,6 +5,8 @@ import { BusinessPost } from '../types';
 export const postsRouter = Router();
 
 let postCatalogCache: { posts: BusinessPost[]; expiresAt: number } | null = null;
+let postCatalogLoad: Promise<BusinessPost[]> | null = null;
+let postCatalogVersion = 0;
 const POST_CACHE_TTL_MS = 30_000;
 
 // GET all business posts
@@ -12,13 +14,25 @@ postsRouter.get('/', async (req: Request, res: Response) => {
   try {
     const { category, userId } = req.query;
     const now = Date.now();
-    if (!postCatalogCache || postCatalogCache.expiresAt <= now) {
-      postCatalogCache = {
-        posts: await databaseStore.getPosts(),
-        expiresAt: now + POST_CACHE_TTL_MS
-      };
+    let posts: BusinessPost[];
+    if (postCatalogCache && postCatalogCache.expiresAt > now) {
+      posts = postCatalogCache.posts;
+    } else {
+      if (!postCatalogLoad) postCatalogLoad = databaseStore.getPosts();
+      const currentLoad = postCatalogLoad;
+      const currentVersion = postCatalogVersion;
+      try {
+        posts = await currentLoad;
+        if (currentVersion === postCatalogVersion) {
+          postCatalogCache = {
+            posts,
+            expiresAt: Date.now() + POST_CACHE_TTL_MS
+          };
+        }
+      } finally {
+        if (postCatalogLoad === currentLoad) postCatalogLoad = null;
+      }
     }
-    let posts = postCatalogCache.posts;
 
     if (category && typeof category === 'string') {
       posts = posts.filter(p => p.category.toLowerCase() === category.toLowerCase());
@@ -41,7 +55,9 @@ postsRouter.get('/', async (req: Request, res: Response) => {
 });
 
 const invalidatePostCatalogCache = () => {
+  postCatalogVersion += 1;
   postCatalogCache = null;
+  postCatalogLoad = null;
 };
 
 // POST a new venture listing / post

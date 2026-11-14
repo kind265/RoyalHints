@@ -5,6 +5,8 @@ import { Product } from '../types';
 export const productsRouter = Router();
 
 let productCatalogCache: { products: Product[]; expiresAt: number } | null = null;
+let productCatalogLoad: Promise<Product[]> | null = null;
+let productCatalogVersion = 0;
 const PRODUCT_CACHE_TTL_MS = 30_000;
 
 // GET all products or filter by category / search
@@ -12,13 +14,25 @@ productsRouter.get('/', async (req: Request, res: Response) => {
   try {
     const { category, search } = req.query;
     const now = Date.now();
-    if (!productCatalogCache || productCatalogCache.expiresAt <= now) {
-      productCatalogCache = {
-        products: await databaseStore.getProducts(),
-        expiresAt: now + PRODUCT_CACHE_TTL_MS
-      };
+    let products: Product[];
+    if (productCatalogCache && productCatalogCache.expiresAt > now) {
+      products = productCatalogCache.products;
+    } else {
+      if (!productCatalogLoad) productCatalogLoad = databaseStore.getProducts();
+      const currentLoad = productCatalogLoad;
+      const currentVersion = productCatalogVersion;
+      try {
+        products = await currentLoad;
+        if (currentVersion === productCatalogVersion) {
+          productCatalogCache = {
+            products,
+            expiresAt: Date.now() + PRODUCT_CACHE_TTL_MS
+          };
+        }
+      } finally {
+        if (productCatalogLoad === currentLoad) productCatalogLoad = null;
+      }
     }
-    let products = productCatalogCache.products;
 
     if (category && typeof category === 'string' && category !== 'All') {
       products = products.filter(p => p.category.toLowerCase() === category.toLowerCase());
@@ -46,7 +60,9 @@ productsRouter.get('/', async (req: Request, res: Response) => {
 });
 
 export const invalidateProductCatalogCache = () => {
+  productCatalogVersion += 1;
   productCatalogCache = null;
+  productCatalogLoad = null;
 };
 
 // GET product by ID

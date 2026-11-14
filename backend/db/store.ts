@@ -67,7 +67,6 @@ class MariaDbStore {
 
       const connection = await pool.getConnection();
       connection.release();
-      await pool.query('SELECT 1');
       console.log('MariaDB connected');
 
       await this.ensureSchema();
