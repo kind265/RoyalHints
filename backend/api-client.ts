@@ -77,10 +77,13 @@ export const apiClient = {
       if (search) params.append('search', search);
       const res = await fetch(`${API_BASE}/products?${params.toString()}`);
       const json = await res.json();
-      return json.success ? json.data : [];
+      if (!res.ok || !json.success || !Array.isArray(json.data)) {
+        throw new Error(json.message || 'Could not load products.');
+      }
+      return json.data;
     } catch (err) {
       console.error('Fetch products error:', err);
-      return [];
+      throw err;
     }
   },
 
@@ -131,10 +134,13 @@ export const apiClient = {
       const params = category ? `?category=${encodeURIComponent(category)}` : '';
       const res = await fetch(`${API_BASE}/posts${params}`);
       const json = await res.json();
-      return json.success ? json.data : [];
+      if (!res.ok || !json.success || !Array.isArray(json.data)) {
+        throw new Error(json.message || 'Could not load marketplace listings.');
+      }
+      return json.data;
     } catch (err) {
       console.error('Fetch posts error:', err);
-      return [];
+      throw err;
     }
   },
 

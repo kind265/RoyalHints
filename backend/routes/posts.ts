@@ -35,7 +35,8 @@ postsRouter.get('/', async (req: Request, res: Response) => {
       data: posts
     });
   } catch (error: any) {
-    res.status(500).json({ success: false, message: error.message });
+    console.error('Marketplace catalog request failed:', error);
+    res.status(503).json({ success: false, message: 'Marketplace catalog is temporarily unavailable.' });
   }
 });
 

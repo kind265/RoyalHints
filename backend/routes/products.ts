@@ -40,7 +40,8 @@ productsRouter.get('/', async (req: Request, res: Response) => {
       data: products
     });
   } catch (error: any) {
-    res.status(500).json({ success: false, message: error.message });
+    console.error('Product catalog request failed:', error);
+    res.status(503).json({ success: false, message: 'Product catalog is temporarily unavailable.' });
   }
 });
 

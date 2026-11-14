@@ -87,6 +87,7 @@ const App: React.FC = () => {
   const [products, setProducts] = useState<Product[]>(() => {
     return [];
   });
+  const [catalogUnavailable, setCatalogUnavailable] = useState(false);
 
   // Tracking, Quotations, and Bespoke Requests State
   const [shipments, setShipments] = useState<ShipmentTracking[]>(() => {
@@ -144,9 +145,26 @@ const App: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    const syncCatalog = () => {
-      apiClient.getPosts().then(setPosts);
-      apiClient.getProducts().then(setProducts);
+    const syncCatalog = async () => {
+      const results = await Promise.allSettled([
+        apiClient.getPosts(),
+        apiClient.getProducts()
+      ]);
+      const [postsResult, productsResult] = results;
+
+      if (postsResult.status === 'fulfilled') {
+        setPosts(postsResult.value);
+      } else {
+        console.warn('Marketplace catalog sync failed:', postsResult.reason);
+      }
+
+      if (productsResult.status === 'fulfilled') {
+        setProducts(productsResult.value);
+      } else {
+        console.warn('Product catalog sync failed:', productsResult.reason);
+      }
+
+      setCatalogUnavailable(results.some(result => result.status === 'rejected'));
     };
 
     const syncOtherData = async () => {
@@ -588,6 +606,11 @@ const App: React.FC = () => {
                 )}
                 <Hero onNavigate={navigateTo} />
                 <HomeSections onNavigate={navigateTo} onSelectCategory={setSelectedCategory} />
+                {catalogUnavailable && (
+                  <div role="alert" className="mx-auto max-w-6xl px-4 py-4 text-sm text-red-800">
+                    The catalogue is temporarily unavailable. Please try again shortly.
+                  </div>
+                )}
                 <TrendingGrid 
                   onSelectProduct={handleSelectProduct}
                   onAddToCart={addToCart} 
@@ -644,6 +667,11 @@ const App: React.FC = () => {
 
             {currentPage === 'Marketplace' && (
               <div className="animate-in fade-in duration-700">
+                {catalogUnavailable && (
+                  <div role="alert" className="mx-auto max-w-6xl px-4 pt-4 text-sm text-red-800">
+                    The marketplace catalogue is temporarily unavailable. Please try again shortly.
+                  </div>
+                )}
                 <Marketplace 
                   posts={posts} 
                   user={user} 

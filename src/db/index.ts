@@ -4,10 +4,8 @@ import * as dotenv from 'dotenv';
 import path from 'path';
 import * as schema from './schema';
 
-if (process.env.NODE_ENV !== 'production') {
-  dotenv.config({ path: path.resolve(process.cwd(), 'backend/.env') });
-  dotenv.config();
-}
+dotenv.config({ path: path.resolve(process.cwd(), 'backend/.env') });
+dotenv.config();
 
 declare global {
   var _mariaDbPool: Pool | undefined;

@@ -8,8 +8,7 @@
     "build": "vite build && esbuild server.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/server.cjs",
     "start": "node dist/server.cjs",
     "db:backup": "tsx scripts/database-backup.ts backup",
-    "db:restore": "tsx scripts/database-backup.ts restore",
-    "db:migrate:postgres": "tsx scripts/migrate-postgres-to-mariadb.ts"
+    "db:restore": "tsx scripts/database-backup.ts restore"
   },
   "dependencies": {
     "compression": "^1.8.2",
@@ -34,7 +33,6 @@
     "@vitejs/plugin-react": "^5.0.0",
     "drizzle-kit": "^0.18.1",
     "esbuild": "^0.28.2",
-    "pg": "^8.23.1",
     "tsx": "^4.23.12",
     "typescript": "~5.8.2",
     "vite": "^6.2.0"

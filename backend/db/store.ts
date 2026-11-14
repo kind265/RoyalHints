@@ -232,7 +232,7 @@ class MariaDbStore {
       }));
     } catch (error) {
       console.error('MariaDB getProducts error:', error);
-      return [];
+      throw error;
     }
   }
 
@@ -360,7 +360,7 @@ class MariaDbStore {
       }));
     } catch (error) {
       console.error('MariaDB getPosts error:', error);
-      return [];
+      throw error;
     }
   }
 
