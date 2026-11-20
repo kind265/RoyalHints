@@ -17,7 +17,11 @@ export const getCatalogImageDirectory = () =>
   path.resolve(process.env.IMAGE_UPLOAD_DIR || path.join(process.cwd(), 'uploads', 'catalog'));
 
 export const persistCatalogImage = async (image: string): Promise<string> => {
-  if (!image.startsWith('data:')) return image;
+  if (!image.startsWith('data:')) {
+    return image.startsWith('/uploads/catalog/')
+      ? image.replace('/uploads/catalog/', '/api/uploads/catalog/')
+      : image;
+  }
 
   const match = /^data:(image\/(?:avif|gif|jpeg|png|webp));base64,([A-Za-z0-9+/]*={0,2})$/.exec(image);
   if (!match) {
@@ -45,7 +49,7 @@ export const persistCatalogImage = async (image: string): Promise<string> => {
     }
   }
 
-  return `/uploads/catalog/${filename}`;
+  return `/api/uploads/catalog/${filename}`;
 };
 
 export const persistCatalogImages = async (images: string[]): Promise<string[]> =>

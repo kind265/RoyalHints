@@ -22,7 +22,7 @@ export function createBackendApp(): Express {
   // Core Middleware
   app.use(cors());
   app.use(compression());
-  app.use('/uploads/catalog', express.static(getCatalogImageDirectory(), {
+  app.use('/api/uploads/catalog', express.static(getCatalogImageDirectory(), {
     fallthrough: false,
     immutable: true,
     maxAge: '1y'
