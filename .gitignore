@@ -12,7 +12,10 @@ dist
 dist-ssr
 *.local
 /backup/
-/uploads/
+/uploads/*
+!/uploads/catalog/
+/uploads/catalog/*
+!/uploads/catalog/.gitkeep
 
 # Editor directories and files
 .vscode/*
