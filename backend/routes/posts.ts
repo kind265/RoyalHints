@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { databaseStore } from '../db/store';
 import { BusinessPost } from '../types';
+import { CatalogImageValidationError, persistCatalogImage, persistCatalogImages } from '../services/catalog-images';
 
 export const postsRouter = Router();
 
@@ -70,6 +71,10 @@ postsRouter.post('/', async (req: Request, res: Response) => {
         message: 'Post requires title, category, image, and price'
       });
     }
+    if (body.galleryImages !== undefined &&
+      (!Array.isArray(body.galleryImages) || !body.galleryImages.every((image: unknown) => typeof image === 'string'))) {
+      return res.status(400).json({ success: false, message: 'Post gallery images must be a list of image URLs.' });
+    }
 
     const newPost: BusinessPost = {
       id: body.id || `post-${Date.now()}`,
@@ -77,7 +82,7 @@ postsRouter.post('/', async (req: Request, res: Response) => {
       userName: body.userName || 'Royal Hints Official',
       title: body.title,
       description: body.description || '',
-      image: body.image,
+      image: await persistCatalogImage(body.image),
       category: body.category,
       timestamp: body.timestamp || Date.now(),
       price: body.price !== undefined && body.price !== '' ? Number(body.price) : 0,
@@ -86,7 +91,7 @@ postsRouter.post('/', async (req: Request, res: Response) => {
       condition: body.condition,
       location: body.location,
       dispatchTime: body.dispatchTime,
-      galleryImages: Array.isArray(body.galleryImages) ? body.galleryImages : [],
+      galleryImages: await persistCatalogImages(body.galleryImages || []),
       reviews: body.reviews || []
     };
 
@@ -97,6 +102,9 @@ postsRouter.post('/', async (req: Request, res: Response) => {
     });
     res.status(201).json({ success: true, message: 'Post published to MariaDB', data: created });
   } catch (error: any) {
+    if (error instanceof CatalogImageValidationError) {
+      return res.status(400).json({ success: false, message: error.message });
+    }
     res.status(500).json({ success: false, message: error.message });
   }
 });
@@ -117,13 +125,28 @@ postsRouter.get('/:id', async (req: Request, res: Response) => {
 // PUT update post
 postsRouter.put('/:id', async (req: Request, res: Response) => {
   try {
-    const updated = await databaseStore.updatePost(String(req.params.id), req.body);
+    const updates = { ...req.body };
+    if (typeof updates.image === 'string') {
+      updates.image = await persistCatalogImage(updates.image);
+    }
+    if (updates.galleryImages !== undefined) {
+      if (!Array.isArray(updates.galleryImages) ||
+        !updates.galleryImages.every((image: unknown) => typeof image === 'string')) {
+        return res.status(400).json({ success: false, message: 'Post gallery images must be a list of image URLs.' });
+      }
+      updates.galleryImages = await persistCatalogImages(updates.galleryImages);
+    }
+
+    const updated = await databaseStore.updatePost(String(req.params.id), updates);
     if (!updated) {
       return res.status(404).json({ success: false, message: 'Post not found for update' });
     }
     invalidatePostCatalogCache();
     res.json({ success: true, message: 'Post updated in MariaDB', data: updated });
   } catch (error: any) {
+    if (error instanceof CatalogImageValidationError) {
+      return res.status(400).json({ success: false, message: error.message });
+    }
     res.status(500).json({ success: false, message: error.message });
   }
 });

@@ -12,6 +12,7 @@ dist
 dist-ssr
 *.local
 /backup/
+/uploads/
 
 # Editor directories and files
 .vscode/*

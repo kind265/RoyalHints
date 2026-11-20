@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { databaseStore } from '../db/store';
 import { Product } from '../types';
+import { CatalogImageValidationError, persistCatalogImage, persistCatalogImages } from '../services/catalog-images';
 
 export const productsRouter = Router();
 
@@ -88,6 +89,10 @@ productsRouter.post('/', async (req: Request, res: Response) => {
         message: 'Missing required product attributes (name, category, price, image)' 
       });
     }
+    if (body.galleryImages !== undefined &&
+      (!Array.isArray(body.galleryImages) || !body.galleryImages.every((image: unknown) => typeof image === 'string'))) {
+      return res.status(400).json({ success: false, message: 'Product gallery images must be a list of image URLs.' });
+    }
 
     const newProduct: Product = {
       id: body.id || `prod-${Date.now()}`,
@@ -95,7 +100,7 @@ productsRouter.post('/', async (req: Request, res: Response) => {
       price: Number(body.price),
       rating: body.rating || 5.0,
       category: body.category,
-      image: body.image,
+      image: await persistCatalogImage(body.image),
       isNew: body.isNew ?? true,
       sku: body.sku || `RH-${body.category.substring(0, 2).toUpperCase()}-${Math.floor(1000 + Math.random() * 9000)}`,
       inStock: body.inStock ?? true,
@@ -107,13 +112,16 @@ productsRouter.post('/', async (req: Request, res: Response) => {
       highlights: body.highlights || [],
       specifications: body.specifications || {},
       variants: body.variants || [],
-      galleryImages: body.galleryImages || []
+      galleryImages: await persistCatalogImages(body.galleryImages || [])
     };
 
     const created = await databaseStore.createProduct(newProduct);
     invalidateProductCatalogCache();
     res.status(201).json({ success: true, message: 'Product created successfully in MariaDB', data: created });
   } catch (error: any) {
+    if (error instanceof CatalogImageValidationError) {
+      return res.status(400).json({ success: false, message: error.message });
+    }
     res.status(500).json({ success: false, message: error.message });
   }
 });
@@ -121,13 +129,28 @@ productsRouter.post('/', async (req: Request, res: Response) => {
 // PUT update product
 productsRouter.put('/:id', async (req: Request, res: Response) => {
   try {
-    const updated = await databaseStore.updateProduct(String(req.params.id), req.body);
+    const updates = { ...req.body };
+    if (typeof updates.image === 'string') {
+      updates.image = await persistCatalogImage(updates.image);
+    }
+    if (updates.galleryImages !== undefined) {
+      if (!Array.isArray(updates.galleryImages) ||
+        !updates.galleryImages.every((image: unknown) => typeof image === 'string')) {
+        return res.status(400).json({ success: false, message: 'Product gallery images must be a list of image URLs.' });
+      }
+      updates.galleryImages = await persistCatalogImages(updates.galleryImages);
+    }
+
+    const updated = await databaseStore.updateProduct(String(req.params.id), updates);
     if (!updated) {
       return res.status(404).json({ success: false, message: 'Product not found for update' });
     }
     invalidateProductCatalogCache();
     res.json({ success: true, message: 'Product updated successfully in MariaDB', data: updated });
   } catch (error: any) {
+    if (error instanceof CatalogImageValidationError) {
+      return res.status(400).json({ success: false, message: error.message });
+    }
     res.status(500).json({ success: false, message: error.message });
   }
 });
